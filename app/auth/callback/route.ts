@@ -1,8 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { getRedirectOrigin } from "@/lib/auth";
+import { DEFAULT_POST_AUTH_PATH, getRedirectOrigin } from "@/lib/auth";
 
-const DEFAULT_POST_AUTH_PATH = "/create";
+export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
   }
 
   if (oauthError) {
+    console.error("[auth/callback] OAuth error:", oauthError, oauthErrorDescription);
     const loginUrl = new URL("/login", origin);
     loginUrl.searchParams.set("error", "oauth_error");
     if (oauthErrorDescription) {
@@ -26,38 +27,48 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (code) {
-    let response = NextResponse.redirect(`${origin}${next}`);
-
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll();
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value }) =>
-              request.cookies.set(name, value)
-            );
-            response = NextResponse.redirect(`${origin}${next}`);
-            cookiesToSet.forEach(({ name, value, options }) =>
-              response.cookies.set(name, value, options)
-            );
-          },
-        },
-      }
-    );
-
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-
-    if (!error) {
-      return response;
-    }
+  if (!code) {
+    console.error("[auth/callback] Missing code parameter");
+    const loginUrl = new URL("/login", origin);
+    loginUrl.searchParams.set("error", "auth_callback_error");
+    return NextResponse.redirect(loginUrl);
   }
 
-  const loginUrl = new URL("/login", origin);
-  loginUrl.searchParams.set("error", "auth_callback_error");
-  return NextResponse.redirect(loginUrl);
+  let response = NextResponse.redirect(new URL(next, origin));
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          );
+          response = NextResponse.redirect(new URL(next, origin));
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          );
+        },
+      },
+    }
+  );
+
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+  if (error) {
+    console.error(
+      "[auth/callback] exchangeCodeForSession failed:",
+      error.message,
+      error.status
+    );
+    const loginUrl = new URL("/login", origin);
+    loginUrl.searchParams.set("error", "auth_callback_error");
+    return NextResponse.redirect(loginUrl);
+  }
+
+  return response;
 }

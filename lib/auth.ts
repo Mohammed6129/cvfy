@@ -47,13 +47,17 @@ export function mapAuthError(message: string): string {
   return "فشل تسجيل الدخول بواسطة Google. يرجى المحاولة مرة أخرى.";
 }
 
-/** Post-OAuth redirect base URL — always uses NEXT_PUBLIC_SITE_URL when configured. */
-export function getRedirectOrigin(request: Request, requestUrl: URL): string {
+/** Post-OAuth redirect base URL — prefers NEXT_PUBLIC_SITE_URL, then request origin on HTTPS. */
+export function getRedirectOrigin(_request: Request, requestUrl: URL): string {
   if (process.env.NEXT_PUBLIC_SITE_URL) {
     return getSiteUrl();
   }
 
   if (process.env.NODE_ENV === "development") {
+    return requestUrl.origin;
+  }
+
+  if (requestUrl.protocol === "https:") {
     return requestUrl.origin;
   }
 

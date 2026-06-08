@@ -3,9 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { signInWithGoogle } from "@/app/login/actions";
 import PhoneOtpForm from "@/app/login/phone-otp-form";
-import { DEFAULT_POST_AUTH_PATH, mapAuthError } from "@/lib/auth";
+import { DEFAULT_POST_AUTH_PATH, getAuthCallbackUrl, mapAuthError } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/client";
 
 type AuthMode = "login" | "signup";
@@ -135,22 +134,35 @@ export default function LoginForm({
     setLoading(true);
     setError(null);
 
-    try {
-      const result = await signInWithGoogle(nextPath);
-      if (result?.url) {
-        window.location.assign(result.url);
-        return;
-      }
-      setError("تعذر بدء تسجيل الدخول عبر Google.");
+    const redirectTo =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`
+        : getAuthCallbackUrl(nextPath);
+
+    const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo,
+        queryParams: {
+          access_type: "offline",
+          prompt: "consent",
+        },
+      },
+    });
+
+    if (oauthError) {
+      setError(mapAuthError(oauthError.message));
       setLoading(false);
-    } catch (oauthError) {
-      const message =
-        oauthError instanceof Error
-          ? oauthError.message
-          : "فشل تسجيل الدخول بواسطة Google. يرجى المحاولة مرة أخرى.";
-      setError(message);
-      setLoading(false);
+      return;
     }
+
+    if (data.url) {
+      window.location.assign(data.url);
+      return;
+    }
+
+    setError("تعذر بدء تسجيل الدخول عبر Google.");
+    setLoading(false);
   };
 
   return (
