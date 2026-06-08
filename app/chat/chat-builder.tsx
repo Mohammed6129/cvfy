@@ -1,0 +1,475 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { chatAnswersToFormData } from "@/lib/chat-to-cv-form";
+import {
+  CURRENT_CV_ID_KEY,
+  STORAGE_KEY,
+  saveCvToAccount,
+} from "@/lib/cv-storage";
+import type { GeneratedCv, Language } from "@/lib/cv-types";
+import { prepareCvPayload } from "@/lib/prepare-cv-payload";
+
+const BRAND = "#378ADD";
+const TOTAL_QUESTIONS = 8;
+
+const REMINDER =
+  "كلما أعطيت تفاصيل أكثر كلما كانت سيرتك أقوى 💡";
+
+type Question = {
+  id: number;
+  label: string;
+  tip: string;
+  placeholder: string;
+  multiline?: boolean;
+  required?: boolean;
+};
+
+const QUESTIONS: Question[] = [
+  {
+    id: 1,
+    label: "ما اسمك الكامل؟",
+    tip: "مثال: محمد عبدالله العمري",
+    placeholder: "اكتب اسمك الكامل",
+    required: true,
+  },
+  {
+    id: 2,
+    label: "ما مسمّاك الوظيفي؟",
+    tip: "مثال: مدير تسويق، مهندس برمجيات",
+    placeholder: "مثال: مدير مشاريع",
+    required: true,
+  },
+  {
+    id: 3,
+    label: "سولف عن خبراتك المهنية - المسمى، الشركة، التواريخ، وش سويت",
+    tip: "مثال: شغلت مدير مشاريع في stc من 2020 لـ 2023، كنت أدير فريق من 5 أشخاص",
+    placeholder: "اكتب خبراتك بالتفصيل...",
+    multiline: true,
+    required: true,
+  },
+  {
+    id: 4,
+    label: "شهادتك الجامعية؟ التخصص، الجامعة، السنة، والمعدل اختياري",
+    tip: "مثال: بكالوريوس إدارة أعمال، جامعة الملك سعود، 2015-2019",
+    placeholder: "اكتب تفاصيل شهادتك...",
+    multiline: true,
+    required: true,
+  },
+  {
+    id: 5,
+    label: "عندك دورات تبي تذكرها؟ أو اكتب لا",
+    tip: "مثال: PMP، Google Analytics، Excel متقدم",
+    placeholder: "اكتب الدورات أو «لا»",
+  },
+  {
+    id: 6,
+    label: "عندك مهارات تقنية؟",
+    tip: "مثال: Excel، PowerPoint، SAP، Photoshop",
+    placeholder: "اكتب مهاراتك مفصولة بفاصلة",
+    required: true,
+  },
+  {
+    id: 7,
+    label: "عرّف نفسك بجملتين بالعامي",
+    tip: "مثال: أنا شخص طموح أحب التحديات عندي خبرة في التسويق",
+    placeholder: "اكتب وصفاً مختصراً عن نفسك...",
+    multiline: true,
+    required: true,
+  },
+];
+
+const LANGUAGE_OPTIONS: {
+  language: Language;
+  label: string;
+  price: string;
+}[] = [
+  { language: "arabic", label: "عربي", price: "69 ر.س" },
+  { language: "english", label: "إنجليزي", price: "69 ر.س" },
+  { language: "both", label: "كلهم", price: "99 ر.س" },
+];
+
+type ChatBuilderProps = {
+  userEmail: string;
+};
+
+type Screen = "welcome" | "question" | "generating";
+
+export default function ChatBuilder({ userEmail }: ChatBuilderProps) {
+  const router = useRouter();
+  const [screen, setScreen] = useState<Screen>("welcome");
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState({
+    name: "",
+    jobTitle: "",
+    experience: "",
+    education: "",
+    courses: "",
+    skills: "",
+    selfDescription: "",
+    language: "" as Language,
+  });
+  const [inputValue, setInputValue] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
+
+  const progress =
+    screen === "question"
+      ? ((questionIndex + 1) / TOTAL_QUESTIONS) * 100
+      : 0;
+
+  const startChat = () => {
+    setScreen("question");
+    setQuestionIndex(0);
+    setInputValue("");
+    setError(null);
+  };
+
+  const saveCurrentAnswer = (): boolean => {
+    const question = QUESTIONS[questionIndex];
+    const value = inputValue.trim();
+
+    if (question.required && !value) {
+      setError("يرجى الإجابة على السؤال للمتابعة.");
+      return false;
+    }
+
+    const keyMap: Record<number, keyof typeof answers> = {
+      0: "name",
+      1: "jobTitle",
+      2: "experience",
+      3: "education",
+      4: "courses",
+      5: "skills",
+      6: "selfDescription",
+    };
+
+    const key = keyMap[questionIndex];
+    if (key) {
+      setAnswers((prev) => ({ ...prev, [key]: value }));
+    }
+
+    setError(null);
+    return true;
+  };
+
+  const goNext = () => {
+    if (!saveCurrentAnswer()) return;
+
+    if (questionIndex < QUESTIONS.length - 1) {
+      const nextIndex = questionIndex + 1;
+      setQuestionIndex(nextIndex);
+      const nextKey = [
+        "name",
+        "jobTitle",
+        "experience",
+        "education",
+        "courses",
+        "skills",
+        "selfDescription",
+      ][nextIndex] as keyof typeof answers;
+      setInputValue(String(answers[nextKey] ?? ""));
+      return;
+    }
+
+    setQuestionIndex(QUESTIONS.length);
+    setInputValue("");
+  };
+
+  const goBack = () => {
+    setError(null);
+    if (questionIndex === 0) {
+      setScreen("welcome");
+      return;
+    }
+    const prevIndex = questionIndex - 1;
+    setQuestionIndex(prevIndex);
+    const prevKey = [
+      "name",
+      "jobTitle",
+      "experience",
+      "education",
+      "courses",
+      "skills",
+      "selfDescription",
+    ][prevIndex] as keyof typeof answers;
+    setInputValue(String(answers[prevKey] ?? ""));
+  };
+
+  const generateCv = async (language: Language) => {
+    setError(null);
+    setGenerating(true);
+    setScreen("generating");
+
+    const finalAnswers = { ...answers, language };
+
+    const formData = prepareCvPayload(
+      chatAnswersToFormData(finalAnswers, userEmail)
+    );
+
+    if (!formData.language) {
+      setError("يرجى اختيار لغة السيرة الذاتية.");
+      setGenerating(false);
+      setScreen("question");
+      setQuestionIndex(QUESTIONS.length);
+      return;
+    }
+
+    if (!formData.name || !formData.email) {
+      setError("البيانات الأساسية ناقصة.");
+      setGenerating(false);
+      setScreen("question");
+      return;
+    }
+
+    if (!formData.selfDescription) {
+      setError("يرجى كتابة الوصف الذاتي.");
+      setGenerating(false);
+      setScreen("question");
+      setQuestionIndex(QUESTIONS.length - 1);
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/generate-cv", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const responseText = await response.text();
+      let result: Record<string, unknown>;
+
+      try {
+        result = JSON.parse(responseText) as Record<string, unknown>;
+      } catch {
+        setError("استجابة غير صالحة من الخادم.");
+        setGenerating(false);
+        setScreen("question");
+        setQuestionIndex(QUESTIONS.length);
+        return;
+      }
+
+      if (!response.ok) {
+        setError(
+          typeof result.error === "string"
+            ? result.error
+            : "حدث خطأ أثناء إنشاء السيرة الذاتية."
+        );
+        setGenerating(false);
+        setScreen("question");
+        setQuestionIndex(QUESTIONS.length);
+        return;
+      }
+
+      const generatedCv = result as GeneratedCv;
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(generatedCv));
+      const saved = await saveCvToAccount(generatedCv, formData);
+      const cvId = saved?.id;
+      if (cvId) {
+        sessionStorage.setItem(CURRENT_CV_ID_KEY, cvId);
+        router.push(`/preview?cv=${cvId}`);
+      } else {
+        router.push("/preview");
+      }
+    } catch {
+      setError("حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.");
+      setGenerating(false);
+      setScreen("question");
+      setQuestionIndex(QUESTIONS.length);
+    }
+  };
+
+  const handleLanguageSelect = (language: Language) => {
+    setAnswers((prev) => ({ ...prev, language }));
+    void generateCv(language);
+  };
+
+  const handleNextOnLastTextQuestion = () => {
+    if (!saveCurrentAnswer()) return;
+    setQuestionIndex(QUESTIONS.length);
+    setInputValue("");
+  };
+
+  if (screen === "generating" || generating) {
+    return (
+      <div className="animate-fade-in rounded-2xl border border-slate-100 bg-white p-8 text-center shadow-lg shadow-slate-200/60 sm:p-12">
+        <div className="mx-auto mb-6 h-14 w-14 animate-spin rounded-full border-4 border-[#e8f2fc] border-t-[#378ADD]" />
+        <h2 className="mb-2 text-xl font-extrabold text-slate-900 sm:text-2xl">
+          جاري بناء سيرتك الذاتية ✨
+        </h2>
+        <p className="text-sm text-slate-600 sm:text-base">
+          الذكاء الاصطناعي يصيغ سيرة احترافية من إجاباتك
+        </p>
+      </div>
+    );
+  }
+
+  if (screen === "welcome") {
+    return (
+      <div className="animate-fade-in rounded-2xl border border-slate-100 bg-white p-6 shadow-lg shadow-slate-200/60 sm:p-10">
+        <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#378ADD]/10 text-2xl">
+          👋
+        </div>
+        <h1 className="mb-4 text-2xl font-extrabold leading-snug text-slate-900 sm:text-3xl">
+          أهلاً!
+        </h1>
+        <p className="mb-8 text-base leading-8 text-slate-600 sm:text-lg">
+          أنا هنا أبني لك سيرة ذاتية احترافية في دقائق. نصيحة مهمة: كلما كانت
+          إجاباتك أكثر تفصيلاً وتحتوي على أرقام وإنجازات، كلما كانت سيرتك أقوى.
+          مثلاً بدل &quot;أدرت فريق&quot; قل &quot;أدرت فريق من 8 أشخاص وحققنا
+          زيادة 35% في المبيعات&quot;
+        </p>
+        <button
+          type="button"
+          onClick={startChat}
+          className="w-full rounded-xl px-6 py-4 text-base font-bold text-white shadow-lg shadow-[#378ADD]/30 transition-transform hover:scale-[1.02] active:scale-[0.98] sm:w-auto"
+          style={{ backgroundColor: BRAND }}
+        >
+          نبدأ 🚀
+        </button>
+      </div>
+    );
+  }
+
+  const isLanguageStep = questionIndex >= QUESTIONS.length;
+  const currentQuestion = isLanguageStep ? null : QUESTIONS[questionIndex];
+
+  return (
+    <div className="animate-fade-in">
+      <div className="mb-6">
+        <div className="mb-2 flex items-center justify-between text-sm">
+          <span className="font-semibold" style={{ color: BRAND }}>
+            {isLanguageStep
+              ? `السؤال ${TOTAL_QUESTIONS} من ${TOTAL_QUESTIONS}`
+              : `السؤال ${questionIndex + 1} من ${TOTAL_QUESTIONS}`}
+          </span>
+          <span className="text-slate-500">
+            {isLanguageStep ? "اختر اللغة" : "محادثة بناء السيرة"}
+          </span>
+        </div>
+        <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
+          <div
+            className="h-full rounded-full transition-all duration-500 ease-out"
+            style={{ width: `${progress}%`, backgroundColor: BRAND }}
+          />
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-lg shadow-slate-200/60 sm:p-8">
+        {error && (
+          <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
+        {isLanguageStep ? (
+          <div>
+            <h2 className="mb-2 text-xl font-extrabold text-slate-900 sm:text-2xl">
+              تبي السيرة بالعربي، الإنجليزي، أو كلهم؟
+            </h2>
+            <p className="mb-4 rounded-xl bg-[#378ADD]/5 px-4 py-3 text-sm text-slate-600">
+              {REMINDER}
+            </p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {LANGUAGE_OPTIONS.map((option) => (
+                <button
+                  key={option.language}
+                  type="button"
+                  onClick={() => handleLanguageSelect(option.language)}
+                  className="rounded-xl border-2 border-slate-200 px-4 py-5 text-center transition-all hover:border-[#378ADD] hover:bg-[#378ADD]/5 focus:border-[#378ADD] focus:outline-none focus:ring-2 focus:ring-[#378ADD]/20"
+                >
+                  <span className="block text-lg font-extrabold text-slate-900">
+                    {option.label}
+                  </span>
+                  <span
+                    className="mt-1 block text-sm font-semibold"
+                    style={{ color: BRAND }}
+                  >
+                    {option.price}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          currentQuestion && (
+            <div>
+              <h2 className="mb-4 text-xl font-extrabold leading-snug text-slate-900 sm:text-2xl">
+                {currentQuestion.label}
+              </h2>
+
+              {currentQuestion.multiline ? (
+                <textarea
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder={currentQuestion.placeholder}
+                  rows={5}
+                  className="w-full resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#378ADD] focus:ring-2 focus:ring-[#378ADD]/20"
+                />
+              ) : (
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder={currentQuestion.placeholder}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#378ADD] focus:ring-2 focus:ring-[#378ADD]/20"
+                />
+              )}
+
+              <p className="mt-3 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                <span className="font-semibold text-slate-700">💡 </span>
+                {currentQuestion.tip}
+              </p>
+
+              <p className="mt-3 text-center text-xs font-medium text-slate-500 sm:text-sm">
+                {REMINDER}
+              </p>
+            </div>
+          )
+        )}
+
+        {!isLanguageStep && (
+          <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+            <button
+              type="button"
+              onClick={goBack}
+              className="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-50"
+            >
+              رجوع
+            </button>
+            <button
+              type="button"
+              onClick={
+                questionIndex === QUESTIONS.length - 1
+                  ? handleNextOnLastTextQuestion
+                  : goNext
+              }
+              className="rounded-xl px-6 py-3 text-sm font-bold text-white shadow-md transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              style={{ backgroundColor: BRAND }}
+            >
+              {questionIndex === QUESTIONS.length - 1 ? "التالي" : "التالي ←"}
+            </button>
+          </div>
+        )}
+
+        {isLanguageStep && (
+          <button
+            type="button"
+            onClick={() => {
+              setQuestionIndex(QUESTIONS.length - 1);
+              setInputValue(answers.selfDescription);
+            }}
+            className="mt-6 text-sm font-semibold text-slate-500 transition-colors hover:text-[#378ADD]"
+          >
+            ← رجوع للسؤال السابق
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
