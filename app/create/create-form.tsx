@@ -2,8 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { saveCvToAccount } from "@/lib/cv-storage";
 import { prepareCvPayload } from "@/lib/prepare-cv-payload";
-import type { CvFormData } from "@/lib/cv-types";
+import type { CvFormData, GeneratedCv } from "@/lib/cv-types";
 
 const BRAND = "#378ADD";
 const TOTAL_STEPS = 7;
@@ -220,8 +221,9 @@ export default function CreateForm() {
         return;
       }
 
-      console.log("[create-form] CV generated successfully");
-      sessionStorage.setItem("cvfy-generated-cv", JSON.stringify(result));
+      const generatedCv = result as GeneratedCv;
+      sessionStorage.setItem("cvfy-generated-cv", JSON.stringify(generatedCv));
+      await saveCvToAccount(generatedCv, payload);
       router.push("/preview");
     } catch (submitError) {
       console.error("[create-form] Submit error:", submitError);

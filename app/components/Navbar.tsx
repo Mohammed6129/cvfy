@@ -1,4 +1,5 @@
 import Link from "next/link";
+import NavbarAuth from "./navbar-auth";
 
 const navLinks = [
   { href: "#features", label: "المميزات" },
@@ -30,12 +31,7 @@ export default function Navbar() {
           ))}
         </div>
 
-        <Link
-          href="/login"
-          className="shrink-0 rounded-full bg-[#378ADD] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8]"
-        >
-          ابدأ الآن
-        </Link>
+        <NavbarAuth />
       </nav>
     </header>
   );

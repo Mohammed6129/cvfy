@@ -1,13 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import NavbarAuth from "@/app/components/navbar-auth";
 import CreateForm from "./create-form";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "إنشاء السيرة الذاتية — CVfy",
   description: "أنشئ سيرتك الذاتية خطوة بخطوة مع CVfy.",
 };
 
-export default function CreatePage() {
+export default async function CreatePage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login?next=/create");
+  }
+
   return (
     <div className="flex min-h-full flex-1 flex-col bg-white">
       <header className="border-b border-[#378ADD]/15 bg-white px-4 py-4 sm:px-6">
@@ -18,12 +30,7 @@ export default function CreatePage() {
               هويتك المهنية
             </span>
           </Link>
-          <Link
-            href="/"
-            className="text-sm font-semibold text-slate-600 transition-colors hover:text-[#378ADD]"
-          >
-            العودة للرئيسية
-          </Link>
+          <NavbarAuth />
         </div>
       </header>
 

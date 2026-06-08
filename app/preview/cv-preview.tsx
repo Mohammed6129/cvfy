@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { loadCvFromAccount, saveCvToAccount } from "@/lib/cv-storage";
 import type { GeneratedCv } from "@/lib/cv-types";
 import {
   PENDING_PLAN_KEY,
@@ -16,6 +18,7 @@ import PaymentSection from "./payment-section";
 const STORAGE_KEY = "cvfy-generated-cv";
 
 export default function CvPreview() {
+  const router = useRouter();
   const [cv, setCv] = useState<GeneratedCv | null>(null);
   const [loading, setLoading] = useState(true);
   const [enhancing, setEnhancing] = useState(false);
@@ -23,30 +26,62 @@ export default function CvPreview() {
   const [isPaid, setIsPaid] = useState(false);
 
   useEffect(() => {
-    const stored = sessionStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        setCv(JSON.parse(stored) as GeneratedCv);
-      } catch {
-        sessionStorage.removeItem(STORAGE_KEY);
+    let cancelled = false;
+
+    const loadCv = async () => {
+      let loadedCv: GeneratedCv | null = null;
+
+      const stored = sessionStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          loadedCv = JSON.parse(stored) as GeneratedCv;
+        } catch {
+          sessionStorage.removeItem(STORAGE_KEY);
+        }
       }
-    }
 
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("id") || params.get("payment") === "success") {
-      const pendingPlan = sessionStorage.getItem(PENDING_PLAN_KEY);
-      const planId: PlanId =
-        pendingPlan === "bilingual" ? "bilingual" : "single";
-      markPaymentComplete(planId);
-      sessionStorage.removeItem(PENDING_PLAN_KEY);
-      setIsPaid(true);
-      window.history.replaceState({}, "", "/preview");
-    } else if (isPaymentComplete()) {
-      setIsPaid(true);
-    }
+      if (!loadedCv) {
+        loadedCv = await loadCvFromAccount();
+        if (loadedCv) {
+          sessionStorage.setItem(STORAGE_KEY, JSON.stringify(loadedCv));
+        }
+      }
 
-    setLoading(false);
-  }, []);
+      if (cancelled) return;
+
+      if (!loadedCv) {
+        router.replace("/create");
+        return;
+      }
+
+      setCv(loadedCv);
+
+      const params = new URLSearchParams(window.location.search);
+      const paymentStatus = params.get("status");
+      if (
+        params.get("id") &&
+        (paymentStatus === "paid" || paymentStatus === null)
+      ) {
+        const pendingPlan = sessionStorage.getItem(PENDING_PLAN_KEY);
+        const planId: PlanId =
+          pendingPlan === "bilingual" ? "bilingual" : "single";
+        markPaymentComplete(planId);
+        sessionStorage.removeItem(PENDING_PLAN_KEY);
+        setIsPaid(true);
+        window.history.replaceState({}, "", "/preview");
+      } else if (isPaymentComplete()) {
+        setIsPaid(true);
+      }
+
+      setLoading(false);
+    };
+
+    loadCv();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
   const handlePaymentSuccess = useCallback((planId: PlanId) => {
     setIsPaid(true);
@@ -56,6 +91,7 @@ export default function CvPreview() {
   const saveCv = (updated: GeneratedCv) => {
     setCv(updated);
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    void saveCvToAccount(updated);
   };
 
   const handleEnhance = async () => {
@@ -115,22 +151,7 @@ export default function CvPreview() {
   }
 
   if (!cv) {
-    return (
-      <div className="rounded-2xl border border-slate-100 bg-white p-8 text-center shadow-lg shadow-slate-200/60">
-        <h2 className="mb-2 text-2xl font-extrabold text-slate-900">
-          لا توجد سيرة ذاتية للعرض
-        </h2>
-        <p className="mb-6 text-slate-600">
-          يرجى إنشاء سيرتك الذاتية أولاً من خلال النموذج.
-        </p>
-        <Link
-          href="/create"
-          className="inline-block rounded-full bg-[#378ADD] px-8 py-3 text-sm font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8]"
-        >
-          إنشاء سيرة ذاتية
-        </Link>
-      </div>
-    );
+    return null;
   }
 
   return (

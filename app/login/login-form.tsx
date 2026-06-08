@@ -3,9 +3,13 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { signInWithGoogle } from "@/app/login/actions";
+import PhoneOtpForm from "@/app/login/phone-otp-form";
+import { DEFAULT_POST_AUTH_PATH, mapAuthError } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/client";
 
 type AuthMode = "login" | "signup";
+type LoginMethod = "email" | "phone";
 
 function GoogleIcon() {
   return (
@@ -41,24 +45,44 @@ function AppleIcon() {
 type LoginFormProps = {
   initialMode?: AuthMode;
   authError?: string | null;
+  authErrorDescription?: string | null;
+  nextPath?: string;
 };
+
+function getInitialAuthError(
+  authError?: string | null,
+  authErrorDescription?: string | null
+): string | null {
+  if (authError === "auth_callback_error") {
+    return "فشل إكمال تسجيل الدخول. يرجى المحاولة مرة أخرى.";
+  }
+
+  if (authError === "oauth_error") {
+    return authErrorDescription
+      ? mapAuthError(authErrorDescription)
+      : "تم إلغاء تسجيل الدخول أو فشلت المصادقة.";
+  }
+
+  return null;
+}
 
 export default function LoginForm({
   initialMode = "login",
   authError,
+  authErrorDescription,
+  nextPath = DEFAULT_POST_AUTH_PATH,
 }: LoginFormProps) {
   const router = useRouter();
   const supabase = createClient();
 
   const [mode, setMode] = useState<AuthMode>(initialMode);
+  const [loginMethod, setLoginMethod] = useState<LoginMethod>("email");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(
-    authError === "auth_callback_error"
-      ? "فشل تسجيل الدخول. يرجى المحاولة مرة أخرى."
-      : null
+    getInitialAuthError(authError, authErrorDescription)
   );
 
   const handleEmailAuth = async (e: React.FormEvent) => {
@@ -79,7 +103,7 @@ export default function LoginForm({
         return;
       }
 
-      router.push("/");
+      router.push(nextPath);
       router.refresh();
       return;
     }
@@ -96,7 +120,7 @@ export default function LoginForm({
     }
 
     if (data.session) {
-      router.push("/");
+      router.push(nextPath);
       router.refresh();
       return;
     }
@@ -111,15 +135,20 @@ export default function LoginForm({
     setLoading(true);
     setError(null);
 
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    if (oauthError) {
-      setError("فشل تسجيل الدخول بواسطة Google. يرجى المحاولة مرة أخرى.");
+    try {
+      const result = await signInWithGoogle(nextPath);
+      if (result?.url) {
+        window.location.assign(result.url);
+        return;
+      }
+      setError("تعذر بدء تسجيل الدخول عبر Google.");
+      setLoading(false);
+    } catch (oauthError) {
+      const message =
+        oauthError instanceof Error
+          ? oauthError.message
+          : "فشل تسجيل الدخول بواسطة Google. يرجى المحاولة مرة أخرى.";
+      setError(message);
       setLoading(false);
     }
   };
@@ -150,6 +179,48 @@ export default function LoginForm({
           </div>
         )}
 
+        <div className="mb-6 flex rounded-xl bg-slate-100 p-1">
+          <button
+            type="button"
+            onClick={() => {
+              setLoginMethod("email");
+              setError(null);
+              setMessage(null);
+            }}
+            className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition-all ${
+              loginMethod === "email"
+                ? "bg-white text-[#378ADD] shadow-sm"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            البريد الإلكتروني
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setLoginMethod("phone");
+              setError(null);
+              setMessage(null);
+            }}
+            className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition-all ${
+              loginMethod === "phone"
+                ? "bg-white text-[#378ADD] shadow-sm"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            رقم الجوال
+          </button>
+        </div>
+
+        {loginMethod === "phone" ? (
+          <PhoneOtpForm
+            nextPath={nextPath}
+            loading={loading}
+            setLoading={setLoading}
+            onError={setError}
+            onMessage={setMessage}
+          />
+        ) : (
         <form className="space-y-5" onSubmit={handleEmailAuth}>
           <div>
             <label
@@ -210,6 +281,7 @@ export default function LoginForm({
                 : "إنشاء حساب"}
           </button>
         </form>
+        )}
 
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
@@ -242,6 +314,7 @@ export default function LoginForm({
         </div>
       </div>
 
+      {loginMethod === "email" && (
       <p className="mt-8 text-center text-sm text-slate-600">
         {mode === "login" ? (
           <>
@@ -275,6 +348,7 @@ export default function LoginForm({
           </>
         )}
       </p>
+      )}
 
       <p className="mt-4 text-center">
         <Link

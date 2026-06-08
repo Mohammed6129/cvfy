@@ -1,5 +1,6 @@
 import Anthropic, { APIError } from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
+import { getAnthropicApiKey } from "@/lib/anthropic-env";
 import { CLAUDE_MODEL, extractAtsScoreJson } from "@/lib/cv-claude";
 import type { AtsScoreResult, GeneratedCv } from "@/lib/cv-types";
 
@@ -42,11 +43,14 @@ Rules:
 }
 
 export async function POST(request: Request) {
-  const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
+  const apiKey = getAnthropicApiKey();
 
   if (!apiKey) {
     return NextResponse.json(
-      { error: "مفتاح Anthropic API غير مُعد." },
+      {
+        error:
+          "مفتاح Anthropic API غير مُعد. أضف ANTHROPIC_API_KEY إلى .env.local (بدون NEXT_PUBLIC_) وأعد تشغيل الخادم.",
+      },
       { status: 500 }
     );
   }

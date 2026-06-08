@@ -1,5 +1,9 @@
 import Anthropic, { APIError } from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
+import {
+  getAnthropicApiKey,
+  getAnthropicKeyDebugInfo,
+} from "@/lib/anthropic-env";
 import { prepareCvPayload } from "@/lib/prepare-cv-payload";
 import type { CvFormData, GeneratedCv, GeneratedCvContent } from "@/lib/cv-types";
 
@@ -162,11 +166,12 @@ function buildCvResponse(
 }
 
 export async function POST(request: Request) {
-  const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
-
-  console.log("[generate-cv] ANTHROPIC_API_KEY loaded:", Boolean(apiKey));
-  if (apiKey) {
-    console.log("[generate-cv] Key prefix:", `${apiKey.slice(0, 12)}...`);
+  const apiKey = getAnthropicApiKey();
+  const keyInfo = getAnthropicKeyDebugInfo();
+  console.log("[generate-cv] ANTHROPIC_API_KEY present:", keyInfo.present);
+  console.log("[generate-cv] ANTHROPIC_API_KEY valid:", keyInfo.valid);
+  if (keyInfo.prefix) {
+    console.log("[generate-cv] Key prefix:", keyInfo.prefix);
   }
 
   let formData: CvFormData | null = null;

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import NavbarAuth from "@/app/components/navbar-auth";
 import CvPreview from "./cv-preview";
 
 export const metadata: Metadata = {
@@ -25,12 +26,7 @@ export default function PreviewPage() {
             >
               تعديل البيانات
             </Link>
-            <Link
-              href="/"
-              className="text-sm font-semibold text-slate-600 transition-colors hover:text-[#378ADD]"
-            >
-              الرئيسية
-            </Link>
+            <NavbarAuth />
           </div>
         </div>
       </header>

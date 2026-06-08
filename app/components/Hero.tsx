@@ -1,4 +1,5 @@
 import Link from "next/link";
+import StartNowLink from "./start-now-link";
 
 export default function Hero() {
   return (
@@ -29,12 +30,9 @@ export default function Hero() {
           </p>
 
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link
-              href="/login"
-              className="w-full rounded-full bg-[#378ADD] px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-[#378ADD]/30 transition-colors hover:bg-[#2a6bb8] sm:w-auto"
-            >
+            <StartNowLink className="w-full rounded-full bg-[#378ADD] px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-[#378ADD]/30 transition-colors hover:bg-[#2a6bb8] sm:w-auto">
               ابدأ الآن
-            </Link>
+            </StartNowLink>
             <Link
               href="#features"
               className="w-full rounded-full bg-[#378ADD] px-8 py-3.5 text-base font-semibold text-white shadow-md shadow-[#378ADD]/20 transition-colors hover:bg-[#2a6bb8] sm:w-auto"

@@ -1,5 +1,6 @@
 import Anthropic, { APIError } from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
+import { getAnthropicApiKey } from "@/lib/anthropic-env";
 import { CLAUDE_MODEL, extractCvContentJson } from "@/lib/cv-claude";
 import type { GeneratedCv } from "@/lib/cv-types";
 
@@ -57,12 +58,15 @@ Keep all factual information accurate. Do not invent employers, degrees, or cred
 }
 
 export async function POST(request: Request) {
-  const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
+  const apiKey = getAnthropicApiKey();
 
   if (!apiKey) {
-    console.error("[enhance-cv] Missing ANTHROPIC_API_KEY");
+    console.error("[enhance-cv] Missing or invalid ANTHROPIC_API_KEY");
     return NextResponse.json(
-      { error: "مفتاح Anthropic API غير مُعد." },
+      {
+        error:
+          "مفتاح Anthropic API غير مُعد. أضف ANTHROPIC_API_KEY إلى .env.local (بدون NEXT_PUBLIC_) وأعد تشغيل الخادم.",
+      },
       { status: 500 }
     );
   }

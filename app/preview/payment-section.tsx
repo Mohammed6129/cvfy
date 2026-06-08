@@ -1,6 +1,11 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import {
+  getMoyasarEnvironmentError,
+  isMoyasarHttpsEnvironment,
+  loadMoyasarAssets,
+} from "@/lib/moyasar";
 import MoyasarPaymentForm from "./moyasar-payment-form";
 import {
   PLANS,
@@ -24,6 +29,13 @@ export default function PaymentSection({
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   const selected = PLANS.find((p) => p.id === selectedPlan)!;
+  const environmentError = getMoyasarEnvironmentError();
+
+  useEffect(() => {
+    if (isMoyasarHttpsEnvironment()) {
+      loadMoyasarAssets().catch(() => {});
+    }
+  }, []);
 
   const handlePaymentSuccess = useCallback(() => {
     markPaymentComplete(selectedPlan);
@@ -46,6 +58,14 @@ export default function PaymentSection({
         <p className="text-sm font-bold text-emerald-800">
           تم الدفع بنجاح! يمكنك الآن تحميل سيرتك الذاتية بدون علامة مائية.
         </p>
+      </div>
+    );
+  }
+
+  if (environmentError) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-center">
+        <p className="text-sm font-semibold text-amber-900">{environmentError}</p>
       </div>
     );
   }
