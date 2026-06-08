@@ -1,9 +1,18 @@
-export function getSiteUrl(): string {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
-  if (configured) return configured;
+function normalizeSiteUrl(url: string): string {
+  return url.trim().replace(/\/$/, "");
+}
 
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
+/** Canonical app URL — prefers NEXT_PUBLIC_SITE_URL, then Vercel host, then localhost. */
+export function getSiteUrl(): string {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL;
+  if (configured) return normalizeSiteUrl(configured);
+
+  if (process.env.VERCEL === "1") {
+    const productionHost = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+    if (productionHost) return `https://${productionHost}`;
+
+    const deploymentHost = process.env.VERCEL_URL;
+    if (deploymentHost) return `https://${deploymentHost}`;
   }
 
   return "http://localhost:3000";
@@ -38,16 +47,14 @@ export function mapAuthError(message: string): string {
   return "فشل تسجيل الدخول بواسطة Google. يرجى المحاولة مرة أخرى.";
 }
 
+/** Post-OAuth redirect base URL — always uses NEXT_PUBLIC_SITE_URL when configured. */
 export function getRedirectOrigin(request: Request, requestUrl: URL): string {
-  const forwardedHost = request.headers.get("x-forwarded-host");
-  const isLocalEnv = process.env.NODE_ENV === "development";
-
-  if (isLocalEnv) {
-    return requestUrl.origin;
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return getSiteUrl();
   }
 
-  if (forwardedHost) {
-    return `https://${forwardedHost}`;
+  if (process.env.NODE_ENV === "development") {
+    return requestUrl.origin;
   }
 
   return getSiteUrl();
