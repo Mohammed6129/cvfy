@@ -35,6 +35,10 @@ body {
   font-family: inherit;
 }
 
+.cv-paid .cv-watermark {
+  display: none !important;
+}
+
 @media print {
   header,
   button,

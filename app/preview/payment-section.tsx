@@ -1,38 +1,54 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import MoyasarPaymentForm from "./moyasar-payment-form";
+import {
+  PLANS,
+  PENDING_PLAN_KEY,
+  markPaymentComplete,
+  type PlanId,
+} from "@/lib/payment";
 
-type PlanId = "single" | "bilingual";
+type PaymentSectionProps = {
+  onPaymentSuccess: (planId: PlanId) => void;
+  isPaid: boolean;
+};
 
-const PLANS: {
-  id: PlanId;
-  title: string;
-  description: string;
-  price: number;
-}[] = [
-  {
-    id: "single",
-    title: "سيرة بلغة واحدة",
-    description: "تحميل السيرة الذاتية بلغة واحدة (عربية أو إنجليزية)",
-    price: 69,
-  },
-  {
-    id: "bilingual",
-    title: "سيرة عربية + إنجليزية",
-    description: "تحميل نسختين كاملتين بالعربية والإنجليزية",
-    price: 99,
-  },
-];
-
-export default function PaymentSection() {
+export default function PaymentSection({
+  onPaymentSuccess,
+  isPaid,
+}: PaymentSectionProps) {
   const [selectedPlan, setSelectedPlan] = useState<PlanId>("single");
-  const [paymentMessage, setPaymentMessage] = useState<string | null>(null);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   const selected = PLANS.find((p) => p.id === selectedPlan)!;
 
+  const handlePaymentSuccess = useCallback(() => {
+    markPaymentComplete(selectedPlan);
+    setPaymentSuccess(true);
+    setShowPaymentForm(false);
+    setPaymentError(null);
+    onPaymentSuccess(selectedPlan);
+    window.history.replaceState({}, "", "/preview");
+  }, [selectedPlan, onPaymentSuccess]);
+
   const handlePay = () => {
-    setPaymentMessage("سيتم تفعيل الدفع قريباً");
+    setPaymentError(null);
+    sessionStorage.setItem(PENDING_PLAN_KEY, selectedPlan);
+    setShowPaymentForm(true);
   };
+
+  if (isPaid || paymentSuccess) {
+    return (
+      <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-center">
+        <p className="text-sm font-bold text-emerald-800">
+          تم الدفع بنجاح! يمكنك الآن تحميل سيرتك الذاتية بدون علامة مائية.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
@@ -48,11 +64,12 @@ export default function PaymentSection() {
           <button
             key={plan.id}
             type="button"
+            disabled={showPaymentForm}
             onClick={() => {
               setSelectedPlan(plan.id);
-              setPaymentMessage(null);
+              setPaymentError(null);
             }}
-            className={`rounded-xl border-2 p-4 text-right transition-all ${
+            className={`rounded-xl border-2 p-4 text-right transition-all disabled:opacity-60 ${
               selectedPlan === plan.id
                 ? "border-[#378ADD] bg-[#e8f2fc] shadow-md shadow-[#378ADD]/10"
                 : "border-slate-200 bg-white hover:border-[#378ADD]/40"
@@ -70,17 +87,44 @@ export default function PaymentSection() {
         ))}
       </div>
 
-      <button
-        type="button"
-        onClick={handlePay}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#378ADD] px-6 py-3.5 text-sm font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8]"
-      >
-        ادفع وحمّل السيرة — {selected.price} ر.س
-      </button>
+      {!showPaymentForm ? (
+        <button
+          type="button"
+          onClick={handlePay}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#378ADD] px-6 py-3.5 text-sm font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8]"
+        >
+          ادفع وحمّل السيرة — {selected.price} ر.س
+        </button>
+      ) : (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between rounded-xl bg-[#e8f2fc] px-4 py-3">
+            <p className="text-sm font-semibold text-[#378ADD]">
+              الدفع: {selected.title} — {selected.price} ر.س
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setShowPaymentForm(false);
+                setPaymentError(null);
+              }}
+              className="text-xs font-semibold text-slate-600 hover:text-slate-900"
+            >
+              إلغاء
+            </button>
+          </div>
 
-      {paymentMessage && (
-        <div className="mt-4 rounded-xl border border-[#378ADD]/20 bg-[#e8f2fc] px-4 py-3 text-center text-sm font-semibold text-[#378ADD]">
-          {paymentMessage}
+          <MoyasarPaymentForm
+            key={selectedPlan}
+            planId={selectedPlan}
+            onSuccess={handlePaymentSuccess}
+            onError={setPaymentError}
+          />
+        </div>
+      )}
+
+      {paymentError && (
+        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-700">
+          {paymentError}
         </div>
       )}
     </div>

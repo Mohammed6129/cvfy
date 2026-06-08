@@ -1,8 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { GeneratedCv } from "@/lib/cv-types";
+import {
+  PENDING_PLAN_KEY,
+  isPaymentComplete,
+  markPaymentComplete,
+  type PlanId,
+} from "@/lib/payment";
 import AtsScoreChecker from "./ats-score-checker";
 import ClassicCvTemplate from "./classic-cv-template";
 import PaymentSection from "./payment-section";
@@ -14,6 +20,7 @@ export default function CvPreview() {
   const [loading, setLoading] = useState(true);
   const [enhancing, setEnhancing] = useState(false);
   const [enhanceError, setEnhanceError] = useState<string | null>(null);
+  const [isPaid, setIsPaid] = useState(false);
 
   useEffect(() => {
     const stored = sessionStorage.getItem(STORAGE_KEY);
@@ -24,7 +31,26 @@ export default function CvPreview() {
         sessionStorage.removeItem(STORAGE_KEY);
       }
     }
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("id") || params.get("payment") === "success") {
+      const pendingPlan = sessionStorage.getItem(PENDING_PLAN_KEY);
+      const planId: PlanId =
+        pendingPlan === "bilingual" ? "bilingual" : "single";
+      markPaymentComplete(planId);
+      sessionStorage.removeItem(PENDING_PLAN_KEY);
+      setIsPaid(true);
+      window.history.replaceState({}, "", "/preview");
+    } else if (isPaymentComplete()) {
+      setIsPaid(true);
+    }
+
     setLoading(false);
+  }, []);
+
+  const handlePaymentSuccess = useCallback((planId: PlanId) => {
+    setIsPaid(true);
+    markPaymentComplete(planId);
   }, []);
 
   const saveCv = (updated: GeneratedCv) => {
@@ -151,22 +177,27 @@ export default function CvPreview() {
 
         <AtsScoreChecker cv={cv} />
 
-        <PaymentSection />
+        <PaymentSection
+          isPaid={isPaid}
+          onPaymentSuccess={handlePaymentSuccess}
+        />
       </div>
 
       <div
         className={`cv-preview relative overflow-hidden rounded-2xl border bg-white p-6 shadow-lg shadow-slate-200/60 sm:p-10 md:p-12 ${
           enhancing ? "pointer-events-none opacity-50" : "border-slate-200"
-        }`}
+        } ${isPaid ? "cv-paid" : ""}`}
       >
-        <div
-          className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center print:hidden"
-          aria-hidden
-        >
-          <span className="rotate-[-35deg] select-none whitespace-nowrap text-3xl font-extrabold text-slate-400/25 sm:text-4xl md:text-5xl">
-            CVfy - نموذج مجاني
-          </span>
-        </div>
+        {!isPaid && (
+          <div
+            className="cv-watermark pointer-events-none absolute inset-0 z-10 flex items-center justify-center print:hidden"
+            aria-hidden
+          >
+            <span className="rotate-[-35deg] select-none whitespace-nowrap text-3xl font-extrabold text-slate-400/25 sm:text-4xl md:text-5xl">
+              CVfy - نموذج مجاني
+            </span>
+          </div>
+        )}
 
         {enhancing && (
           <div className="relative z-20 mb-6 flex items-center justify-center gap-3 rounded-xl bg-[#e8f2fc] py-4 text-sm font-semibold text-[#378ADD] print:hidden">
@@ -179,20 +210,28 @@ export default function CvPreview() {
         </div>
       </div>
 
-      <div className="mt-8 flex justify-center gap-4 print:hidden">
-        <Link
-          href="/create"
-          className="rounded-full border-2 border-[#378ADD] px-8 py-3 text-sm font-semibold text-[#378ADD] transition-colors hover:bg-[#e8f2fc]"
-        >
-          تعديل البيانات
-        </Link>
-        <button
-          type="button"
-          onClick={() => window.print()}
-          className="rounded-full bg-[#378ADD] px-8 py-3 text-sm font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8]"
-        >
-          طباعة / حفظ PDF
-        </button>
+      <div className="mt-8 flex flex-col items-center gap-4 print:hidden">
+        <div className="flex justify-center gap-4">
+          <Link
+            href="/create"
+            className="rounded-full border-2 border-[#378ADD] px-8 py-3 text-sm font-semibold text-[#378ADD] transition-colors hover:bg-[#e8f2fc]"
+          >
+            تعديل البيانات
+          </Link>
+          <button
+            type="button"
+            onClick={() => window.print()}
+            disabled={!isPaid}
+            className="rounded-full bg-[#378ADD] px-8 py-3 text-sm font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isPaid ? "حمّل PDF" : "حمّل PDF (يتطلب الدفع)"}
+          </button>
+        </div>
+        {!isPaid && (
+          <p className="text-center text-xs text-slate-500">
+            أكمل الدفع أعلاه لإزالة العلامة المائية وتحميل السيرة الذاتية
+          </p>
+        )}
       </div>
     </div>
   );
