@@ -15,7 +15,7 @@
   --color-brand: #378add;
   --color-brand-dark: #2a6bb8;
   --color-brand-light: #e8f2fc;
-  --font-sans: var(--font-baloo-bhaijaan);
+  --font-sans: var(--font-baloo-bhaijaan), system-ui, sans-serif;
 }
 
 html {
@@ -35,7 +35,33 @@ body {
   font-family: inherit;
 }
 
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out forwards;
+}
+
 .cv-paid .cv-watermark {
+  display: none !important;
+}
+
+/* Hide Moyasar branding */
+.mysr-form a[href*="moyasar.com"],
+#mysr a[href*="moyasar.com"] {
+  display: none !important;
+}
+
+.mysr-form div.mt-2:has(> a[href*="moyasar.com"]):not(:has(.text-red-600)),
+#mysr div.mt-2:has(> a[href*="moyasar.com"]):not(:has(.text-red-600)) {
   display: none !important;
 }
 
@@ -54,5 +80,9 @@ body {
 
   .cv-document {
     max-width: 100% !important;
+  }
+
+  .cv-watermark {
+    display: none !important;
   }
 }

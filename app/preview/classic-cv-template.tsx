@@ -11,7 +11,7 @@ const SECTION_LABELS: Record<
   }
 > = {
   arabic: {
-    summary: "الوصف الذاتي",
+    summary: "الملخص المهني",
     experience: "الخبرات العملية",
     education: "التعليم",
     skills: "المهارات",
@@ -28,7 +28,7 @@ const SECTION_LABELS: Record<
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="mb-4 border-b-2 border-[#378ADD] pb-2 text-lg font-bold text-[#378ADD]">
+    <h2 className="mb-3 border-b-2 border-[#378ADD] pb-1.5 text-base font-bold uppercase tracking-wide text-[#378ADD] sm:text-lg">
       {children}
     </h2>
   );
@@ -45,19 +45,19 @@ export default function ClassicCvTemplate({ cv }: ClassicCvTemplateProps) {
 
   return (
     <article
-      className="cv-document mx-auto max-w-[210mm] bg-white text-slate-800"
+      className="cv-document mx-auto max-w-[210mm] bg-white text-[13px] leading-relaxed text-slate-800 sm:text-sm"
       dir={isEnglish ? "ltr" : "rtl"}
     >
-      <header className="mb-8 border-b border-slate-200 pb-6 text-center">
-        <h1 className="mb-2 text-3xl font-extrabold text-[#378ADD] sm:text-4xl">
+      <header className="mb-6 border-b-2 border-slate-200 pb-5 text-center sm:mb-8 sm:pb-6">
+        <h1 className="mb-1 text-2xl font-extrabold tracking-tight text-[#378ADD] sm:text-3xl md:text-4xl">
           {cv.name}
         </h1>
         {content.headline && (
-          <p className="mb-4 text-lg font-semibold text-slate-700">
+          <p className="mb-3 text-base font-semibold text-slate-700 sm:text-lg">
             {content.headline}
           </p>
         )}
-        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-600">
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-slate-600 sm:text-sm">
           {cv.city && <span>{cv.city}</span>}
           {cv.phone && (
             <span dir="ltr" className="inline-block">
@@ -73,39 +73,41 @@ export default function ClassicCvTemplate({ cv }: ClassicCvTemplateProps) {
       </header>
 
       {content.summary && (
-        <section className="mb-8">
+        <section className="mb-6 sm:mb-7">
           <SectionTitle>{labels.summary}</SectionTitle>
-          <p className="leading-relaxed text-slate-700">{content.summary}</p>
+          <p className="text-justify leading-7 text-slate-700">
+            {content.summary}
+          </p>
         </section>
       )}
 
       {content.experiences.length > 0 && (
-        <section className="mb-8">
+        <section className="mb-6 sm:mb-7">
           <SectionTitle>{labels.experience}</SectionTitle>
-          <div className="space-y-6">
+          <div className="space-y-5">
             {content.experiences.map((exp, index) => (
               <div key={`${exp.jobTitle}-${index}`}>
-                <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
-                  <h3 className="text-base font-bold text-slate-900">
+                <div className="mb-1 flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between">
+                  <h3 className="text-sm font-bold text-slate-900 sm:text-base">
                     {exp.jobTitle}
                     {exp.company && (
                       <span className="font-semibold text-slate-600">
-                        {" "}
-                        — {exp.company}
+                        {isEnglish ? " at " : " — "}
+                        {exp.company}
                       </span>
                     )}
                   </h3>
                   {exp.period && (
                     <span
                       dir="ltr"
-                      className="shrink-0 text-sm text-slate-500"
+                      className="shrink-0 text-xs font-medium text-slate-500"
                     >
                       {exp.period}
                     </span>
                   )}
                 </div>
                 {exp.description && (
-                  <p className="leading-relaxed text-slate-700">
+                  <p className="text-justify leading-6 text-slate-700">
                     {exp.description}
                   </p>
                 )}
@@ -116,13 +118,13 @@ export default function ClassicCvTemplate({ cv }: ClassicCvTemplateProps) {
       )}
 
       {content.education.length > 0 && (
-        <section className="mb-8">
+        <section className="mb-6 sm:mb-7">
           <SectionTitle>{labels.education}</SectionTitle>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {content.education.map((edu, index) => (
               <div
                 key={`${edu.degree}-${index}`}
-                className="flex flex-wrap items-baseline justify-between gap-2"
+                className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between"
               >
                 <div>
                   <h3 className="font-bold text-slate-900">{edu.degree}</h3>
@@ -131,7 +133,7 @@ export default function ClassicCvTemplate({ cv }: ClassicCvTemplateProps) {
                   )}
                 </div>
                 {edu.period && (
-                  <span dir="ltr" className="text-sm text-slate-500">
+                  <span dir="ltr" className="text-xs text-slate-500">
                     {edu.period}
                   </span>
                 )}
@@ -142,38 +144,31 @@ export default function ClassicCvTemplate({ cv }: ClassicCvTemplateProps) {
       )}
 
       {content.skills.length > 0 && (
-        <section className="mb-8">
+        <section className="mb-6 sm:mb-7">
           <SectionTitle>{labels.skills}</SectionTitle>
-          <div className="flex flex-wrap gap-2">
-            {content.skills.map((skill) => (
-              <span
-                key={skill}
-                className="rounded-md bg-[#e8f2fc] px-3 py-1.5 text-sm font-medium text-[#378ADD]"
-              >
-                {skill}
-              </span>
-            ))}
-          </div>
+          <p className="leading-7 text-slate-700">
+            {content.skills.join(isEnglish ? " • " : " • ")}
+          </p>
         </section>
       )}
 
       {content.courses.length > 0 && (
         <section>
           <SectionTitle>{labels.courses}</SectionTitle>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {content.courses.map((course, index) => (
               <div
                 key={`${course.name}-${index}`}
-                className="flex flex-wrap items-baseline justify-between gap-2"
+                className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between"
               >
                 <div>
                   <h3 className="font-semibold text-slate-900">{course.name}</h3>
                   {course.provider && (
-                    <p className="text-sm text-slate-600">{course.provider}</p>
+                    <p className="text-xs text-slate-600">{course.provider}</p>
                   )}
                 </div>
                 {course.year && (
-                  <span dir="ltr" className="text-sm text-slate-500">
+                  <span dir="ltr" className="text-xs text-slate-500">
                     {course.year}
                   </span>
                 )}

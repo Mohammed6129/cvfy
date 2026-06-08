@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import NavbarAuth from "@/app/components/navbar-auth";
+import LoadingSpinner from "@/app/components/loading-spinner";
 import CreateForm from "./create-form";
 import { createClient } from "@/lib/supabase/server";
 
@@ -35,7 +37,9 @@ export default async function CreatePage() {
       </header>
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
-        <CreateForm />
+        <Suspense fallback={<LoadingSpinner label="جاري التحميل..." />}>
+          <CreateForm />
+        </Suspense>
       </main>
     </div>
   );

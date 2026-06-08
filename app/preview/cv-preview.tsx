@@ -1,9 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { loadCvFromAccount, saveCvToAccount } from "@/lib/cv-storage";
+import LoadingSpinner from "@/app/components/loading-spinner";
+import { downloadCvAsPdf, downloadCvAsWord } from "@/lib/cv-export";
+import {
+  CURRENT_CV_ID_KEY,
+  STORAGE_KEY,
+  loadCvFromAccount,
+  recordPayment,
+  saveCvToAccount,
+} from "@/lib/cv-storage";
 import type { GeneratedCv } from "@/lib/cv-types";
 import {
   PENDING_PLAN_KEY,
@@ -15,11 +23,11 @@ import AtsScoreChecker from "./ats-score-checker";
 import ClassicCvTemplate from "./classic-cv-template";
 import PaymentSection from "./payment-section";
 
-const STORAGE_KEY = "cvfy-generated-cv";
-
 export default function CvPreview() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [cv, setCv] = useState<GeneratedCv | null>(null);
+  const [cvId, setCvId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [enhancing, setEnhancing] = useState(false);
   const [enhanceError, setEnhanceError] = useState<string | null>(null);
@@ -29,7 +37,9 @@ export default function CvPreview() {
     let cancelled = false;
 
     const loadCv = async () => {
+      const paramId = searchParams.get("cv");
       let loadedCv: GeneratedCv | null = null;
+      let loadedId: string | null = paramId;
 
       const stored = sessionStorage.getItem(STORAGE_KEY);
       if (stored) {
@@ -40,11 +50,16 @@ export default function CvPreview() {
         }
       }
 
-      if (!loadedCv) {
-        loadedCv = await loadCvFromAccount();
-        if (loadedCv) {
-          sessionStorage.setItem(STORAGE_KEY, JSON.stringify(loadedCv));
-        }
+      const storedId = sessionStorage.getItem(CURRENT_CV_ID_KEY);
+      if (!loadedId && storedId) loadedId = storedId;
+
+      const accountData = await loadCvFromAccount(loadedId);
+      if (accountData) {
+        loadedCv = accountData.cv;
+        loadedId = accountData.id;
+        if (accountData.isPaid) setIsPaid(true);
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(loadedCv));
+        sessionStorage.setItem(CURRENT_CV_ID_KEY, loadedId);
       }
 
       if (cancelled) return;
@@ -55,20 +70,23 @@ export default function CvPreview() {
       }
 
       setCv(loadedCv);
+      setCvId(loadedId);
 
       const params = new URLSearchParams(window.location.search);
       const paymentStatus = params.get("status");
-      if (
-        params.get("id") &&
-        (paymentStatus === "paid" || paymentStatus === null)
-      ) {
+      const paymentId = params.get("id");
+
+      if (paymentId && (paymentStatus === "paid" || paymentStatus === null)) {
         const pendingPlan = sessionStorage.getItem(PENDING_PLAN_KEY);
         const planId: PlanId =
           pendingPlan === "bilingual" ? "bilingual" : "single";
         markPaymentComplete(planId);
         sessionStorage.removeItem(PENDING_PLAN_KEY);
         setIsPaid(true);
-        window.history.replaceState({}, "", "/preview");
+        if (loadedId) {
+          void recordPayment(loadedId, planId, paymentId);
+        }
+        window.history.replaceState({}, "", `/preview${loadedId ? `?cv=${loadedId}` : ""}`);
       } else if (isPaymentComplete()) {
         setIsPaid(true);
       }
@@ -81,17 +99,23 @@ export default function CvPreview() {
     return () => {
       cancelled = true;
     };
-  }, [router]);
+  }, [router, searchParams]);
 
-  const handlePaymentSuccess = useCallback((planId: PlanId) => {
-    setIsPaid(true);
-    markPaymentComplete(planId);
-  }, []);
+  const handlePaymentSuccess = useCallback(
+    (planId: PlanId) => {
+      setIsPaid(true);
+      markPaymentComplete(planId);
+      if (cvId) {
+        void recordPayment(cvId, planId);
+      }
+    },
+    [cvId]
+  );
 
   const saveCv = (updated: GeneratedCv) => {
     setCv(updated);
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    void saveCvToAccount(updated);
+    void saveCvToAccount(updated, undefined, cvId);
   };
 
   const handleEnhance = async () => {
@@ -116,14 +140,12 @@ export default function CvPreview() {
       try {
         result = JSON.parse(text);
       } catch {
-        console.error("[cv-preview] Invalid JSON:", text);
         setEnhanceError("استجابة غير صالحة من الخادم.");
         setEnhancing(false);
         return;
       }
 
       if (!response.ok) {
-        console.error("[cv-preview] Enhance error:", result);
         setEnhanceError(
           result.debug
             ? `${result.error} (${result.debug})`
@@ -143,22 +165,16 @@ export default function CvPreview() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#e8f2fc] border-t-[#378ADD]" />
-      </div>
-    );
+    return <LoadingSpinner label="جاري تحميل السيرة الذاتية..." size="lg" />;
   }
 
-  if (!cv) {
-    return null;
-  }
+  if (!cv) return null;
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <div className="mb-8 text-center print:hidden">
         <div className="mb-3 flex flex-wrap items-center justify-center gap-3">
-          <h1 className="text-3xl font-extrabold text-slate-900">
+          <h1 className="text-2xl font-extrabold text-slate-900 sm:text-3xl">
             معاينة السيرة الذاتية
           </h1>
           {cv.aiEnhanced && (
@@ -167,7 +183,7 @@ export default function CvPreview() {
             </span>
           )}
         </div>
-        <p className="text-slate-600">
+        <p className="text-sm text-slate-600 sm:text-base">
           سيرة ذاتية احترافية لـ{" "}
           <span className="font-semibold text-[#378ADD]">{cv.name}</span>
         </p>
@@ -178,7 +194,7 @@ export default function CvPreview() {
           type="button"
           onClick={handleEnhance}
           disabled={enhancing}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#378ADD] px-6 py-3.5 text-sm font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#378ADD] px-6 py-3.5 text-sm font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-all hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {enhancing ? (
             <>
@@ -196,7 +212,7 @@ export default function CvPreview() {
           </div>
         )}
 
-        <AtsScoreChecker cv={cv} />
+        <AtsScoreChecker cv={cv} cvId={cvId} />
 
         <PaymentSection
           isPaid={isPaid}
@@ -205,7 +221,7 @@ export default function CvPreview() {
       </div>
 
       <div
-        className={`cv-preview relative overflow-hidden rounded-2xl border bg-white p-6 shadow-lg shadow-slate-200/60 sm:p-10 md:p-12 ${
+        className={`cv-preview relative overflow-hidden rounded-2xl border bg-white p-4 shadow-lg shadow-slate-200/60 sm:p-8 md:p-10 ${
           enhancing ? "pointer-events-none opacity-50" : "border-slate-200"
         } ${isPaid ? "cv-paid" : ""}`}
       >
@@ -214,7 +230,7 @@ export default function CvPreview() {
             className="cv-watermark pointer-events-none absolute inset-0 z-10 flex items-center justify-center print:hidden"
             aria-hidden
           >
-            <span className="rotate-[-35deg] select-none whitespace-nowrap text-3xl font-extrabold text-slate-400/25 sm:text-4xl md:text-5xl">
+            <span className="rotate-[-35deg] select-none whitespace-nowrap text-2xl font-extrabold text-slate-400/25 sm:text-4xl md:text-5xl">
               CVfy - نموذج مجاني
             </span>
           </div>
@@ -232,20 +248,28 @@ export default function CvPreview() {
       </div>
 
       <div className="mt-8 flex flex-col items-center gap-4 print:hidden">
-        <div className="flex justify-center gap-4">
+        <div className="flex w-full max-w-lg flex-col gap-3 sm:flex-row sm:justify-center">
           <Link
-            href="/create"
-            className="rounded-full border-2 border-[#378ADD] px-8 py-3 text-sm font-semibold text-[#378ADD] transition-colors hover:bg-[#e8f2fc]"
+            href={cvId ? `/create?edit=${cvId}` : "/create"}
+            className="flex-1 rounded-full border-2 border-[#378ADD] px-6 py-3 text-center text-sm font-semibold text-[#378ADD] transition-colors hover:bg-[#e8f2fc] sm:flex-none"
           >
             تعديل البيانات
           </Link>
           <button
             type="button"
-            onClick={() => window.print()}
+            onClick={() => downloadCvAsPdf(cv)}
             disabled={!isPaid}
-            className="rounded-full bg-[#378ADD] px-8 py-3 text-sm font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex-1 rounded-full bg-[#378ADD] px-6 py-3 text-sm font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
           >
-            {isPaid ? "حمّل PDF" : "حمّل PDF (يتطلب الدفع)"}
+            {isPaid ? "تحميل PDF" : "تحميل PDF (يتطلب الدفع)"}
+          </button>
+          <button
+            type="button"
+            onClick={() => downloadCvAsWord(cv)}
+            disabled={!isPaid}
+            className="flex-1 rounded-full border-2 border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
+          >
+            {isPaid ? "تحميل Word" : "تحميل Word (يتطلب الدفع)"}
           </button>
         </div>
         {!isPaid && (

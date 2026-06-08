@@ -88,6 +88,7 @@ export default function MoyasarPaymentForm({
           supported_networks: ["mada", "visa", "mastercard", "amex"],
           language: "ar",
           fixed_width: false,
+          show_footer: false,
           payment_options: {
             country: "SA",
             label: "CVfy",

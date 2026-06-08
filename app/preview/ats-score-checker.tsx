@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import LoadingSpinner from "@/app/components/loading-spinner";
+import { saveAtsResult } from "@/lib/cv-storage";
 import type { AtsScoreResult, GeneratedCv } from "@/lib/cv-types";
 
 type ScoreColor = {
@@ -42,24 +44,24 @@ function CircularProgress({ score }: { score: number }) {
   const colors = getScoreColor(score);
 
   return (
-    <div className="relative flex h-32 w-32 items-center justify-center">
+    <div className="relative flex h-36 w-36 items-center justify-center">
       <svg
-        width="128"
-        height="128"
+        width="144"
+        height="144"
         className="absolute -rotate-90"
         aria-hidden
       >
         <circle
-          cx="64"
-          cy="64"
+          cx="72"
+          cy="72"
           r={radius}
           fill="none"
           stroke="#e2e8f0"
           strokeWidth="10"
         />
         <circle
-          cx="64"
-          cy="64"
+          cx="72"
+          cy="72"
           r={radius}
           fill="none"
           stroke={colors.stroke}
@@ -67,16 +69,14 @@ function CircularProgress({ score }: { score: number }) {
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={circumference - progress}
-          className="transition-all duration-700 ease-out"
+          className="transition-all duration-1000 ease-out"
         />
       </svg>
       <div className="relative text-center">
-        <span className={`text-3xl font-extrabold ${colors.text}`}>
+        <span className={`text-4xl font-extrabold ${colors.text}`}>
           {score}%
         </span>
-        <p className={`text-xs font-semibold ${colors.text}`}>
-          {colors.label}
-        </p>
+        <p className={`text-sm font-bold ${colors.text}`}>{colors.label}</p>
       </div>
     </div>
   );
@@ -84,9 +84,10 @@ function CircularProgress({ score }: { score: number }) {
 
 type AtsScoreCheckerProps = {
   cv: GeneratedCv;
+  cvId?: string | null;
 };
 
-export default function AtsScoreChecker({ cv }: AtsScoreCheckerProps) {
+export default function AtsScoreChecker({ cv, cvId }: AtsScoreCheckerProps) {
   const [result, setResult] = useState<AtsScoreResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -127,13 +128,16 @@ export default function AtsScoreChecker({ cv }: AtsScoreCheckerProps) {
       }
 
       setResult(data);
+      if (cvId) {
+        void saveAtsResult(cvId, data);
+      }
       setLoading(false);
     } catch (err) {
       console.error("[ats-score-checker] Error:", err);
       setError("حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.");
       setLoading(false);
     }
-  }, [cv]);
+  }, [cv, cvId]);
 
   useEffect(() => {
     runCheck();
@@ -141,13 +145,8 @@ export default function AtsScoreChecker({ cv }: AtsScoreCheckerProps) {
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-slate-100 bg-white px-5 py-8 shadow-sm">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#e8f2fc] border-t-[#378ADD]" />
-          <p className="text-sm font-semibold text-slate-600">
-            جاري تحليل توافق السيرة مع ATS...
-          </p>
-        </div>
+      <div className="rounded-xl border border-slate-100 bg-white px-5 py-4 shadow-sm">
+        <LoadingSpinner label="جاري تحليل توافق السيرة مع ATS..." />
       </div>
     );
   }
@@ -174,13 +173,42 @@ export default function AtsScoreChecker({ cv }: AtsScoreCheckerProps) {
 
   return (
     <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
-      <h3 className="mb-4 text-center text-sm font-bold text-slate-800">
+      <h3 className="mb-1 text-center text-sm font-bold text-slate-800">
         فحص ATS — توافق السيرة الذاتية
       </h3>
+      {result.summary && (
+        <p className="mb-4 text-center text-sm text-slate-600">{result.summary}</p>
+      )}
 
       <div className="mb-6 flex justify-center">
         <CircularProgress score={result.score} />
       </div>
+
+      {result.categories.length > 0 && (
+        <div className="mb-6 space-y-3">
+          <h4 className="text-sm font-bold text-slate-800">تفاصيل التقييم</h4>
+          {result.categories.map((cat) => {
+            const pct = Math.round((cat.score / cat.maxScore) * 100);
+            return (
+              <div key={cat.name} className="rounded-lg bg-slate-50 p-3">
+                <div className="mb-1 flex items-center justify-between text-sm">
+                  <span className="font-semibold text-slate-800">{cat.name}</span>
+                  <span className="font-bold text-[#378ADD]">{pct}%</span>
+                </div>
+                <div className="mb-1 h-2 overflow-hidden rounded-full bg-slate-200">
+                  <div
+                    className="h-full rounded-full bg-[#378ADD] transition-all duration-700"
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+                {cat.note && (
+                  <p className="text-xs text-slate-600">{cat.note}</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className={`rounded-lg p-4 ${colors.bg}`}>

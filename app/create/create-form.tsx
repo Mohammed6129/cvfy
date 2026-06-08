@@ -1,8 +1,14 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { saveCvToAccount } from "@/lib/cv-storage";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import LoadingSpinner from "@/app/components/loading-spinner";
+import {
+  CURRENT_CV_ID_KEY,
+  STORAGE_KEY,
+  loadCvFromAccount,
+  saveCvToAccount,
+} from "@/lib/cv-storage";
 import { prepareCvPayload } from "@/lib/prepare-cv-payload";
 import type { CvFormData, GeneratedCv } from "@/lib/cv-types";
 
@@ -116,12 +122,52 @@ const initialData: FormData = {
 
 export default function CreateForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState(1);
   const [data, setData] = useState<FormData>(initialData);
   const [error, setError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [loadingForm, setLoadingForm] = useState(false);
+  const [editCvId, setEditCvId] = useState<string | null>(null);
 
   const progress = (step / TOTAL_STEPS) * 100;
+
+  useEffect(() => {
+    const editId = searchParams.get("edit");
+    if (!editId) return;
+
+    setLoadingForm(true);
+    void loadCvFromAccount(editId).then((record) => {
+      if (record?.formData) {
+        setData({
+          ...initialData,
+          ...record.formData,
+          workExperience:
+            record.formData.workExperience.length > 0
+              ? record.formData.workExperience
+              : [emptyWork()],
+          education:
+            record.formData.education.length > 0
+              ? record.formData.education
+              : [emptyEducation()],
+          skills:
+            record.formData.skills.length > 0
+              ? record.formData.skills
+              : [emptySkill()],
+          courses:
+            record.formData.courses.length > 0
+              ? record.formData.courses
+              : [emptyCourse()],
+        });
+        setEditCvId(editId);
+      }
+      setLoadingForm(false);
+
+      if (searchParams.get("regenerate") === "1") {
+        setStep(TOTAL_STEPS);
+      }
+    });
+  }, [searchParams]);
 
   const update = <K extends keyof FormData>(key: K, value: FormData[K]) => {
     setData((prev) => ({ ...prev, [key]: value }));
@@ -222,9 +268,15 @@ export default function CreateForm() {
       }
 
       const generatedCv = result as GeneratedCv;
-      sessionStorage.setItem("cvfy-generated-cv", JSON.stringify(generatedCv));
-      await saveCvToAccount(generatedCv, payload);
-      router.push("/preview");
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(generatedCv));
+      const saved = await saveCvToAccount(generatedCv, payload, editCvId);
+      const cvId = saved?.id ?? editCvId;
+      if (cvId) {
+        sessionStorage.setItem(CURRENT_CV_ID_KEY, cvId);
+        router.push(`/preview?cv=${cvId}`);
+      } else {
+        router.push("/preview");
+      }
     } catch (submitError) {
       console.error("[create-form] Submit error:", submitError);
       setError("حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.");
@@ -232,14 +284,18 @@ export default function CreateForm() {
     }
   };
 
+  if (loadingForm) {
+    return <LoadingSpinner label="جاري تحميل بيانات السيرة..." />;
+  }
+
   if (generating) {
     return (
-      <div className="rounded-2xl border border-slate-100 bg-white p-12 text-center shadow-lg shadow-slate-200/60">
+      <div className="animate-fade-in rounded-2xl border border-slate-100 bg-white p-8 text-center shadow-lg shadow-slate-200/60 sm:p-12">
         <div className="mx-auto mb-6 h-12 w-12 animate-spin rounded-full border-4 border-[#e8f2fc] border-t-[#378ADD]" />
-        <h2 className="mb-2 text-2xl font-extrabold text-slate-900">
+        <h2 className="mb-2 text-xl font-extrabold text-slate-900 sm:text-2xl">
           جاري إنشاء سيرتك الذاتية...
         </h2>
-        <p className="text-slate-600">
+        <p className="text-sm text-slate-600 sm:text-base">
           الذكاء الاصطناعي يعمل على صياغة سيرة ذاتية احترافية ومتوافقة مع ATS
         </p>
       </div>
@@ -247,7 +303,7 @@ export default function CreateForm() {
   }
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <div className="mb-8">
         <div className="mb-3 flex items-center justify-between text-sm">
           <span className="font-semibold text-[#378ADD]">

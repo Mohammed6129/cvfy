@@ -21,25 +21,33 @@ function logError(context: string, error: unknown) {
 }
 
 function buildAtsPrompt(cv: GeneratedCv): string {
-  return `You are an ATS (Applicant Tracking System) expert. Analyze this CV for ATS compatibility.
-
-Evaluate: contact info clarity, section structure, keyword usage, action verbs, quantified achievements, formatting simplicity, skills relevance, work experience detail, education completeness, and overall parseability.
+  return `You are an ATS expert for the Saudi job market. Analyze this CV for ATS compatibility.
 
 CV data:
 ${JSON.stringify(cv, null, 2)}
 
-Return JSON only (no markdown, no explanation) in Arabic for passed and improvements lists:
+Return JSON only (no markdown) in Arabic:
 {
   "score": 85,
-  "passed": ["نقطة إيجابية 1", "نقطة إيجابية 2"],
-  "improvements": ["تحسين مقترح 1", "تحسين مقترح 2"]
+  "summary": "ملخص قصير لحالة السيرة (جملة أو جملتين)",
+  "categories": [
+    { "name": "معلومات الاتصال", "score": 90, "maxScore": 100, "note": "ملاحظة مختصرة" },
+    { "name": "الهيكل والأقسام", "score": 85, "maxScore": 100, "note": "ملاحظة مختصرة" },
+    { "name": "الكلمات المفتاحية", "score": 80, "maxScore": 100, "note": "ملاحظة مختصرة" },
+    { "name": "الخبرات والإنجازات", "score": 75, "maxScore": 100, "note": "ملاحظة مختصرة" },
+    { "name": "المهارات", "score": 88, "maxScore": 100, "note": "ملاحظة مختصرة" },
+    { "name": "التوافق العام مع ATS", "score": 82, "maxScore": 100, "note": "ملاحظة مختصرة" }
+  ],
+  "passed": ["نقطة إيجابية محددة 1", "نقطة إيجابية 2"],
+  "improvements": ["تحسين محدد 1", "تحسين 2"]
 }
 
 Rules:
-- score must be an integer from 0 to 100
-- include 3-6 items in passed
-- include 2-5 items in improvements
-- be specific to this CV, not generic advice`;
+- score: integer 0-100 reflecting overall ATS readiness
+- categories: exactly 6 items with realistic sub-scores
+- passed: 3-6 specific strengths from this CV
+- improvements: 2-5 actionable fixes
+- Be specific to this CV, not generic`;
 }
 
 export async function POST(request: Request) {

@@ -37,6 +37,7 @@ type MoyasarInitConfig = {
   supported_networks?: string[];
   language?: string;
   fixed_width?: boolean;
+  show_footer?: boolean;
   country?: string;
   payment_options?: MoyasarPaymentOptions;
   apple_pay?: MoyasarApplePayConfig;

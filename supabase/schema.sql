@@ -1,16 +1,28 @@
--- CVfy: user CV storage
--- Run in Supabase SQL Editor: https://supabase.com/dashboard → SQL
+-- CVfy database schema
+-- Run in Supabase SQL Editor
 
 create table if not exists public.cvs (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
+  title text not null default 'سيرتي الذاتية',
   form_data jsonb,
   generated_cv jsonb not null,
-  updated_at timestamptz not null default now(),
-  constraint cvs_user_id_key unique (user_id)
+  is_paid boolean not null default false,
+  paid_plan text,
+  ats_result jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
+create index if not exists cvs_user_id_idx on public.cvs (user_id);
+create index if not exists cvs_updated_at_idx on public.cvs (updated_at desc);
+
 alter table public.cvs enable row level security;
+
+drop policy if exists "Users can read own cv" on public.cvs;
+drop policy if exists "Users can insert own cv" on public.cvs;
+drop policy if exists "Users can update own cv" on public.cvs;
+drop policy if exists "Users can delete own cv" on public.cvs;
 
 create policy "Users can read own cv"
   on public.cvs for select
@@ -27,3 +39,30 @@ create policy "Users can update own cv"
 create policy "Users can delete own cv"
   on public.cvs for delete
   using (auth.uid() = user_id);
+
+create table if not exists public.payments (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  cv_id uuid not null references public.cvs(id) on delete cascade,
+  moyasar_payment_id text,
+  plan_id text not null,
+  amount_halalas integer not null,
+  status text not null default 'paid',
+  created_at timestamptz not null default now()
+);
+
+alter table public.payments enable row level security;
+
+drop policy if exists "Users can read own payments" on public.payments;
+drop policy if exists "Users can insert own payments" on public.payments;
+
+create policy "Users can read own payments"
+  on public.payments for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert own payments"
+  on public.payments for insert
+  with check (auth.uid() = user_id);
+
+-- Migration: remove old one-cv-per-user constraint if present
+alter table public.cvs drop constraint if exists cvs_user_id_key;

@@ -82,8 +82,29 @@ export type GeneratedCv = {
   warning?: string;
 };
 
+export type AtsCategoryScore = {
+  name: string;
+  score: number;
+  maxScore: number;
+  note: string;
+};
+
 export type AtsScoreResult = {
   score: number;
+  summary: string;
   passed: string[];
   improvements: string[];
+  categories: AtsCategoryScore[];
+};
+
+export type CvRecord = {
+  id: string;
+  title: string;
+  generatedCv: GeneratedCv;
+  formData: CvFormData | null;
+  isPaid: boolean;
+  paidPlan: string | null;
+  atsResult: AtsScoreResult | null;
+  updatedAt: string;
+  createdAt: string;
 };

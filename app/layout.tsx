@@ -7,12 +7,32 @@ const balooBhaijaan = Baloo_Bhaijaan_2({
   subsets: ["arabic", "latin"],
   weight: ["400", "500", "600", "700", "800"],
   display: "swap",
+  preload: true,
 });
 
 export const metadata: Metadata = {
-  title: "CVfy — هويتك المهنية",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://cvfy-rosy.vercel.app"
+  ),
+  title: {
+    default: "CVfy — هويتك المهنية",
+    template: "%s | CVfy",
+  },
   description:
-    "أنشئ سيرتك الذاتية الاحترافية في دقائق. قوالب جاهزة، تحسين بالذكاء الاصطناعي، وتصدير فوري.",
+    "أنشئ سيرتك الذاتية الاحترافية في دقائق. قوالب ATS، تحسين بالذكاء الاصطناعي، وتصدير فوري للسوق السعودي.",
+  keywords: [
+    "سيرة ذاتية",
+    "CV",
+    "السعودية",
+    "ATS",
+    "ذكاء اصطناعي",
+    "وظائف",
+  ],
+  openGraph: {
+    locale: "ar_SA",
+    type: "website",
+    siteName: "CVfy",
+  },
 };
 
 export default function RootLayout({
@@ -24,9 +44,10 @@ export default function RootLayout({
     <html
       lang="ar"
       dir="rtl"
+      data-scroll-behavior="smooth"
       className={`${balooBhaijaan.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-white text-slate-900">
+      <body className="min-h-full flex flex-col bg-white font-sans text-slate-900">
         {children}
       </body>
     </html>

@@ -1,27 +1,29 @@
 import Link from "next/link";
+import StartNowLink from "./start-now-link";
 
 const plans = [
   {
-    name: "أساسي",
+    name: "سيرة بلغة واحدة",
     price: 69,
-    description: "مثالي لمن يبدأ رحلته المهنية",
+    description: "تحميل سيرة احترافية بلغة واحدة",
     features: [
-      "سيرة ذاتية واحدة",
-      "٣ قوالب احترافية",
-      "تصدير PDF",
-      "دعم عبر البريد الإلكتروني",
+      "قالب ATS كلاسيكي",
+      "فحص توافق ATS",
+      "تحسين بالذكاء الاصطناعي",
+      "تحميل PDF و Word",
+      "بدون علامة مائية",
     ],
     highlighted: false,
   },
   {
-    name: "احترافي",
+    name: "عربية + إنجليزية",
     price: 99,
-    description: "الخيار الأفضل للباحثين الجادين عن عمل",
+    description: "الأفضل للباحثين عن فرص محلية ودولية",
     features: [
-      "سير ذاتية غير محدودة",
-      "جميع القوالب المميزة",
-      "تحسين بالذكاء الاصطناعي",
-      "تصدير PDF عالي الجودة",
+      "كل مميزات الباقة الأساسية",
+      "نسختان كاملتان",
+      "عربية وإنجليزية",
+      "فحص ATS لكل نسخة",
       "دعم أولوية",
     ],
     highlighted: true,
@@ -30,22 +32,22 @@ const plans = [
 
 export default function Pricing() {
   return (
-    <section id="pricing" className="bg-white px-6 py-20 md:py-28">
+    <section id="pricing" className="bg-white px-4 py-16 sm:px-6 sm:py-24">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-14 text-center">
-          <h2 className="mb-4 text-3xl font-extrabold text-slate-900 md:text-4xl">
-            خطط <span className="text-[#378ADD]">الأسعار</span>
+        <div className="mb-12 text-center">
+          <h2 className="mb-4 text-3xl font-extrabold text-slate-900 sm:text-4xl">
+            باقات <span className="text-[#378ADD]">التحميل</span>
           </h2>
-          <p className="mx-auto max-w-2xl text-lg text-slate-600">
-            اختر الخطة المناسبة لك وابدأ في بناء هويتك المهنية اليوم.
+          <p className="mx-auto max-w-2xl text-base text-slate-600 sm:text-lg">
+            أنشئ سيرتك مجاناً، وادفع فقط عند التحميل بدون علامة مائية.
           </p>
         </div>
 
-        <div className="mx-auto grid max-w-4xl gap-8 md:grid-cols-2">
+        <div className="mx-auto grid max-w-4xl gap-6 sm:gap-8 md:grid-cols-2">
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`relative flex flex-col rounded-2xl border bg-white p-8 shadow-sm transition-all hover:shadow-xl ${
+              className={`relative flex flex-col rounded-2xl border bg-white p-6 shadow-sm transition-all hover:shadow-xl sm:p-8 ${
                 plan.highlighted
                   ? "border-[#378ADD] shadow-lg shadow-[#378ADD]/15 ring-2 ring-[#378ADD]/20"
                   : "border-slate-100"
@@ -63,12 +65,10 @@ export default function Pricing() {
               <p className="mb-6 text-sm text-slate-500">{plan.description}</p>
 
               <div className="mb-6 flex items-baseline gap-1">
-                <span className="text-5xl font-extrabold text-[#378ADD]">
+                <span className="text-4xl font-extrabold text-[#378ADD] sm:text-5xl">
                   {plan.price}
                 </span>
-                <span className="text-lg font-semibold text-slate-600">
-                  ر.س
-                </span>
+                <span className="text-lg font-semibold text-slate-600">ر.س</span>
               </div>
 
               <ul className="mb-8 flex-1 space-y-3">
@@ -77,30 +77,15 @@ export default function Pricing() {
                     key={feature}
                     className="flex items-center gap-2 text-sm text-slate-700"
                   >
-                    <svg
-                      className="h-5 w-5 shrink-0 text-[#378ADD]"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M4.5 12.75l6 6 9-13.5"
-                      />
-                    </svg>
+                    <span className="text-[#378ADD]">✓</span>
                     {feature}
                   </li>
                 ))}
               </ul>
 
-              <Link
-                href="#"
-                className="rounded-full bg-[#378ADD] py-3 text-center text-sm font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8]"
-              >
-                اشترك الآن
-              </Link>
+              <StartNowLink className="rounded-full bg-[#378ADD] py-3 text-center text-sm font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8]">
+                ابدأ الآن
+              </StartNowLink>
             </div>
           ))}
         </div>

@@ -1,8 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useTransition } from "react";
 import { signOut } from "@/app/auth/actions";
+import { CURRENT_CV_ID_KEY, STORAGE_KEY } from "@/lib/cv-storage";
 
 type UserMenuProps = {
   name: string;
@@ -43,7 +45,8 @@ export default function UserMenu({ name, avatarUrl }: UserMenuProps) {
   const [isPending, startTransition] = useTransition();
 
   const handleSignOut = () => {
-    sessionStorage.removeItem("cvfy-generated-cv");
+    sessionStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(CURRENT_CV_ID_KEY);
     sessionStorage.removeItem("cvfy-payment-paid");
     sessionStorage.removeItem("cvfy-payment-plan");
     sessionStorage.removeItem("cvfy-payment-pending-plan");
@@ -54,10 +57,16 @@ export default function UserMenu({ name, avatarUrl }: UserMenuProps) {
   };
 
   return (
-    <div className="flex items-center gap-3">
-      <div className="flex items-center gap-2.5">
+    <div className="flex items-center gap-2 sm:gap-3">
+      <Link
+        href="/dashboard"
+        className="hidden rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:border-[#378ADD]/40 hover:text-[#378ADD] sm:inline-block"
+      >
+        لوحة التحكم
+      </Link>
+      <div className="flex items-center gap-2">
         <UserAvatar name={name} avatarUrl={avatarUrl} />
-        <span className="hidden max-w-[140px] truncate text-sm font-semibold text-slate-700 sm:inline">
+        <span className="hidden max-w-[120px] truncate text-sm font-semibold text-slate-700 md:inline">
           {name}
         </span>
       </div>
@@ -65,9 +74,9 @@ export default function UserMenu({ name, avatarUrl }: UserMenuProps) {
         type="button"
         onClick={handleSignOut}
         disabled={isPending}
-        className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+        className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60 sm:px-4 sm:text-sm"
       >
-        {isPending ? "جاري الخروج..." : "تسجيل الخروج"}
+        {isPending ? "..." : "خروج"}
       </button>
     </div>
   );

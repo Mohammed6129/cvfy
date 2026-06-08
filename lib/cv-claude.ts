@@ -46,7 +46,16 @@ export function extractAtsScoreJson(content: string): AtsScoreResult {
 
   return {
     score,
+    summary: typeof parsed.summary === "string" ? parsed.summary : "",
     passed: Array.isArray(parsed.passed) ? parsed.passed : [],
     improvements: Array.isArray(parsed.improvements) ? parsed.improvements : [],
+    categories: Array.isArray(parsed.categories)
+      ? parsed.categories.map((cat) => ({
+          name: cat.name ?? "",
+          score: Math.min(100, Math.max(0, Math.round(Number(cat.score) || 0))),
+          maxScore: Math.min(100, Math.max(0, Math.round(Number(cat.maxScore) || 100))),
+          note: cat.note ?? "",
+        }))
+      : [],
   };
 }

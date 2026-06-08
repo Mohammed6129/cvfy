@@ -16,7 +16,7 @@ export default async function StartNowLink({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const href = user ? DEFAULT_POST_AUTH_PATH : "/login";
+  const href = user ? DEFAULT_POST_AUTH_PATH : "/login?next=/create";
 
   return (
     <Link href={href} className={className}>
