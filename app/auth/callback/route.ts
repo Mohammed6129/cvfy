@@ -1,6 +1,7 @@
-import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { DEFAULT_POST_AUTH_PATH, getRedirectOrigin } from "@/lib/auth";
+import { getSupabaseEnvStatus } from "@/lib/supabase/env";
+import { createRouteHandlerClient } from "@/lib/supabase/route-handler";
 
 export const dynamic = "force-dynamic";
 
@@ -34,28 +35,30 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  const envStatus = getSupabaseEnvStatus();
+  if (!envStatus.urlPresent || !envStatus.keyPresent) {
+    console.error("[auth/callback] Supabase env missing:", envStatus);
+    const loginUrl = new URL("/login", origin);
+    loginUrl.searchParams.set("error", "auth_callback_error");
+    return NextResponse.redirect(loginUrl);
+  }
+
   let response = NextResponse.redirect(new URL(next, origin));
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-          response = NextResponse.redirect(new URL(next, origin));
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
+  const supabase = createRouteHandlerClient(request, {
+    getAll() {
+      return request.cookies.getAll();
+    },
+    setAll(cookiesToSet) {
+      cookiesToSet.forEach(({ name, value }) =>
+        request.cookies.set(name, value)
+      );
+      response = NextResponse.redirect(new URL(next, origin));
+      cookiesToSet.forEach(({ name, value, options }) =>
+        response.cookies.set(name, value, options)
+      );
+    },
+  });
 
   const { error } = await supabase.auth.exchangeCodeForSession(code);
 
@@ -63,7 +66,9 @@ export async function GET(request: NextRequest) {
     console.error(
       "[auth/callback] exchangeCodeForSession failed:",
       error.message,
-      error.status
+      error.status,
+      "key:",
+      envStatus.keyPrefix
     );
     const loginUrl = new URL("/login", origin);
     loginUrl.searchParams.set("error", "auth_callback_error");
