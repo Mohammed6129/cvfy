@@ -1,0 +1,89 @@
+export type Language = "arabic" | "english" | "both" | "";
+
+export type WorkExperience = {
+  id: string;
+  jobTitle: string;
+  company: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+};
+
+export type Education = {
+  id: string;
+  degree: string;
+  institution: string;
+  startDate: string;
+  endDate: string;
+};
+
+export type Skill = {
+  id: string;
+  name: string;
+};
+
+export type Course = {
+  id: string;
+  name: string;
+  provider: string;
+  year: string;
+};
+
+export type CvFormData = {
+  language: Language;
+  name: string;
+  city: string;
+  phone: string;
+  email: string;
+  workExperience: WorkExperience[];
+  education: Education[];
+  skills: Skill[];
+  courses: Course[];
+  selfDescription: string;
+};
+
+export type GeneratedExperience = {
+  jobTitle: string;
+  company: string;
+  period: string;
+  description: string;
+};
+
+export type GeneratedEducation = {
+  degree: string;
+  institution: string;
+  period: string;
+};
+
+export type GeneratedCourse = {
+  name: string;
+  provider: string;
+  year: string;
+};
+
+export type GeneratedCvContent = {
+  headline: string;
+  summary: string;
+  experiences: GeneratedExperience[];
+  education: GeneratedEducation[];
+  skills: string[];
+  courses: GeneratedCourse[];
+};
+
+export type GeneratedCv = {
+  name: string;
+  email: string;
+  phone: string;
+  city: string;
+  language?: Language;
+  content: GeneratedCvContent;
+  aiEnhanced?: boolean;
+  generatedWithFallback?: boolean;
+  warning?: string;
+};
+
+export type AtsScoreResult = {
+  score: number;
+  passed: string[];
+  improvements: string[];
+};
