@@ -1,6 +1,9 @@
 import type { AtsScoreResult, GeneratedCvContent } from "@/lib/cv-types";
 
-export const CLAUDE_MODEL = "claude-sonnet-4-20250514";
+export const CLAUDE_MODEL = "claude-sonnet-4-5-20250929";
+
+export const CV_GENERATION_SYSTEM_PROMPT =
+  "NEVER copy the user's text directly. Always rewrite everything in formal professional Arabic (فصحى). Transform casual dialect into professional language.";
 
 export function normalizeContent(
   content: Partial<GeneratedCvContent>
