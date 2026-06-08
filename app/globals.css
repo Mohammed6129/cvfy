@@ -54,6 +54,32 @@ body {
   display: none !important;
 }
 
+.cv-locked,
+.cv-locked * {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.cv-paywall-blur {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(255, 255, 255, 0.45) 35%,
+    rgba(255, 255, 255, 0.92) 75%,
+    #ffffff 100%
+  );
+}
+
+.cv-paywall-overlay {
+  pointer-events: none;
+}
+
+.cv-paywall-overlay > * {
+  pointer-events: auto;
+}
+
 /* Hide Moyasar branding */
 .mysr-form a[href*="moyasar.com"],
 #mysr a[href*="moyasar.com"] {
@@ -84,5 +110,16 @@ body {
 
   .cv-watermark {
     display: none !important;
+  }
+
+  .cv-paywall-blur,
+  .cv-paywall-overlay {
+    display: none !important;
+  }
+
+  .cv-locked,
+  .cv-locked * {
+    user-select: auto !important;
+    -webkit-user-select: auto !important;
   }
 }

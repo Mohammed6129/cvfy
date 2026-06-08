@@ -17,11 +17,13 @@ import {
 type PaymentSectionProps = {
   onPaymentSuccess: (planId: PlanId) => void;
   isPaid: boolean;
+  variant?: "default" | "overlay";
 };
 
 export default function PaymentSection({
   onPaymentSuccess,
   isPaid,
+  variant = "default",
 }: PaymentSectionProps) {
   const [selectedPlan, setSelectedPlan] = useState<PlanId>("single");
   const [showPaymentForm, setShowPaymentForm] = useState(false);
@@ -53,6 +55,8 @@ export default function PaymentSection({
   };
 
   if (isPaid || paymentSuccess) {
+    if (variant === "overlay") return null;
+
     return (
       <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-center">
         <p className="text-sm font-bold text-emerald-800">
@@ -63,9 +67,64 @@ export default function PaymentSection({
   }
 
   if (environmentError) {
-    return (
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-center">
+    const errorBox = (
+      <div
+        className={`rounded-xl border border-amber-200 bg-amber-50 p-4 text-center ${
+          variant === "overlay" ? "" : "p-5"
+        }`}
+      >
         <p className="text-sm font-semibold text-amber-900">{environmentError}</p>
+      </div>
+    );
+    return errorBox;
+  }
+
+  const payButton = !showPaymentForm ? (
+    <button
+      type="button"
+      onClick={handlePay}
+      className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#378ADD] px-6 py-3.5 text-sm font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8]"
+    >
+      {variant === "overlay"
+        ? "ادفع 69 ر.س وحمّل السيرة"
+        : `ادفع وحمّل السيرة — ${selected.price} ر.س`}
+    </button>
+  ) : (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between rounded-xl bg-[#e8f2fc] px-4 py-3">
+        <p className="text-sm font-semibold text-[#378ADD]">
+          الدفع: {selected.title} — {selected.price} ر.س
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setShowPaymentForm(false);
+            setPaymentError(null);
+          }}
+          className="text-xs font-semibold text-slate-600 hover:text-slate-900"
+        >
+          إلغاء
+        </button>
+      </div>
+
+      <MoyasarPaymentForm
+        key={selectedPlan}
+        planId={selectedPlan}
+        onSuccess={handlePaymentSuccess}
+        onError={setPaymentError}
+      />
+    </div>
+  );
+
+  if (variant === "overlay") {
+    return (
+      <div className="w-full">
+        {payButton}
+        {paymentError && (
+          <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-700">
+            {paymentError}
+          </div>
+        )}
       </div>
     );
   }
@@ -107,40 +166,7 @@ export default function PaymentSection({
         ))}
       </div>
 
-      {!showPaymentForm ? (
-        <button
-          type="button"
-          onClick={handlePay}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#378ADD] px-6 py-3.5 text-sm font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8]"
-        >
-          ادفع وحمّل السيرة — {selected.price} ر.س
-        </button>
-      ) : (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between rounded-xl bg-[#e8f2fc] px-4 py-3">
-            <p className="text-sm font-semibold text-[#378ADD]">
-              الدفع: {selected.title} — {selected.price} ر.س
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                setShowPaymentForm(false);
-                setPaymentError(null);
-              }}
-              className="text-xs font-semibold text-slate-600 hover:text-slate-900"
-            >
-              إلغاء
-            </button>
-          </div>
-
-          <MoyasarPaymentForm
-            key={selectedPlan}
-            planId={selectedPlan}
-            onSuccess={handlePaymentSuccess}
-            onError={setPaymentError}
-          />
-        </div>
-      )}
+      {payButton}
 
       {paymentError && (
         <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-700">

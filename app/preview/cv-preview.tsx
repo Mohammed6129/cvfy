@@ -214,16 +214,19 @@ export default function CvPreview() {
 
         <AtsScoreChecker cv={cv} cvId={cvId} />
 
-        <PaymentSection
-          isPaid={isPaid}
-          onPaymentSuccess={handlePaymentSuccess}
-        />
+        {isPaid && (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-center">
+            <p className="text-sm font-bold text-emerald-800">
+              تم الدفع بنجاح! يمكنك الآن تحميل سيرتك الذاتية بدون علامة مائية.
+            </p>
+          </div>
+        )}
       </div>
 
       <div
         className={`cv-preview relative overflow-hidden rounded-2xl border bg-white p-4 shadow-lg shadow-slate-200/60 sm:p-8 md:p-10 ${
           enhancing ? "pointer-events-none opacity-50" : "border-slate-200"
-        } ${isPaid ? "cv-paid" : ""}`}
+        } ${isPaid ? "cv-paid" : "cv-locked"}`}
       >
         {!isPaid && (
           <div
@@ -237,13 +240,38 @@ export default function CvPreview() {
         )}
 
         {enhancing && (
-          <div className="relative z-20 mb-6 flex items-center justify-center gap-3 rounded-xl bg-[#e8f2fc] py-4 text-sm font-semibold text-[#378ADD] print:hidden">
+          <div className="relative z-30 mb-6 flex items-center justify-center gap-3 rounded-xl bg-[#e8f2fc] py-4 text-sm font-semibold text-[#378ADD] print:hidden">
             <span className="h-5 w-5 animate-spin rounded-full border-2 border-[#378ADD]/30 border-t-[#378ADD]" />
             جاري تحسين المحتوى...
           </div>
         )}
+
         <div className="relative z-0">
           <ClassicCvTemplate cv={cv} />
+
+          {!isPaid && (
+            <>
+              <div
+                className="cv-paywall-blur pointer-events-none absolute inset-x-0 top-1/2 bottom-0 z-20 print:hidden"
+                aria-hidden
+              />
+              <div className="cv-paywall-overlay absolute inset-x-0 top-1/2 bottom-0 z-30 flex items-center justify-center p-4 sm:p-6 print:hidden">
+                <div className="w-full max-w-md rounded-2xl border border-slate-200/80 bg-white/95 p-6 text-center shadow-2xl shadow-slate-300/40 backdrop-blur-sm sm:p-8">
+                  <h3 className="mb-2 text-lg font-extrabold text-slate-900 sm:text-xl">
+                    🔒 اكمل سيرتك الذاتية كاملة
+                  </h3>
+                  <p className="mb-6 text-sm leading-relaxed text-slate-600 sm:text-base">
+                    ادفع 69 ر.س وحمّل نسختك الاحترافية بدون علامة مائية
+                  </p>
+                  <PaymentSection
+                    variant="overlay"
+                    isPaid={isPaid}
+                    onPaymentSuccess={handlePaymentSuccess}
+                  />
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
