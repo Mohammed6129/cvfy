@@ -91,7 +91,11 @@ export async function GET(request: Request) {
   }
 
   if (!data?.generated_cv) {
-    return NextResponse.json({ cv: null });
+    console.warn("[api/cvs] GET no CV found for user:", user.id, "cvId:", cvId);
+    return NextResponse.json(
+      { error: "لم يتم العثور على سيرة ذاتية.", cv: null, id: null },
+      { status: 404 }
+    );
   }
 
   return NextResponse.json({

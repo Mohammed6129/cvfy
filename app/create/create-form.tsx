@@ -355,25 +355,76 @@ export default function CreateForm() {
     setError(null);
 
     try {
+      console.log("[create-form] Submitting CV generation for:", payload.name);
+
       const response = await fetch("/api/generate-cv", {
         method: "POST",
-        headers: { "Content-Type": "application/json; charset=utf-8", Accept: "application/json" },
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          Accept: "application/json",
+        },
         body: JSON.stringify(payload),
       });
+
       const text = await response.text();
-      const result = JSON.parse(text) as GeneratedCv & { error?: string };
+      console.log("[create-form] generate-cv status:", response.status);
+      console.log("[create-form] generate-cv preview:", text.slice(0, 300));
+
+      let result: GeneratedCv & { error?: string };
+
+      try {
+        result = JSON.parse(text) as GeneratedCv & { error?: string };
+      } catch (parseError) {
+        console.error("[create-form] JSON parse failed:", parseError);
+        setError("استجابة غير صالحة من الخادم. حاول مرة أخرى.");
+        setGenerating(false);
+        return;
+      }
+
       if (!response.ok) {
+        console.error("[create-form] API error:", result);
         setError(result.error || "حدث خطأ أثناء إنشاء السيرة.");
         setGenerating(false);
         return;
       }
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ ...result, language: "both" }));
-      const saved = await saveCvToAccount({ ...result, language: "both" }, payload, editCvId);
-      const cvId = saved?.id ?? editCvId;
-      if (cvId) sessionStorage.setItem(CURRENT_CV_ID_KEY, cvId);
-      router.push(cvId ? `/enhance?cv=${cvId}` : "/enhance");
-    } catch {
-      setError("حدث خطأ في الاتصال.");
+
+      if (!result.content || typeof result.content !== "object") {
+        console.error("[create-form] Missing content in CV response:", result);
+        setError("بيانات السيرة غير مكتملة من الخادم.");
+        setGenerating(false);
+        return;
+      }
+
+      const generatedCv: GeneratedCv = {
+        ...result,
+        language: "both",
+        name: result.name || payload.name,
+        email: result.email || payload.email,
+        phone: result.phone || payload.phone,
+        city: result.city || payload.city,
+      };
+
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(generatedCv));
+      console.log("[create-form] CV stored in sessionStorage");
+
+      const saved = await saveCvToAccount(generatedCv, payload, editCvId);
+      console.log("[create-form] saveCvToAccount:", saved);
+
+      const cvId =
+        saved?.id ??
+        editCvId ??
+        sessionStorage.getItem(CURRENT_CV_ID_KEY);
+
+      if (cvId) {
+        sessionStorage.setItem(CURRENT_CV_ID_KEY, cvId);
+      }
+
+      const destination = cvId ? `/enhance?cv=${cvId}` : "/enhance";
+      console.log("[create-form] Redirecting to:", destination);
+      router.push(destination);
+    } catch (submitError) {
+      console.error("[create-form] Submit error:", submitError);
+      setError("حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.");
       setGenerating(false);
     }
   };

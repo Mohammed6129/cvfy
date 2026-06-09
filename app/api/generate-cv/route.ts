@@ -320,7 +320,11 @@ export async function POST(request: Request) {
     }
 
     const cv = buildCvResponse(formData, content);
-    console.log("[generate-cv] CV generated successfully via Anthropic");
+    console.log("[generate-cv] CV generated successfully via Anthropic", {
+      name: cv.name,
+      hasContent: Boolean(cv.content),
+      experiences: cv.content.experiences.length,
+    });
     return NextResponse.json(cv);
   } catch (error) {
     logError("Anthropic API failed, using fallback content", error);
@@ -331,6 +335,10 @@ export async function POST(request: Request) {
         "تعذر الاتصال بخدمة الذكاء الاصطناعي. تم إنشاء السيرة من بياناتك المدخلة.",
     });
 
+    console.log("[generate-cv] Returning fallback CV", {
+      name: cv.name,
+      hasContent: Boolean(cv.content),
+    });
     return NextResponse.json(cv);
   }
 }

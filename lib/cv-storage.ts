@@ -18,11 +18,32 @@ export async function saveCvToAccount(
       body: JSON.stringify({ generatedCv, formData, cvId }),
     });
 
-    if (!response.ok) return null;
-    const data = (await response.json()) as { id?: string };
+    const responseText = await response.text();
+
+    if (!response.ok) {
+      console.error(
+        "[cv-storage] save failed:",
+        response.status,
+        responseText.slice(0, 500)
+      );
+      return null;
+    }
+
+    let data: { id?: string; error?: string };
+    try {
+      data = JSON.parse(responseText) as { id?: string; error?: string };
+    } catch (parseError) {
+      console.error("[cv-storage] save response parse failed:", parseError);
+      return null;
+    }
+
     if (data.id) {
       sessionStorage.setItem(CURRENT_CV_ID_KEY, data.id);
+      console.log("[cv-storage] CV saved with id:", data.id);
+    } else {
+      console.warn("[cv-storage] save ok but no id returned:", data);
     }
+
     return data.id ? { id: data.id } : null;
   } catch (error) {
     console.error("[cv-storage] save failed:", error);
@@ -41,16 +62,35 @@ export async function loadCvFromAccount(
       cache: "no-store",
     });
 
-    if (!response.ok) return null;
+    const responseText = await response.text();
 
-    const data = (await response.json()) as {
+    if (!response.ok) {
+      console.error(
+        "[cv-storage] load failed:",
+        response.status,
+        responseText.slice(0, 300)
+      );
+      return null;
+    }
+
+    let data: {
       cv?: GeneratedCv | null;
       id?: string;
       isPaid?: boolean;
       formData?: CvFormData | null;
     };
 
-    if (!data.cv || !data.id) return null;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error("[cv-storage] load response parse failed:", parseError);
+      return null;
+    }
+
+    if (!data.cv || !data.id) {
+      console.warn("[cv-storage] load returned empty cv:", data);
+      return null;
+    }
 
     return {
       cv: data.cv,

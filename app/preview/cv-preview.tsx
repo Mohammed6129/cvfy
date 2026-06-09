@@ -42,8 +42,12 @@ export default function CvPreview() {
       const stored = sessionStorage.getItem(STORAGE_KEY);
       if (stored) {
         try {
-          loadedCv = JSON.parse(stored) as GeneratedCv;
-        } catch {
+          const parsed = JSON.parse(stored) as GeneratedCv;
+          if (parsed?.content && typeof parsed.content === "object") {
+            loadedCv = parsed;
+          }
+        } catch (parseError) {
+          console.error("[preview] sessionStorage parse failed:", parseError);
           sessionStorage.removeItem(STORAGE_KEY);
         }
       }
@@ -51,18 +55,24 @@ export default function CvPreview() {
       const storedId = sessionStorage.getItem(CURRENT_CV_ID_KEY);
       if (!loadedId && storedId) loadedId = storedId;
 
+      console.log("[preview] Loading CV, id:", loadedId);
+
       const accountData = await loadCvFromAccount(loadedId);
-      if (accountData) {
+      if (accountData?.cv?.content) {
+        console.log("[preview] Loaded from account:", accountData.id);
         loadedCv = accountData.cv;
         loadedId = accountData.id;
         if (accountData.isPaid) setIsPaid(true);
         sessionStorage.setItem(STORAGE_KEY, JSON.stringify(loadedCv));
         sessionStorage.setItem(CURRENT_CV_ID_KEY, loadedId);
+      } else if (loadedCv) {
+        console.log("[preview] Using sessionStorage CV fallback");
       }
 
       if (cancelled) return;
 
-      if (!loadedCv) {
+      if (!loadedCv?.content) {
+        console.error("[preview] No CV found — redirecting to /create");
         router.replace("/create");
         return;
       }

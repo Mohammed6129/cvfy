@@ -14,6 +14,23 @@ import type { GeneratedCv } from "@/lib/cv-types";
 
 const BRAND = "#378ADD";
 
+function loadCvFromSession(): GeneratedCv | null {
+  const stored = sessionStorage.getItem(STORAGE_KEY);
+  if (!stored) return null;
+
+  try {
+    const cv = JSON.parse(stored) as GeneratedCv;
+    if (cv?.content && typeof cv.content === "object") {
+      return cv;
+    }
+    console.warn("[enhance] sessionStorage CV missing content");
+    return null;
+  } catch (error) {
+    console.error("[enhance] sessionStorage parse failed:", error);
+    return null;
+  }
+}
+
 export default function EnhanceContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -24,18 +41,60 @@ export default function EnhanceContent() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const paramId = searchParams.get("cv");
-    void loadCvFromAccount(paramId).then((data) => {
-      if (!data) {
-        router.replace("/create");
+    let cancelled = false;
+
+    const load = async () => {
+      const paramId = searchParams.get("cv");
+      const storedId = sessionStorage.getItem(CURRENT_CV_ID_KEY);
+      const lookupId = paramId || storedId;
+
+      console.log("[enhance] Loading CV, lookupId:", lookupId);
+
+      if (lookupId) {
+        const accountData = await loadCvFromAccount(lookupId);
+        if (!cancelled && accountData?.cv?.content) {
+          console.log("[enhance] Loaded from account:", accountData.id);
+          setCv(accountData.cv);
+          setCvId(accountData.id);
+          sessionStorage.setItem(STORAGE_KEY, JSON.stringify(accountData.cv));
+          sessionStorage.setItem(CURRENT_CV_ID_KEY, accountData.id);
+          setLoading(false);
+          return;
+        }
+        console.warn("[enhance] Account load failed for id:", lookupId);
+      }
+
+      const sessionCv = loadCvFromSession();
+      if (!cancelled && sessionCv) {
+        console.log("[enhance] Using sessionStorage CV fallback");
+        setCv(sessionCv);
+        setCvId(lookupId);
+        setLoading(false);
+
+        if (!lookupId) {
+          const saved = await saveCvToAccount(sessionCv);
+          if (!cancelled && saved?.id) {
+            console.log("[enhance] Late save succeeded:", saved.id);
+            setCvId(saved.id);
+            sessionStorage.setItem(CURRENT_CV_ID_KEY, saved.id);
+            router.replace(`/enhance?cv=${saved.id}`);
+          }
+        }
         return;
       }
-      setCv(data.cv);
-      setCvId(data.id);
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data.cv));
-      sessionStorage.setItem(CURRENT_CV_ID_KEY, data.id);
-      setLoading(false);
-    });
+
+      if (!cancelled) {
+        console.error("[enhance] No CV found — redirecting to /create");
+        setError("لم نجد سيرة محفوظة. يرجى إعادة تعبئة النموذج.");
+        setLoading(false);
+      }
+    };
+
+    void load();
+
+    return () => {
+      cancelled = true;
+    };
   }, [router, searchParams]);
 
   const handleEnhance = async () => {
@@ -44,6 +103,8 @@ export default function EnhanceContent() {
     setError(null);
 
     try {
+      console.log("[enhance] Calling enhance-cv API");
+
       const response = await fetch("/api/enhance-cv", {
         method: "POST",
         headers: {
@@ -54,27 +115,40 @@ export default function EnhanceContent() {
       });
 
       const text = await response.text();
+      console.log("[enhance] enhance-cv status:", response.status);
+
       let result: GeneratedCv & { error?: string };
 
       try {
         result = JSON.parse(text);
-      } catch {
+      } catch (parseError) {
+        console.error("[enhance] JSON parse failed:", parseError);
         setError("استجابة غير صالحة من الخادم.");
         setEnhancing(false);
         return;
       }
 
       if (!response.ok) {
+        console.error("[enhance] API error:", result);
         setError(result.error || "تعذر تحسين السيرة الذاتية.");
         setEnhancing(false);
         return;
       }
 
-      const enhanced = { ...result, aiEnhanced: true, language: "both" as const };
+      const enhanced: GeneratedCv = {
+        ...result,
+        aiEnhanced: true,
+        language: "both",
+      };
+
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(enhanced));
       await saveCvToAccount(enhanced, undefined, cvId);
-      router.push(cvId ? `/preview?cv=${cvId}` : "/preview");
-    } catch {
+
+      const destination = cvId ? `/preview?cv=${cvId}` : "/preview";
+      console.log("[enhance] Redirecting to:", destination);
+      router.push(destination);
+    } catch (enhanceError) {
+      console.error("[enhance] Submit error:", enhanceError);
       setError("حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.");
       setEnhancing(false);
     }
@@ -82,6 +156,24 @@ export default function EnhanceContent() {
 
   if (loading) {
     return <LoadingSpinner label="جاري التحميل..." size="lg" />;
+  }
+
+  if (!cv) {
+    return (
+      <div className="mx-auto max-w-xl text-center">
+        {error && (
+          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+        <Link
+          href="/create"
+          className="inline-block rounded-full bg-[#378ADD] px-8 py-3 text-sm font-semibold text-white"
+        >
+          العودة لإنشاء السيرة
+        </Link>
+      </div>
+    );
   }
 
   if (enhancing) {
