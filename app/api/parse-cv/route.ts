@@ -7,32 +7,6 @@ import type { CvFormData } from "@/lib/cv-types";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-async function extractTextFromFile(file: File): Promise<string> {
-  const name = file.name.toLowerCase();
-
-  if (name.endsWith(".pdf")) {
-    const { PDFParse } = await import("pdf-parse");
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const parser = new PDFParse({ data: buffer });
-    const result = await parser.getText();
-    await parser.destroy();
-    return result.text;
-  }
-
-  if (name.endsWith(".docx")) {
-    const mammoth = await import("mammoth");
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const result = await mammoth.extractRawText({ buffer });
-    return result.value;
-  }
-
-  if (name.endsWith(".doc") || name.endsWith(".txt")) {
-    return await file.text();
-  }
-
-  throw new Error("نوع الملف غير مدعوم. استخدم PDF أو Word.");
-}
-
 function extractJson(content: string): Partial<CvFormData> {
   const fenced = content.match(/```(?:json)?\s*([\s\S]*?)```/);
   const raw = fenced ? fenced[1].trim() : content.trim();
@@ -41,30 +15,73 @@ function extractJson(content: string): Partial<CvFormData> {
   return JSON.parse(jsonMatch[0]) as Partial<CvFormData>;
 }
 
+async function extractDocxText(file: File): Promise<string> {
+  const mammoth = await import("mammoth");
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const result = await mammoth.extractRawText({ buffer });
+  return result.value.trim();
+}
+
 export async function POST(request: Request) {
-  const apiKey = getAnthropicApiKey();
-  if (!apiKey) {
-    return NextResponse.json(
-      { error: "خدمة استخراج البيانات غير متاحة حالياً." },
-      { status: 503 }
-    );
-  }
+  const { searchParams } = new URL(request.url);
+  const extractOnly = searchParams.get("extract") === "true";
 
   try {
-    const formData = await request.formData();
-    const file = formData.get("file");
+    let text = "";
 
-    if (!file || !(file instanceof File)) {
-      return NextResponse.json({ error: "لم يتم رفع ملف." }, { status: 400 });
+    const contentType = request.headers.get("content-type") || "";
+
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await request.formData();
+      const file = formData.get("file");
+
+      if (!file || !(file instanceof File)) {
+        return NextResponse.json({ error: "لم يتم رفع ملف." }, { status: 400 });
+      }
+
+      const name = file.name.toLowerCase();
+
+      if (name.endsWith(".docx")) {
+        text = await extractDocxText(file);
+      } else {
+        return NextResponse.json(
+          { error: "للملفات PDF استخدم /api/parse-pdf." },
+          { status: 400 }
+        );
+      }
+
+      if (extractOnly) {
+        if (!text) {
+          return NextResponse.json(
+            { error: "لم نتمكن من استخراج نص من الملف." },
+            { status: 400 }
+          );
+        }
+        return NextResponse.json({ text });
+      }
+    } else if (contentType.includes("application/json")) {
+      const body = (await request.json()) as { text?: string };
+      text = body.text?.trim() ?? "";
+    } else {
+      return NextResponse.json({ error: "بيانات غير صالحة." }, { status: 400 });
     }
 
-    const text = await extractTextFromFile(file);
-    if (!text.trim()) {
+    const apiKey = getAnthropicApiKey();
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: "خدمة استخراج البيانات غير متاحة حالياً." },
+        { status: 503 }
+      );
+    }
+
+    if (!text) {
       return NextResponse.json(
         { error: "لم نتمكن من استخراج نص من الملف." },
         { status: 400 }
       );
     }
+
+    console.log("[parse-cv] Received text length:", text.length);
 
     const anthropic = new Anthropic({ apiKey });
     const message = await anthropic.messages.create({

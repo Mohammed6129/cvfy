@@ -1,8 +1,9 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import LoadingSpinner from "@/app/components/loading-spinner";
+import CvUpload from "./cv-upload";
 import {
   GRADUATION_YEARS,
   MONTHS,
@@ -160,7 +161,6 @@ function MonthYearSelect({
 export default function CreateForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const fileRef = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState(1);
   const [data, setData] = useState<FormData>(initialData);
   const [error, setError] = useState<string | null>(null);
@@ -168,7 +168,6 @@ export default function CreateForm() {
   const [loadingForm, setLoadingForm] = useState(false);
   const [editCvId, setEditCvId] = useState<string | null>(null);
   const [skillInput, setSkillInput] = useState("");
-  const [uploading, setUploading] = useState(false);
   const [uploadParsed, setUploadParsed] = useState(false);
   const [addFlags, setAddFlags] = useState({
     experience: true,
@@ -231,41 +230,33 @@ export default function CreateForm() {
     setSkillInput("");
   };
 
-  const handleUpload = async (file: File) => {
-    setUploading(true);
-    setError(null);
-    const form = new FormData();
-    form.append("file", file);
-    try {
-      const res = await fetch("/api/parse-cv", { method: "POST", body: form });
-      const json = (await res.json()) as { formData?: Partial<FormData>; error?: string };
-      if (!res.ok) throw new Error(json.error || "فشل رفع الملف");
-      const p = json.formData;
-      if (p) {
-        setData((prev) => ({
-          ...prev,
-          name: p.name || prev.name,
-          email: p.email || prev.email,
-          phone: p.phone || prev.phone,
-          city: p.city || prev.city,
-          selfDescription: p.selfDescription || prev.selfDescription,
-          workExperience: p.workExperience?.length
-            ? p.workExperience.map((w) => ({ ...emptyWork(), ...w, department: w.department ?? "" }))
-            : prev.workExperience,
-          education: p.education?.length
-            ? p.education.map((e) => ({ ...emptyEducation(), ...e }))
-            : prev.education,
-          skills: p.skills?.filter((s) => s.name?.trim()).map((s) => ({ id: newId(), name: s.name })) ?? prev.skills,
-          courses: p.courses?.length
-            ? p.courses.map((c) => ({ ...emptyCourse(), ...c }))
-            : prev.courses,
-        }));
-        setUploadParsed(true);
-      }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "تعذر قراءة الملف");
-    }
-    setUploading(false);
+  const handleParsedUpload = (p: Partial<FormData>) => {
+    setData((prev) => ({
+      ...prev,
+      name: p.name || prev.name,
+      email: p.email || prev.email,
+      phone: p.phone || prev.phone,
+      city: p.city || prev.city,
+      selfDescription: p.selfDescription || prev.selfDescription,
+      workExperience: p.workExperience?.length
+        ? p.workExperience.map((w) => ({
+            ...emptyWork(),
+            ...w,
+            department: w.department ?? "",
+          }))
+        : prev.workExperience,
+      education: p.education?.length
+        ? p.education.map((e) => ({ ...emptyEducation(), ...e }))
+        : prev.education,
+      skills:
+        p.skills
+          ?.filter((s) => s.name?.trim())
+          .map((s) => ({ id: newId(), name: s.name })) ?? prev.skills,
+      courses: p.courses?.length
+        ? p.courses.map((c) => ({ ...emptyCourse(), ...c }))
+        : prev.courses,
+    }));
+    setUploadParsed(true);
   };
 
   const applyUploadFlags = () => {
@@ -448,56 +439,46 @@ export default function CreateForm() {
         {START_NOTICE}
       </div>
 
-      <div className="mb-8 rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 p-4 sm:p-5">
-        <p className="mb-3 text-sm font-bold text-slate-800">عندك سيرة قديمة؟ ارفعها هنا</p>
-        <input
-          ref={fileRef}
-          type="file"
-          accept=".pdf,.doc,.docx,.txt"
-          className="hidden"
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) void handleUpload(f);
-          }}
-        />
-        <button
-          type="button"
-          disabled={uploading}
-          onClick={() => fileRef.current?.click()}
-          className="rounded-xl border-2 border-[#378ADD]/30 bg-white px-5 py-2.5 text-sm font-semibold text-[#378ADD] hover:bg-[#e8f2fc] disabled:opacity-60"
-        >
-          {uploading ? "جاري الاستخراج..." : "رفع سيرة (PDF أو Word)"}
-        </button>
+      <CvUpload
+        onParsed={handleParsedUpload}
+        onError={setError}
+      />
 
-        {uploadParsed && (
-          <div className="mt-4 space-y-3 rounded-xl border border-[#378ADD]/20 bg-white p-4">
-            <p className="text-sm font-semibold text-slate-800">تبي تضيف معلومات إضافية؟</p>
-            {[
-              { key: "experience" as const, label: "خبرات" },
-              { key: "courses" as const, label: "دورات" },
-              { key: "certs" as const, label: "شهادات" },
-              { key: "extra" as const, label: "معلومات إضافية" },
-            ].map((item) => (
-              <label key={item.key} className="flex items-center gap-2 text-sm text-slate-700">
-                <input
-                  type="checkbox"
-                  checked={addFlags[item.key]}
-                  onChange={(e) => setAddFlags((f) => ({ ...f, [item.key]: e.target.checked }))}
-                  className="h-4 w-4 rounded text-[#378ADD]"
-                />
-                {item.label}
-              </label>
-            ))}
-            <button
-              type="button"
-              onClick={applyUploadFlags}
-              className="mt-2 rounded-lg bg-[#378ADD] px-4 py-2 text-sm font-semibold text-white"
+      {uploadParsed && (
+        <div className="mb-8 space-y-3 rounded-xl border border-[#378ADD]/20 bg-white p-4">
+          <p className="text-sm font-semibold text-slate-800">
+            تبي تضيف معلومات إضافية؟
+          </p>
+          {[
+            { key: "experience" as const, label: "خبرات" },
+            { key: "courses" as const, label: "دورات" },
+            { key: "certs" as const, label: "شهادات" },
+            { key: "extra" as const, label: "معلومات إضافية" },
+          ].map((item) => (
+            <label
+              key={item.key}
+              className="flex items-center gap-2 text-sm text-slate-700"
             >
-              متابعة
-            </button>
-          </div>
-        )}
-      </div>
+              <input
+                type="checkbox"
+                checked={addFlags[item.key]}
+                onChange={(e) =>
+                  setAddFlags((f) => ({ ...f, [item.key]: e.target.checked }))
+                }
+                className="h-4 w-4 rounded text-[#378ADD]"
+              />
+              {item.label}
+            </label>
+          ))}
+          <button
+            type="button"
+            onClick={applyUploadFlags}
+            className="mt-2 rounded-lg bg-[#378ADD] px-4 py-2 text-sm font-semibold text-white"
+          >
+            متابعة
+          </button>
+        </div>
+      )}
 
       <div className="mb-8">
         <div className="mb-3 flex justify-between text-sm">
