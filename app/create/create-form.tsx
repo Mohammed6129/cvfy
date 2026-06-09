@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import CvGenerationLoader from "@/app/components/cv-generation-loader";
 import LoadingSpinner from "@/app/components/loading-spinner";
 import CvUpload from "./cv-upload";
 import {
@@ -423,12 +424,7 @@ export default function CreateForm() {
   if (loadingForm) return <LoadingSpinner label="جاري تحميل بيانات السيرة..." />;
 
   if (generating) {
-    return (
-      <div className="animate-fade-in rounded-2xl border border-slate-100 bg-white p-10 text-center shadow-lg">
-        <div className="mx-auto mb-6 h-12 w-12 animate-spin rounded-full border-4 border-[#e8f2fc] border-t-[#378ADD]" />
-        <h2 className="text-xl font-extrabold">جاري إنشاء سيرتك الذاتية...</h2>
-      </div>
-    );
+    return <CvGenerationLoader />;
   }
 
   const edu = data.education[0] ?? emptyEducation();

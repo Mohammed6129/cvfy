@@ -50,6 +50,292 @@ body {
   animation: fade-in 0.4s ease-out forwards;
 }
 
+/* CV generation loader animations */
+@keyframes cv-gen-rustle {
+  0%,
+  100% {
+    transform: rotate(-0.6deg);
+  }
+  50% {
+    transform: rotate(0.6deg);
+  }
+}
+
+@keyframes cv-gen-walk-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes cv-gen-leg-swing-left {
+  0%,
+  100% {
+    transform: rotate(-12deg);
+    transform-origin: top center;
+  }
+  50% {
+    transform: rotate(10deg);
+    transform-origin: top center;
+  }
+}
+
+@keyframes cv-gen-leg-swing-right {
+  0%,
+  100% {
+    transform: rotate(10deg);
+    transform-origin: top center;
+  }
+  50% {
+    transform: rotate(-12deg);
+    transform-origin: top center;
+  }
+}
+
+@keyframes cv-gen-writer-slide {
+  0%,
+  100% {
+    transform: translate(-75px, -5px);
+  }
+  50% {
+    transform: translate(-45px, -5px);
+  }
+}
+
+@keyframes cv-gen-organizer-slide {
+  0%,
+  100% {
+    transform: translate(15px, -35px);
+  }
+  50% {
+    transform: translate(55px, -35px);
+  }
+}
+
+@keyframes cv-gen-papers-walk {
+  0%,
+  100% {
+    transform: translate(60px, 248px);
+  }
+  50% {
+    transform: translate(170px, 248px);
+  }
+}
+
+@keyframes cv-gen-climb {
+  0%,
+  100% {
+    transform: translate(368px, 118px);
+  }
+  50% {
+    transform: translate(368px, 72px);
+  }
+}
+
+@keyframes cv-gen-pen-write {
+  0%,
+  100% {
+    transform: rotate(-8deg);
+    transform-origin: 4px 9px;
+  }
+  50% {
+    transform: rotate(6deg);
+    transform-origin: 4px 9px;
+  }
+}
+
+@keyframes cv-gen-ruler-slide {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(6px);
+  }
+}
+
+@keyframes cv-gen-shemagh-sway {
+  0%,
+  100% {
+    transform: rotate(-6deg);
+    transform-origin: 0 5px;
+  }
+  50% {
+    transform: rotate(8deg);
+    transform-origin: 0 5px;
+  }
+}
+
+@keyframes cv-gen-shemagh-sway-right {
+  0%,
+  100% {
+    transform: rotate(6deg);
+    transform-origin: 0 5px;
+  }
+  50% {
+    transform: rotate(-8deg);
+    transform-origin: 0 5px;
+  }
+}
+
+@keyframes cv-gen-text-line {
+  0%,
+  100% {
+    opacity: 0.08;
+    transform: scaleX(0.92);
+    transform-origin: left center;
+  }
+  50% {
+    opacity: 0.22;
+    transform: scaleX(1);
+    transform-origin: left center;
+  }
+}
+
+@keyframes cv-gen-ink-draw {
+  0% {
+    stroke-dashoffset: 40;
+    opacity: 0.2;
+  }
+  50% {
+    stroke-dashoffset: 0;
+    opacity: 0.7;
+  }
+  100% {
+    stroke-dashoffset: -20;
+    opacity: 0.2;
+  }
+}
+
+@keyframes cv-gen-section-pulse {
+  0%,
+  100% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.28;
+  }
+}
+
+@keyframes cv-gen-paper-stack-bob {
+  0%,
+  100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  50% {
+    transform: rotate(3deg) translateY(-1px);
+  }
+}
+
+@keyframes cv-gen-sparkle {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes cv-gen-dot-fade {
+  0%,
+  80%,
+  100% {
+    opacity: 0.2;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+.cv-gen-loader .cv-gen-paper {
+  animation: cv-gen-rustle 4s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.cv-gen-loader .cv-gen-walk-bob {
+  animation: cv-gen-walk-bob 0.55s ease-in-out infinite;
+}
+
+.cv-gen-loader .cv-gen-leg-left {
+  animation: cv-gen-leg-swing-left 0.55s ease-in-out infinite;
+}
+
+.cv-gen-loader .cv-gen-leg-right {
+  animation: cv-gen-leg-swing-right 0.55s ease-in-out infinite;
+}
+
+.cv-gen-loader .cv-gen-writer-pos {
+  animation: cv-gen-writer-slide 5s ease-in-out infinite;
+}
+
+.cv-gen-loader .cv-gen-organizer-pos {
+  animation: cv-gen-organizer-slide 6s ease-in-out infinite;
+}
+
+.cv-gen-loader .cv-gen-papers-pos {
+  animation: cv-gen-papers-walk 7s ease-in-out infinite;
+}
+
+.cv-gen-loader .cv-gen-climber-pos {
+  animation: cv-gen-climb 4.5s ease-in-out infinite;
+}
+
+.cv-gen-loader .cv-gen-pen-arm {
+  animation: cv-gen-pen-write 1.2s ease-in-out infinite;
+}
+
+.cv-gen-loader .cv-gen-ruler-arm {
+  animation: cv-gen-ruler-slide 1.8s ease-in-out infinite;
+}
+
+.cv-gen-loader .cv-gen-shemagh-tail {
+  animation: cv-gen-shemagh-sway 2.2s ease-in-out infinite;
+}
+
+.cv-gen-loader .cv-gen-shemagh-tail-right {
+  animation: cv-gen-shemagh-sway-right 2.2s ease-in-out infinite;
+}
+
+.cv-gen-loader .cv-gen-text-line {
+  animation: cv-gen-text-line 2.4s ease-in-out infinite;
+}
+
+.cv-gen-loader .cv-gen-ink-trail {
+  stroke-dasharray: 40;
+  animation: cv-gen-ink-draw 2.5s ease-in-out infinite;
+}
+
+.cv-gen-loader .cv-gen-section-line {
+  animation: cv-gen-section-pulse 3s ease-in-out infinite;
+}
+
+.cv-gen-loader .cv-gen-paper-stack {
+  animation: cv-gen-paper-stack-bob 1s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.cv-gen-loader .cv-gen-sparkle {
+  animation: cv-gen-sparkle 2s ease-in-out infinite;
+}
+
+.cv-gen-loader .cv-gen-dots span {
+  animation: cv-gen-dot-fade 1.4s ease-in-out infinite;
+}
+
+.cv-gen-loader .cv-gen-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.cv-gen-loader .cv-gen-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
 .cv-paid .cv-watermark {
   display: none !important;
 }
