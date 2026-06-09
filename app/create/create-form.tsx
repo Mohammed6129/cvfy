@@ -324,15 +324,6 @@ export default function CreateForm() {
       return false;
     }
 
-    if (step === 5) {
-      for (const c of data.courses) {
-        if (!c.name.trim() || !c.provider.trim()) {
-          setError(MANDATORY_MSG);
-          return false;
-        }
-      }
-    }
-
     if (step === 6 && !data.selfDescription.trim()) {
       setError(MANDATORY_MSG);
       return false;
@@ -461,47 +452,6 @@ export default function CreateForm() {
         {START_NOTICE}
       </div>
 
-      <CvUpload
-        onParsed={handleParsedUpload}
-        onError={setError}
-      />
-
-      {uploadParsed && (
-        <div className="mb-8 space-y-3 rounded-xl border border-[#378ADD]/20 bg-white p-4">
-          <p className="text-sm font-semibold text-slate-800">
-            تبي تضيف معلومات إضافية؟
-          </p>
-          {[
-            { key: "experience" as const, label: "خبرات" },
-            { key: "courses" as const, label: "دورات" },
-            { key: "certs" as const, label: "شهادات" },
-            { key: "extra" as const, label: "معلومات إضافية" },
-          ].map((item) => (
-            <label
-              key={item.key}
-              className="flex items-center gap-2 text-sm text-slate-700"
-            >
-              <input
-                type="checkbox"
-                checked={addFlags[item.key]}
-                onChange={(e) =>
-                  setAddFlags((f) => ({ ...f, [item.key]: e.target.checked }))
-                }
-                className="h-4 w-4 rounded text-[#378ADD]"
-              />
-              {item.label}
-            </label>
-          ))}
-          <button
-            type="button"
-            onClick={applyUploadFlags}
-            className="mt-2 rounded-lg bg-[#378ADD] px-4 py-2 text-sm font-semibold text-white"
-          >
-            متابعة
-          </button>
-        </div>
-      )}
-
       <div className="mb-8">
         <div className="mb-3 flex justify-between text-sm">
           <span className="font-semibold text-[#378ADD]">الخطوة {step} من {TOTAL_STEPS}</span>
@@ -519,6 +469,44 @@ export default function CreateForm() {
 
         {step === 1 && (
           <div className="space-y-5">
+            <CvUpload onParsed={handleParsedUpload} onError={setError} />
+
+            {uploadParsed && (
+              <div className="space-y-3 rounded-xl border border-[#378ADD]/20 bg-[#378ADD]/5 p-4">
+                <p className="text-sm font-semibold text-slate-800">
+                  تبي تضيف معلومات إضافية؟
+                </p>
+                {[
+                  { key: "experience" as const, label: "خبرات" },
+                  { key: "courses" as const, label: "دورات" },
+                  { key: "certs" as const, label: "شهادات" },
+                  { key: "extra" as const, label: "معلومات إضافية" },
+                ].map((item) => (
+                  <label
+                    key={item.key}
+                    className="flex items-center gap-2 text-sm text-slate-700"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={addFlags[item.key]}
+                      onChange={(e) =>
+                        setAddFlags((f) => ({ ...f, [item.key]: e.target.checked }))
+                      }
+                      className="h-4 w-4 rounded text-[#378ADD]"
+                    />
+                    {item.label}
+                  </label>
+                ))}
+                <button
+                  type="button"
+                  onClick={applyUploadFlags}
+                  className="mt-2 rounded-lg bg-[#378ADD] px-4 py-2 text-sm font-semibold text-white"
+                >
+                  متابعة
+                </button>
+              </div>
+            )}
+
             <h2 className="text-xl font-extrabold sm:text-2xl">المعلومات الشخصية</h2>
             <div>
               <label className={labelClass}>اسمك الكامل</label>
@@ -701,7 +689,8 @@ export default function CreateForm() {
 
         {step === 5 && (
           <div>
-            <h2 className="mb-6 text-xl font-extrabold sm:text-2xl">الدورات والشهادات</h2>
+            <h2 className="mb-2 text-xl font-extrabold sm:text-2xl">الدورات والشهادات</h2>
+            <p className="mb-6 text-sm text-slate-500">(اختياري — يمكنك تخطي هذه الخطوة)</p>
             <div className="space-y-6">
               {data.courses.map((course, i) => (
                 <div key={course.id} className="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
