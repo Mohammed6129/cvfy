@@ -18,6 +18,7 @@ import {
   loadCvFromAccount,
   saveCvToAccount,
 } from "@/lib/cv-storage";
+import { isValidLinkedInUrl } from "@/lib/linkedin";
 import { prepareCvPayload } from "@/lib/prepare-cv-payload";
 import type { CvFormData, GeneratedCv } from "@/lib/cv-types";
 
@@ -71,15 +72,17 @@ function emptyEducation(): FormData["education"][number] {
 }
 
 function emptyCourse(): FormData["courses"][number] {
-  return { id: newId(), name: "", provider: "", year: "" };
+  return { id: newId(), name: "", provider: "", date: "", year: "" };
 }
 
 const initialData: FormData = {
   language: "both",
   name: "",
+  currentJobTitle: "",
   city: "",
   phone: "",
   email: "",
+  linkedIn: "",
   workExperience: [emptyWork()],
   education: [emptyEducation()],
   skills: [],
@@ -188,6 +191,8 @@ export default function CreateForm() {
         setData({
           ...initialData,
           ...record.formData,
+          currentJobTitle: record.formData.currentJobTitle ?? "",
+          linkedIn: record.formData.linkedIn ?? "",
           language: "both",
           workExperience:
             record.formData.workExperience.length > 0
@@ -204,7 +209,10 @@ export default function CreateForm() {
           skills: record.formData.skills.filter((s) => s.name.trim()),
           courses:
             record.formData.courses.length > 0
-              ? record.formData.courses
+              ? record.formData.courses.map((c) => ({
+                  ...c,
+                  date: c.date || c.year || "",
+                }))
               : [emptyCourse()],
         });
         setEditCvId(editId);
@@ -235,9 +243,11 @@ export default function CreateForm() {
     setData((prev) => ({
       ...prev,
       name: p.name || prev.name,
+      currentJobTitle: p.currentJobTitle || prev.currentJobTitle,
       email: p.email || prev.email,
       phone: p.phone || prev.phone,
       city: p.city || prev.city,
+      linkedIn: p.linkedIn || prev.linkedIn,
       selfDescription: p.selfDescription || prev.selfDescription,
       workExperience: p.workExperience?.length
         ? p.workExperience.map((w) => ({
@@ -271,8 +281,19 @@ export default function CreateForm() {
     setError(null);
 
     if (step === 1) {
-      if (!data.name.trim() || !data.email.trim() || !data.email.includes("@") || !data.phone.trim() || !data.city) {
+      if (
+        !data.name.trim() ||
+        !data.currentJobTitle.trim() ||
+        !data.email.trim() ||
+        !data.email.includes("@") ||
+        !data.phone.trim() ||
+        !data.city
+      ) {
         setError(MANDATORY_MSG);
+        return false;
+      }
+      if (data.linkedIn.trim() && !isValidLinkedInUrl(data.linkedIn)) {
+        setError("رابط LinkedIn غير صالح. استخدم صيغة: linkedin.com/in/username");
         return false;
       }
     }
@@ -394,6 +415,11 @@ export default function CreateForm() {
         email: result.email || payload.email,
         phone: result.phone || payload.phone,
         city: result.city || payload.city,
+        linkedIn: result.linkedIn || payload.linkedIn || undefined,
+        content: {
+          ...result.content,
+          headline: payload.currentJobTitle,
+        },
       };
 
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(generatedCv));
@@ -500,6 +526,16 @@ export default function CreateForm() {
               <FieldTip>💡 مثال: محمد عبدالله العمري</FieldTip>
             </div>
             <div>
+              <label className={labelClass}>المسمى المهني الحالي</label>
+              <input
+                value={data.currentJobTitle}
+                onChange={(e) => update("currentJobTitle", e.target.value)}
+                placeholder="مثال: مدير مشاريع"
+                className={inputClass}
+              />
+              <FieldTip>💡 هذا المسمى فقط هو الذي يظهر في رأس السيرة الذاتية</FieldTip>
+            </div>
+            <div>
               <label className={labelClass}>البريد الإلكتروني</label>
               <input type="email" dir="ltr" value={data.email} onChange={(e) => update("email", e.target.value)} placeholder="mohammed.ali@gmail.com" className={`${inputClass} text-left`} />
               <FieldTip>💡 استخدم إيميل احترافي — الأفضل: اسمك.كنيتك@gmail.com</FieldTip>
@@ -519,6 +555,20 @@ export default function CreateForm() {
                 {SAUDI_CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
               <FieldTip>💡 مثال: الرياض</FieldTip>
+            </div>
+            <div>
+              <label className={labelClass}>
+                رابط LinkedIn <span className="font-normal text-slate-500">(اختياري)</span>
+              </label>
+              <input
+                type="url"
+                dir="ltr"
+                value={data.linkedIn}
+                onChange={(e) => update("linkedIn", e.target.value)}
+                placeholder="linkedin.com/in/username"
+                className={`${inputClass} text-left`}
+              />
+              <FieldTip>💡 الصيغة المفضلة: linkedin.com/in/username</FieldTip>
             </div>
           </div>
         )}
@@ -563,11 +613,31 @@ export default function CreateForm() {
                   <div className="mt-4 grid gap-4 sm:grid-cols-2">
                     <MonthYearSelect label="من" value={job.startDate} onChange={(v) => updateWork(job.id, { startDate: v })} />
                     <div>
-                      <MonthYearSelect label="إلى" value={job.isCurrent ? "" : job.endDate} onChange={(v) => updateWork(job.id, { endDate: v, isCurrent: false })} disabled={job.isCurrent} />
                       <label className="mt-3 flex items-center gap-2 text-sm font-medium">
-                        <input type="checkbox" checked={job.isCurrent} onChange={(e) => updateWork(job.id, { isCurrent: e.target.checked, endDate: e.target.checked ? "حتى الآن" : "" })} className="h-4 w-4 rounded text-[#378ADD]" />
+                        <input
+                          type="checkbox"
+                          checked={job.isCurrent}
+                          onChange={(e) =>
+                            updateWork(job.id, {
+                              isCurrent: e.target.checked,
+                              endDate: e.target.checked ? "حتى الآن" : "",
+                            })
+                          }
+                          className="h-4 w-4 rounded text-[#378ADD]"
+                        />
                         حتى الآن
                       </label>
+                      {!job.isCurrent && (
+                        <div className="mt-3">
+                          <MonthYearSelect
+                            label="إلى"
+                            value={job.endDate}
+                            onChange={(v) =>
+                              updateWork(job.id, { endDate: v, isCurrent: false })
+                            }
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -650,6 +720,20 @@ export default function CreateForm() {
                       <label className={labelClass}>الجهة المانحة</label>
                       <input value={course.provider} onChange={(e) => update("courses", data.courses.map((c) => c.id === course.id ? { ...c, provider: e.target.value } : c))} placeholder="مثال: PMI" className={inputClass} />
                     </div>
+                  </div>
+                  <div className="mt-4">
+                    <MonthYearSelect
+                      label="تاريخ الحصول على الشهادة / الدورة"
+                      value={course.date}
+                      onChange={(v) =>
+                        update(
+                          "courses",
+                          data.courses.map((c) =>
+                            c.id === course.id ? { ...c, date: v, year: v } : c
+                          )
+                        )
+                      }
+                    />
                   </div>
                 </div>
               ))}

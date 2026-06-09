@@ -48,6 +48,7 @@ function buildCvHtml(cv: GeneratedCv): string {
       <div style="margin-bottom:10px;">
         <p style="margin:0;font-weight:600;color:#000;font-family:${CV_FONT};">${escapeHtml(course.name)}</p>
         ${course.provider ? `<p style="margin:2px 0;color:#000;font-size:13px;font-family:${CV_FONT};">${escapeHtml(course.provider)}</p>` : ""}
+        ${course.year ? `<p style="margin:0;color:#000;font-size:13px;font-family:${CV_FONT};">${escapeHtml(course.year)}</p>` : ""}
       </div>`
     )
     .join("");
@@ -67,7 +68,7 @@ function buildCvHtml(cv: GeneratedCv): string {
     <h1 style="color:#000;margin:0 0 8px;font-size:28px;font-family:${CV_FONT};">${escapeHtml(cv.name)}</h1>
     ${content.headline ? `<p style="font-size:16px;font-weight:600;margin:0 0 12px;font-family:${CV_FONT};">${escapeHtml(content.headline)}</p>` : ""}
     <p style="margin:0;color:#000;font-size:14px;font-family:${CV_FONT};">
-      ${[cv.city, cv.phone, cv.email].filter(Boolean).map(escapeHtml).join(" · ")}
+      ${[cv.email, cv.phone, cv.city, cv.linkedIn].filter((v): v is string => Boolean(v)).map(escapeHtml).join(" · ")}
     </p>
   </header>
   ${section("الملخص المهني / Professional Summary", content.summary ? `<p style="line-height:1.7;font-family:${CV_FONT};">${escapeHtml(content.summary)}</p>` : "")}

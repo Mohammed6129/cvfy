@@ -8,6 +8,7 @@ import {
   CLAUDE_MODEL,
   CV_GENERATION_SYSTEM_PROMPT,
 } from "@/lib/cv-claude";
+import { normalizeLinkedInUrl } from "@/lib/linkedin";
 import { prepareCvPayload } from "@/lib/prepare-cv-payload";
 import type { CvFormData, GeneratedCv, GeneratedCvContent } from "@/lib/cv-types";
 
@@ -93,8 +94,8 @@ ${languageRules}
 ## قواعد كل حقل
 
 ### headline
-- مسمى وظيفي دقيق يعكس أحدث دور أو التخصص (مثال: "مدير مشاريع | إدارة عمليات").
-- جملة واحدة قصيرة، بدون ضمائر شخصية.
+- استخدم **حرفياً** قيمة currentJobTitle من بيانات المستخدم (المسمى المهني الحالي) — لا تغيّرها ولا تستبدلها بمسمى من الخبرات.
+- هذا هو المسمى الوحيد الذي يظهر في رأس السيرة بجانب الاسم ومعلومات التواصل.
 
 ### summary
 - فقرة من 3–4 جمل بفصحى رسمية.
@@ -122,8 +123,12 @@ ${languageRules}
 ### courses
 - name: اسم الشهادة/الدورة رسمياً.
 - provider: الجهة المانحة إن وُجدت.
-- year: السنة إن وُجدت.
+- year: تاريخ الإنجاز بصيغة شهر-سنة من حقل date (مثال: "2024-03" أو "مارس 2024").
 - احذف الدورات الفارغة أو التي كتب المستخدم "لا" لها.
+
+### linkedIn (إن وُجد في البيانات)
+- استخدم الرابط القصير فقط بصيغة linkedin.com/in/username بدون https://
+- تأكد أن username يبدو صحيحاً (أحرف إنجليزية وأرقام وشرطة سفلية فقط).
 
 ## تحسين ATS
 - كلمات مفتاحية من المجال والمسمى الوظيفي.
@@ -198,9 +203,17 @@ function normalizeContent(
   };
 }
 
+function formatCourseDate(date: string): string {
+  if (!date) return "";
+  const [year, month] = date.split("-");
+  if (!year) return date;
+  if (!month) return year;
+  return `${year}-${month}`;
+}
+
 function fallbackContent(data: CvFormData): GeneratedCvContent {
   return {
-    headline: data.workExperience[0]?.jobTitle || "محترف",
+    headline: data.currentJobTitle.trim() || "محترف",
     summary: data.selfDescription,
     experiences: data.workExperience.map((item) => ({
       jobTitle: item.jobTitle,
@@ -217,7 +230,7 @@ function fallbackContent(data: CvFormData): GeneratedCvContent {
     courses: data.courses.map((c) => ({
       name: c.name,
       provider: c.provider,
-      year: c.year,
+      year: formatCourseDate(c.date) || c.year,
     })),
   };
 }
@@ -226,14 +239,20 @@ function buildCvResponse(
   formData: CvFormData,
   content: GeneratedCvContent,
   options?: { fallback?: boolean; warning?: string }
-) {
+): GeneratedCv {
+  const linkedIn = normalizeLinkedInUrl(formData.linkedIn ?? "");
+
   return {
     name: formData.name,
     email: formData.email,
     phone: formData.phone,
     city: formData.city,
+    linkedIn: linkedIn || undefined,
     language: formData.language,
-    content,
+    content: {
+      ...content,
+      headline: formData.currentJobTitle.trim() || content.headline,
+    },
     aiEnhanced: false,
     generatedWithFallback: options?.fallback ?? false,
     warning: options?.warning,
@@ -265,9 +284,9 @@ export async function POST(request: Request) {
 
   formData.language = "both";
 
-  if (!formData.name || !formData.email) {
+  if (!formData.name || !formData.email || !formData.currentJobTitle) {
     return NextResponse.json(
-      { error: "البيانات الأساسية ناقصة." },
+      { error: "البيانات الأساسية ناقصة (الاسم، المسمى المهني، البريد)." },
       { status: 400 }
     );
   }

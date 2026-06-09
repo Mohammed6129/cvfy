@@ -44,6 +44,7 @@ export function chatAnswersToFormData(
         id: newId(),
         name,
         provider: "",
+        date: "",
         year: "",
       }));
 
@@ -55,9 +56,11 @@ export function chatAnswersToFormData(
   return {
     language: "both",
     name: answers.name.trim(),
+    currentJobTitle: answers.jobTitle.trim(),
     city: "",
     phone: "",
     email: email.trim(),
+    linkedIn: "",
     selfDescription: answers.selfDescription.trim(),
     workExperience: [
       {
@@ -83,6 +86,6 @@ export function chatAnswersToFormData(
     courses:
       courses.length > 0
         ? courses
-        : [{ id: newId(), name: "", provider: "", year: "" }],
+        : [{ id: newId(), name: "", provider: "", date: "", year: "" }],
   };
 }

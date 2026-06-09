@@ -29,15 +29,18 @@ export type Course = {
   id: string;
   name: string;
   provider: string;
+  date: string;
   year: string;
 };
 
 export type CvFormData = {
   language: Language;
   name: string;
+  currentJobTitle: string;
   city: string;
   phone: string;
   email: string;
+  linkedIn: string;
   workExperience: WorkExperience[];
   education: Education[];
   skills: Skill[];
@@ -78,6 +81,7 @@ export type GeneratedCv = {
   email: string;
   phone: string;
   city: string;
+  linkedIn?: string;
   language?: Language;
   content: GeneratedCvContent;
   aiEnhanced?: boolean;

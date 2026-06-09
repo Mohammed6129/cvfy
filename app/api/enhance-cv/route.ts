@@ -25,15 +25,19 @@ function buildEnhancePrompt(cv: GeneratedCv): string {
     cv.language === "english"
       ? "\n\nThe user selected English as their CV language. Translate everything to English automatically."
       : cv.language === "both"
-        ? "\n\nThe user selected bilingual CV. Keep Arabic as primary but ensure headline is also in English."
+        ? "\n\nThe user selected bilingual CV. Keep Arabic as primary for body sections."
         : "";
+
+  const headlineNote = cv.content.headline
+    ? `\n\nIMPORTANT: The headline "${cv.content.headline}" is the user's current job title and MUST remain exactly unchanged in the output headline field.`
+    : "";
 
   return `You are a professional CV writer. Enhance this CV by:
 1) Improving the wording and making it more professional
 2) Highlighting achievements with numbers and metrics
 3) Better organizing the content
 4) Using strong action verbs
-Also, if the user selected English as their CV language, translate everything to English automatically. Return the enhanced CV in the same format.${translateNote}
+Also, if the user selected English as their CV language, translate everything to English automatically. Return the enhanced CV in the same format.${translateNote}${headlineNote}
 
 Current CV data:
 ${JSON.stringify(cv, null, 2)}
@@ -107,7 +111,11 @@ export async function POST(request: Request) {
 
     const enhancedCv: GeneratedCv = {
       ...cv,
-      content: enhancedContent,
+      content: {
+        ...enhancedContent,
+        headline: cv.content.headline,
+      },
+      linkedIn: cv.linkedIn,
       aiEnhanced: true,
       warning: undefined,
       generatedWithFallback: false,

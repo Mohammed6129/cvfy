@@ -145,7 +145,7 @@ export default function CvPreview() {
       </div>
 
       <div className="mb-6 space-y-4 print:hidden">
-        <AtsScoreChecker cv={cv} cvId={cvId} />
+        <AtsScoreChecker cv={cv} cvId={cvId} isPaid={isPaid} />
 
         {isPaid && (
           <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-center">

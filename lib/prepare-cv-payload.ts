@@ -1,12 +1,15 @@
 import type { CvFormData } from "@/lib/cv-types";
+import { normalizeLinkedInUrl } from "@/lib/linkedin";
 
 export function prepareCvPayload(data: CvFormData): CvFormData {
   return {
     language: data.language,
     name: data.name.trim(),
+    currentJobTitle: data.currentJobTitle.trim(),
     city: data.city.trim(),
     phone: data.phone.trim(),
     email: data.email.trim(),
+    linkedIn: normalizeLinkedInUrl(data.linkedIn),
     selfDescription: data.selfDescription.trim(),
     workExperience: data.workExperience
       .filter(
@@ -52,7 +55,8 @@ export function prepareCvPayload(data: CvFormData): CvFormData {
         id: item.id,
         name: item.name.trim(),
         provider: item.provider.trim(),
-        year: item.year.trim(),
+        date: item.date.trim(),
+        year: item.date.trim() || item.year.trim(),
       })),
   };
 }

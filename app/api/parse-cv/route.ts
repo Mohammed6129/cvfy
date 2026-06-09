@@ -93,14 +93,16 @@ export async function POST(request: Request) {
           content: `استخرج بيانات السيرة الذاتية من النص التالي وأخرج JSON فقط بالهيكل:
 {
   "name": "",
+  "currentJobTitle": "",
   "email": "",
   "phone": "",
   "city": "",
+  "linkedIn": "",
   "selfDescription": "",
   "workExperience": [{ "jobTitle": "", "company": "", "department": "", "startDate": "YYYY-MM", "endDate": "YYYY-MM or حتى الآن", "description": "" }],
   "education": [{ "degree": "", "institution": "", "endDate": "YYYY", "gpa": "" }],
   "skills": [{ "name": "" }],
-  "courses": [{ "name": "", "provider": "" }]
+  "courses": [{ "name": "", "provider": "", "date": "YYYY-MM" }]
 }
 
 النص:

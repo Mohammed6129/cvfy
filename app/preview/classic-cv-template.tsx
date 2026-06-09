@@ -39,15 +39,20 @@ export default function ClassicCvTemplate({ cv }: ClassicCvTemplateProps) {
           </p>
         )}
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-black sm:text-sm">
-          {cv.city && <span>{cv.city}</span>}
+          {cv.email && (
+            <span dir="ltr" className="inline-block">
+              {cv.email}
+            </span>
+          )}
           {cv.phone && (
             <span dir="ltr" className="inline-block">
               {cv.phone}
             </span>
           )}
-          {cv.email && (
+          {cv.city && <span>{cv.city}</span>}
+          {cv.linkedIn && (
             <span dir="ltr" className="inline-block">
-              {cv.email}
+              {cv.linkedIn}
             </span>
           )}
         </div>

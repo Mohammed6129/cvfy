@@ -120,7 +120,7 @@ export default function DashboardContent() {
                 آخر تحديث: {formatDate(record.updatedAt)}
               </p>
 
-              {record.atsResult && (
+              {record.isPaid && record.atsResult && (
                 <p className="mb-4 text-sm">
                   <span className="font-semibold text-[#378ADD]">
                     {record.atsResult.score}%

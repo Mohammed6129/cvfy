@@ -82,14 +82,35 @@ function CircularProgress({ score }: { score: number }) {
   );
 }
 
+function AtsLockedPreview() {
+  return (
+    <div className="rounded-xl border border-[#378ADD]/25 bg-gradient-to-b from-[#378ADD]/8 to-white p-6 text-center shadow-sm">
+      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#378ADD]/10 text-2xl">
+        🔒
+      </div>
+      <h3 className="mb-2 text-lg font-extrabold text-slate-900">
+        سيرتك جاهزة!
+      </h3>
+      <p className="text-sm leading-relaxed text-slate-700">
+        ادفع 99 ر.س لتحصل على: تقرير ATS كامل + نسختين PDF بالعربي والإنجليزي
+      </p>
+    </div>
+  );
+}
+
 type AtsScoreCheckerProps = {
   cv: GeneratedCv;
   cvId?: string | null;
+  isPaid: boolean;
 };
 
-export default function AtsScoreChecker({ cv, cvId }: AtsScoreCheckerProps) {
+export default function AtsScoreChecker({
+  cv,
+  cvId,
+  isPaid,
+}: AtsScoreCheckerProps) {
   const [result, setResult] = useState<AtsScoreResult | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const runCheck = useCallback(async () => {
@@ -140,8 +161,13 @@ export default function AtsScoreChecker({ cv, cvId }: AtsScoreCheckerProps) {
   }, [cv, cvId]);
 
   useEffect(() => {
-    runCheck();
-  }, [runCheck]);
+    if (!isPaid) return;
+    void runCheck();
+  }, [isPaid, runCheck]);
+
+  if (!isPaid) {
+    return <AtsLockedPreview />;
+  }
 
   if (loading) {
     return (
