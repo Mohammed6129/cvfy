@@ -58,6 +58,7 @@ function getLanguageRules(language: CvFormData["language"]): string {
     return `## اللغة
 - اكتب headline بالإنجليزية الاحترافية (مسمى وظيفي دقيق).
 - اكتب summary وexperiences وeducation وskills وcourses بالعربية الفصحى الرسمية فقط.
+- أضف كائن contentEn منفصل بنسخة إنجليزية كاملة احترافية لجميع الحقول (headline, summary, experiences, education, skills, courses).
 - لا تخلط اللهجات ولا تترجم حرفياً؛ صِغ المحتوى بأسلوب مهني سعودي/خليجي.`;
   }
 
@@ -99,8 +100,10 @@ ${languageRules}
 
 ### summary
 - فقرة من 3–4 جمل بفصحى رسمية.
+- **اكتب بضمير المتكلم** كأن صاحب السيرة يتحدث عن نفسه: "أعمل..."، "أمتلك..."، "أسعى..."، "لدي خبرة...".
+- مثال صحيح: "أعمل في مجال التسويق منذ 5 سنوات..."
+- ممنوع صيغة الغائب: "يعمل..."، "يمتلك..."، "محترف في..."، "يتمتع بكفاءة..."
 - تلخّص الخبرة، المجال، وأبرز نقاط القوة.
-- تجنّب "أنا شخص..."؛ استخدم صياغة مهنية: "محترف في..."، "يمتلك خبرة..."، "يتمتع بكفاءة في...".
 
 ### experiences
 - رتّب من الأحدث إلى الأقدم.
@@ -166,7 +169,34 @@ ${JSON.stringify(data, null, 2)}
       "provider": "الجهة",
       "year": "السنة"
     }
-  ]
+  ],
+  "contentEn": {
+    "headline": "English job title",
+    "summary": "English professional summary",
+    "experiences": [
+      {
+        "jobTitle": "Job title",
+        "company": "Company",
+        "period": "Period",
+        "description": "Achievement • Achievement"
+      }
+    ],
+    "education": [
+      {
+        "degree": "Degree",
+        "institution": "Institution",
+        "period": "Period"
+      }
+    ],
+    "skills": ["Skill 1", "Skill 2"],
+    "courses": [
+      {
+        "name": "Course",
+        "provider": "Provider",
+        "year": "Year"
+      }
+    ]
+  }
 }
 
 قواعد نهائية:
@@ -176,7 +206,10 @@ ${JSON.stringify(data, null, 2)}
 - تأكد أن الناتج النهائي يبدو كسيرة ذاتية رسمية احترافية أبيض وأسود جاهزة للطباعة والتقديم.`;
 }
 
-function extractJson(content: string): GeneratedCvContent {
+function extractJson(content: string): {
+  content: GeneratedCvContent;
+  contentEn?: GeneratedCvContent;
+} {
   const fenced = content.match(/```(?:json)?\s*([\s\S]*?)```/);
   const raw = fenced ? fenced[1].trim() : content.trim();
   const jsonMatch = raw.match(/\{[\s\S]*\}/);
@@ -185,9 +218,16 @@ function extractJson(content: string): GeneratedCvContent {
     throw new Error("Invalid JSON response from Claude");
   }
 
-  return normalizeContent(
-    JSON.parse(jsonMatch[0]) as Partial<GeneratedCvContent>
-  );
+  const parsed = JSON.parse(jsonMatch[0]) as Partial<GeneratedCvContent> & {
+    contentEn?: Partial<GeneratedCvContent>;
+  };
+
+  const { contentEn, ...rest } = parsed;
+
+  return {
+    content: normalizeContent(rest),
+    contentEn: contentEn ? normalizeContent(contentEn) : undefined,
+  };
 }
 
 function normalizeContent(
@@ -235,10 +275,34 @@ function fallbackContent(data: CvFormData): GeneratedCvContent {
   };
 }
 
+function buildEnglishFallback(data: CvFormData): GeneratedCvContent {
+  return {
+    headline: data.currentJobTitle.trim() || "Professional",
+    summary: data.selfDescription,
+    experiences: data.workExperience.map((item) => ({
+      jobTitle: item.jobTitle,
+      company: item.company,
+      period: formatPeriod(item.startDate, item.endDate),
+      description: item.description,
+    })),
+    education: data.education.map((item) => ({
+      degree: item.degree,
+      institution: item.institution,
+      period: formatPeriod(item.startDate, item.endDate),
+    })),
+    skills: data.skills.map((s) => s.name),
+    courses: data.courses.map((c) => ({
+      name: c.name,
+      provider: c.provider,
+      year: formatCourseDate(c.date) || c.year,
+    })),
+  };
+}
+
 function buildCvResponse(
   formData: CvFormData,
   content: GeneratedCvContent,
-  options?: { fallback?: boolean; warning?: string }
+  options?: { fallback?: boolean; warning?: string; contentEn?: GeneratedCvContent }
 ): GeneratedCv {
   const linkedIn = normalizeLinkedInUrl(formData.linkedIn ?? "");
 
@@ -253,6 +317,7 @@ function buildCvResponse(
       ...content,
       headline: formData.currentJobTitle.trim() || content.headline,
     },
+    contentEn: options?.contentEn ?? buildEnglishFallback(formData),
     aiEnhanced: false,
     generatedWithFallback: options?.fallback ?? false,
     warning: options?.warning,
@@ -330,15 +395,25 @@ export async function POST(request: Request) {
     }
 
     let content: GeneratedCvContent;
+    let contentEn: GeneratedCvContent | undefined;
     try {
-      content = extractJson(textBlock.text);
+      const parsed = extractJson(textBlock.text);
+      content = parsed.content;
+      contentEn = parsed.contentEn;
       console.log("[generate-cv] Successfully parsed Claude JSON response");
     } catch (parseError) {
       logError("JSON parse failed, using fallback content", parseError);
       content = fallbackContent(formData);
     }
 
-    const cv = buildCvResponse(formData, content);
+    const cv = buildCvResponse(formData, content, {
+      contentEn: contentEn
+        ? {
+            ...contentEn,
+            headline: formData.currentJobTitle.trim() || contentEn.headline,
+          }
+        : undefined,
+    });
     console.log("[generate-cv] CV generated successfully via Anthropic", {
       name: cv.name,
       hasContent: Boolean(cv.content),

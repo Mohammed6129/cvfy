@@ -10,7 +10,6 @@ import {
   STORAGE_KEY,
   loadCvFromAccount,
   recordPayment,
-  saveCvToAccount,
 } from "@/lib/cv-storage";
 import type { GeneratedCv } from "@/lib/cv-types";
 import {
@@ -20,8 +19,25 @@ import {
   type PlanId,
 } from "@/lib/payment";
 import AtsScoreChecker from "./ats-score-checker";
-import ClassicCvTemplate from "./classic-cv-template";
+import EnglishCvTemplate from "./english-cv-template";
 import PaymentSection from "./payment-section";
+
+function BlueCheckIcon() {
+  return (
+    <svg
+      className="h-5 w-5 shrink-0 text-[#378ADD]"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      aria-hidden
+    >
+      <path
+        fillRule="evenodd"
+        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
 
 export default function CvPreview() {
   const router = useRouter();
@@ -55,24 +71,18 @@ export default function CvPreview() {
       const storedId = sessionStorage.getItem(CURRENT_CV_ID_KEY);
       if (!loadedId && storedId) loadedId = storedId;
 
-      console.log("[preview] Loading CV, id:", loadedId);
-
       const accountData = await loadCvFromAccount(loadedId);
       if (accountData?.cv?.content) {
-        console.log("[preview] Loaded from account:", accountData.id);
         loadedCv = accountData.cv;
         loadedId = accountData.id;
         if (accountData.isPaid) setIsPaid(true);
         sessionStorage.setItem(STORAGE_KEY, JSON.stringify(loadedCv));
         sessionStorage.setItem(CURRENT_CV_ID_KEY, loadedId);
-      } else if (loadedCv) {
-        console.log("[preview] Using sessionStorage CV fallback");
       }
 
       if (cancelled) return;
 
       if (!loadedCv?.content) {
-        console.error("[preview] No CV found — redirecting to /create");
         router.replace("/create");
         return;
       }
@@ -85,7 +95,6 @@ export default function CvPreview() {
       const paymentId = params.get("id");
 
       if (paymentId && (paymentStatus === "paid" || paymentStatus === null)) {
-        const pendingPlan = sessionStorage.getItem(PENDING_PLAN_KEY);
         const planId: PlanId = "bilingual";
         markPaymentComplete(planId);
         sessionStorage.removeItem(PENDING_PLAN_KEY);
@@ -119,6 +128,12 @@ export default function CvPreview() {
     [cvId]
   );
 
+  const handleDownloadBoth = () => {
+    if (!cv || !isPaid) return;
+    downloadCvAsPdf(cv);
+    window.setTimeout(() => downloadCvAsWord(cv), 600);
+  };
+
   if (loading) {
     return <LoadingSpinner label="جاري تحميل السيرة الذاتية..." size="lg" />;
   }
@@ -128,17 +143,18 @@ export default function CvPreview() {
   return (
     <div className="animate-fade-in">
       <div className="mb-8 text-center print:hidden">
-        <div className="mb-3 flex flex-wrap items-center justify-center gap-3">
-          <h1 className="text-2xl font-extrabold text-slate-900 sm:text-3xl">
-            معاينة السيرة الذاتية
-          </h1>
-          {cv.aiEnhanced && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-[#e8f2fc] px-3 py-1 text-xs font-semibold text-[#378ADD]">
-              ✨ تم التحسين بالذكاء الاصطناعي
+        <h1 className="text-2xl font-extrabold text-slate-900 sm:text-3xl">
+          معاينة السيرة الذاتية
+        </h1>
+        {cv.aiEnhanced && (
+          <div className="mt-3 flex items-center justify-center gap-1.5">
+            <BlueCheckIcon />
+            <span className="text-sm font-semibold text-[#378ADD]">
+              تم التحسين بالذكاء الاصطناعي
             </span>
-          )}
-        </div>
-        <p className="text-sm text-slate-600 sm:text-base">
+          </div>
+        )}
+        <p className="mt-3 text-sm text-slate-600 sm:text-base">
           سيرة ذاتية احترافية لـ{" "}
           <span className="font-semibold text-[#378ADD]">{cv.name}</span>
         </p>
@@ -173,7 +189,7 @@ export default function CvPreview() {
         )}
 
         <div className="relative z-0">
-          <ClassicCvTemplate cv={cv} />
+          <EnglishCvTemplate cv={cv} />
 
           {!isPaid && (
             <>
@@ -181,16 +197,13 @@ export default function CvPreview() {
                 className="cv-paywall-blur pointer-events-none absolute inset-x-0 top-1/2 bottom-0 z-20 print:hidden"
                 aria-hidden
               />
-              <div className="cv-paywall-overlay absolute inset-x-0 top-1/2 bottom-0 z-30 flex items-center justify-center p-4 sm:p-6 print:hidden">
-                <div className="w-full max-w-md rounded-2xl border border-slate-200/80 bg-white/95 p-6 text-center shadow-2xl shadow-slate-300/40 backdrop-blur-sm sm:p-8">
+              <div className="cv-paywall-overlay absolute inset-x-0 top-1/2 bottom-0 z-30 flex flex-col items-center justify-end px-4 pb-6 pt-16 sm:px-8 sm:pb-8 print:hidden">
+                <div className="w-full max-w-md text-center">
                   <div className="mb-3 text-4xl" aria-hidden>
                     🔒
                   </div>
-                  <h3 className="mb-2 text-lg font-extrabold text-slate-900 sm:text-xl">
-                    اكمل سيرتك الذاتية كاملة
-                  </h3>
-                  <p className="mb-6 text-sm leading-relaxed text-slate-600 sm:text-base">
-                    ادفع 99 ر.س واحصل على نسختيك كاملتين بالعربي والإنجليزي
+                  <p className="mb-5 text-sm font-semibold leading-relaxed text-slate-800 sm:text-base">
+                    للوصول إلى السيرة الذاتية ونتيجة فحص الـ ATS — ادفع 99 ر.س
                   </p>
                   <PaymentSection
                     variant="overlay"
@@ -205,28 +218,20 @@ export default function CvPreview() {
       </div>
 
       <div className="mt-8 flex flex-col items-center gap-4 print:hidden">
-        <div className="flex w-full max-w-lg flex-col gap-3 sm:flex-row sm:justify-center">
+        <div className="flex w-full max-w-lg flex-col items-center gap-3 sm:flex-row sm:justify-center">
           <Link
             href={cvId ? `/create?edit=${cvId}` : "/create"}
-            className="flex-1 rounded-full border-2 border-[#378ADD] px-6 py-3 text-center text-sm font-semibold text-[#378ADD] transition-colors hover:bg-[#e8f2fc] sm:flex-none"
+            className="w-full rounded-full border-2 border-[#378ADD] px-6 py-3 text-center text-sm font-semibold text-[#378ADD] transition-colors hover:bg-[#e8f2fc] sm:w-auto"
           >
             تعديل البيانات
           </Link>
           <button
             type="button"
-            onClick={() => downloadCvAsPdf(cv)}
+            onClick={handleDownloadBoth}
             disabled={!isPaid}
-            className="flex-1 rounded-full bg-[#378ADD] px-6 py-3 text-sm font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
+            className="w-full rounded-full bg-[#378ADD] px-6 py-3 text-sm font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
-            {isPaid ? "تحميل PDF" : "تحميل PDF (يتطلب الدفع)"}
-          </button>
-          <button
-            type="button"
-            onClick={() => downloadCvAsWord(cv)}
-            disabled={!isPaid}
-            className="flex-1 rounded-full border-2 border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
-          >
-            {isPaid ? "تحميل Word" : "تحميل Word (يتطلب الدفع)"}
+            {isPaid ? "تحميل PDF و Word" : "تحميل PDF و Word (يتطلب الدفع)"}
           </button>
         </div>
         {!isPaid && (

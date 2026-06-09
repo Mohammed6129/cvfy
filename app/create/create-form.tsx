@@ -2,21 +2,28 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import CvGenerationLoader from "@/app/components/cv-generation-loader";
+import CvWritingLoader from "@/app/components/cv-writing-loader";
 import LoadingSpinner from "@/app/components/loading-spinner";
 import CvUpload from "./cv-upload";
 import {
+  collectStepErrors,
+  FormField,
   GRADUATION_YEARS,
-  MONTHS,
+  invalidFieldClass,
+  MonthYearSelect,
+  RequiredMarker,
+  WorkExperienceDateRange,
+} from "./create-form-fields";
+import {
   SAUDI_CITIES,
   SUGGESTED_SKILLS,
-  WORK_YEARS,
 } from "@/lib/create-form-constants";
 import {
   CURRENT_CV_ID_KEY,
   STORAGE_KEY,
   loadCvFromAccount,
   saveCvToAccount,
+  saveFormDraft,
 } from "@/lib/cv-storage";
 import { isValidLinkedInUrl } from "@/lib/linkedin";
 import { prepareCvPayload } from "@/lib/prepare-cv-payload";
@@ -90,17 +97,6 @@ const initialData: FormData = {
   selfDescription: "",
 };
 
-function parseYearMonth(value: string) {
-  const [year = "", month = ""] = value.split("-");
-  return { year, month };
-}
-
-function formatYearMonth(year: string, month: string) {
-  if (!year && !month) return "";
-  if (!month) return year;
-  return `${year}-${month}`;
-}
-
 function normalizePhone(phone: string) {
   const digits = phone.replace(/\D/g, "");
   if (digits.startsWith("966")) return `+${digits}`;
@@ -115,53 +111,6 @@ function FieldTip({ children }: { children: React.ReactNode }) {
   );
 }
 
-function MonthYearSelect({
-  label,
-  value,
-  onChange,
-  disabled,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  disabled?: boolean;
-}) {
-  const { month, year } = parseYearMonth(value);
-  return (
-    <div>
-      <label className={labelClass}>{label}</label>
-      <div className="grid grid-cols-2 gap-2">
-        <select
-          value={month}
-          disabled={disabled}
-          onChange={(e) => onChange(formatYearMonth(year, e.target.value))}
-          className={selectClass}
-        >
-          <option value="">الشهر</option>
-          {MONTHS.map((m) => (
-            <option key={m.value} value={m.value}>
-              {m.label}
-            </option>
-          ))}
-        </select>
-        <select
-          value={year}
-          disabled={disabled}
-          onChange={(e) => onChange(formatYearMonth(e.target.value, month))}
-          className={selectClass}
-        >
-          <option value="">السنة</option>
-          {WORK_YEARS.map((y) => (
-            <option key={y} value={y}>
-              {y}
-            </option>
-          ))}
-        </select>
-      </div>
-    </div>
-  );
-}
-
 export default function CreateForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -172,13 +121,7 @@ export default function CreateForm() {
   const [loadingForm, setLoadingForm] = useState(false);
   const [editCvId, setEditCvId] = useState<string | null>(null);
   const [skillInput, setSkillInput] = useState("");
-  const [uploadParsed, setUploadParsed] = useState(false);
-  const [addFlags, setAddFlags] = useState({
-    experience: true,
-    courses: true,
-    certs: true,
-    extra: true,
-  });
+  const [invalidFields, setInvalidFields] = useState<Set<string>>(new Set());
 
   const progress = (step / TOTAL_STEPS) * 100;
 
@@ -221,20 +164,40 @@ export default function CreateForm() {
     });
   }, [searchParams]);
 
+  const clearInvalid = (fieldId: string) => {
+    setInvalidFields((prev) => {
+      if (!prev.has(fieldId)) return prev;
+      const next = new Set(prev);
+      next.delete(fieldId);
+      return next;
+    });
+  };
+
+  const isInvalid = (fieldId: string) => invalidFields.has(fieldId);
+
   const update = <K extends keyof FormData>(key: K, value: FormData[K]) => {
+    clearInvalid(String(key));
     setData((prev) => ({ ...prev, [key]: value }));
   };
 
-  const updateWork = (id: string, patch: Partial<FormData["workExperience"][number]>) => {
-    update(
-      "workExperience",
-      data.workExperience.map((w) => (w.id === id ? { ...w, ...patch } : w))
-    );
+  const updateWork = (
+    id: string,
+    patch: Partial<FormData["workExperience"][number]>,
+    fieldIds?: string[]
+  ) => {
+    fieldIds?.forEach(clearInvalid);
+    setData((prev) => ({
+      ...prev,
+      workExperience: prev.workExperience.map((w) =>
+        w.id === id ? { ...w, ...patch } : w
+      ),
+    }));
   };
 
   const addSkill = (name: string) => {
     const trimmed = name.trim();
     if (!trimmed || data.skills.some((s) => s.name.toLowerCase() === trimmed.toLowerCase())) return;
+    clearInvalid("skills");
     update("skills", [...data.skills, { id: newId(), name: trimmed }]);
     setSkillInput("");
   };
@@ -267,85 +230,35 @@ export default function CreateForm() {
         ? p.courses.map((c) => ({ ...emptyCourse(), ...c }))
         : prev.courses,
     }));
-    setUploadParsed(true);
-  };
-
-  const applyUploadFlags = () => {
-    if (addFlags.experience) setStep(2);
-    else if (addFlags.courses || addFlags.certs) setStep(5);
-    else if (addFlags.extra) setStep(6);
-    setUploadParsed(false);
+    setInvalidFields(new Set());
   };
 
   const validateStep = (): boolean => {
+    const fields = collectStepErrors(step, data);
+
+    if (step === 1 && data.linkedIn.trim() && !isValidLinkedInUrl(data.linkedIn)) {
+      fields.push("linkedIn");
+    }
+
+    if (fields.length > 0) {
+      setInvalidFields(new Set(fields));
+      const linkedInOnlyInvalid =
+        fields.length === 1 && fields[0] === "linkedIn";
+      setError(
+        linkedInOnlyInvalid
+          ? "رابط LinkedIn غير صالح. استخدم صيغة: linkedin.com/in/username"
+          : MANDATORY_MSG
+      );
+      return false;
+    }
+
     setError(null);
-
-    if (step === 1) {
-      if (
-        !data.name.trim() ||
-        !data.currentJobTitle.trim() ||
-        !data.email.trim() ||
-        !data.email.includes("@") ||
-        !data.phone.trim() ||
-        !data.city
-      ) {
-        setError(MANDATORY_MSG);
-        return false;
-      }
-      if (data.linkedIn.trim() && !isValidLinkedInUrl(data.linkedIn)) {
-        setError("رابط LinkedIn غير صالح. استخدم صيغة: linkedin.com/in/username");
-        return false;
-      }
-    }
-
-    if (step === 2) {
-      for (const w of data.workExperience) {
-        if (!w.jobTitle.trim() || !w.company.trim() || !w.department.trim() || !w.description.trim() || !w.startDate) {
-          setError(MANDATORY_MSG);
-          return false;
-        }
-        if (!w.isCurrent && !w.endDate) {
-          setError(MANDATORY_MSG);
-          return false;
-        }
-      }
-    }
-
-    if (step === 3) {
-      const edu = data.education[0];
-      if (!edu?.institution.trim() || !edu.degree.trim() || !edu.endDate.trim()) {
-        setError(MANDATORY_MSG);
-        return false;
-      }
-    }
-
-    if (step === 4 && data.skills.length === 0) {
-      setError(MANDATORY_MSG);
-      return false;
-    }
-
-    if (step === 6 && !data.selfDescription.trim()) {
-      setError(MANDATORY_MSG);
-      return false;
-    }
-
+    setInvalidFields(new Set());
     return true;
   };
 
-  const goNext = () => {
-    if (!validateStep()) return;
-    if (step < TOTAL_STEPS) setStep((s) => s + 1);
-  };
-
-  const goBack = () => {
-    setError(null);
-    if (step > 1) setStep((s) => s - 1);
-  };
-
-  const handleSubmit = async () => {
-    if (!validateStep()) return;
-
-    const payload = prepareCvPayload({
+  const buildPayload = () =>
+    prepareCvPayload({
       ...data,
       language: "both",
       phone: normalizePhone(data.phone),
@@ -354,6 +267,31 @@ export default function CreateForm() {
         endDate: w.isCurrent ? "حتى الآن" : w.endDate,
       })),
     });
+
+  const goNext = () => {
+    if (!validateStep()) return;
+
+    const payload = buildPayload();
+    void saveFormDraft(payload, editCvId).then((saved) => {
+      if (saved?.id) {
+        setEditCvId(saved.id);
+        sessionStorage.setItem(CURRENT_CV_ID_KEY, saved.id);
+      }
+    });
+
+    if (step < TOTAL_STEPS) setStep((s) => s + 1);
+  };
+
+  const goBack = () => {
+    setError(null);
+    setInvalidFields(new Set());
+    if (step > 1) setStep((s) => s - 1);
+  };
+
+  const handleSubmit = async () => {
+    if (!validateStep()) return;
+
+    const payload = buildPayload();
 
     setGenerating(true);
     setError(null);
@@ -441,8 +379,15 @@ export default function CreateForm() {
   if (loadingForm) return <LoadingSpinner label="جاري تحميل بيانات السيرة..." />;
 
   if (generating) {
-    return <CvGenerationLoader />;
+    return <CvWritingLoader mode="generate" />;
   }
+
+  const availableSuggestions = SUGGESTED_SKILLS.filter(
+    (skill) =>
+      !data.skills.some(
+        (s) => s.name.toLowerCase() === skill.toLowerCase()
+      )
+  );
 
   const edu = data.education[0] ?? emptyEducation();
 
@@ -471,93 +416,108 @@ export default function CreateForm() {
           <div className="space-y-5">
             <CvUpload onParsed={handleParsedUpload} onError={setError} />
 
-            {uploadParsed && (
-              <div className="space-y-3 rounded-xl border border-[#378ADD]/20 bg-[#378ADD]/5 p-4">
-                <p className="text-sm font-semibold text-slate-800">
-                  تبي تضيف معلومات إضافية؟
-                </p>
-                {[
-                  { key: "experience" as const, label: "خبرات" },
-                  { key: "courses" as const, label: "دورات" },
-                  { key: "certs" as const, label: "شهادات" },
-                  { key: "extra" as const, label: "معلومات إضافية" },
-                ].map((item) => (
-                  <label
-                    key={item.key}
-                    className="flex items-center gap-2 text-sm text-slate-700"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={addFlags[item.key]}
-                      onChange={(e) =>
-                        setAddFlags((f) => ({ ...f, [item.key]: e.target.checked }))
-                      }
-                      className="h-4 w-4 rounded text-[#378ADD]"
-                    />
-                    {item.label}
-                  </label>
-                ))}
-                <button
-                  type="button"
-                  onClick={applyUploadFlags}
-                  className="mt-2 rounded-lg bg-[#378ADD] px-4 py-2 text-sm font-semibold text-white"
-                >
-                  متابعة
-                </button>
-              </div>
-            )}
-
             <h2 className="text-xl font-extrabold sm:text-2xl">المعلومات الشخصية</h2>
-            <div>
-              <label className={labelClass}>اسمك الكامل</label>
-              <input value={data.name} onChange={(e) => update("name", e.target.value)} placeholder="مثال: محمد عبدالله العمري" className={inputClass} />
-              <FieldTip>💡 مثال: محمد عبدالله العمري</FieldTip>
-            </div>
-            <div>
-              <label className={labelClass}>المسمى المهني الحالي</label>
+            <FormField
+              label="اسمك الكامل"
+              required
+              invalid={isInvalid("name")}
+              tip={<FieldTip>💡 مثال: محمد عبدالله العمري</FieldTip>}
+            >
+              <input
+                value={data.name}
+                onChange={(e) => update("name", e.target.value)}
+                placeholder="مثال: محمد عبدالله العمري"
+                className={invalidFieldClass(inputClass, isInvalid("name"))}
+              />
+            </FormField>
+            <FormField
+              label="المسمى المهني الحالي"
+              required
+              invalid={isInvalid("currentJobTitle")}
+              tip={<FieldTip>💡 هذا المسمى فقط هو الذي يظهر في رأس السيرة الذاتية</FieldTip>}
+            >
               <input
                 value={data.currentJobTitle}
                 onChange={(e) => update("currentJobTitle", e.target.value)}
                 placeholder="مثال: مدير مشاريع"
-                className={inputClass}
+                className={invalidFieldClass(inputClass, isInvalid("currentJobTitle"))}
               />
-              <FieldTip>💡 هذا المسمى فقط هو الذي يظهر في رأس السيرة الذاتية</FieldTip>
-            </div>
-            <div>
-              <label className={labelClass}>البريد الإلكتروني</label>
-              <input type="email" dir="ltr" value={data.email} onChange={(e) => update("email", e.target.value)} placeholder="mohammed.ali@gmail.com" className={`${inputClass} text-left`} />
-              <FieldTip>💡 استخدم إيميل احترافي — الأفضل: اسمك.كنيتك@gmail.com</FieldTip>
-            </div>
-            <div>
-              <label className={labelClass}>رقم الجوال</label>
-              <div className="flex overflow-hidden rounded-xl border border-slate-200 focus-within:border-[#378ADD] focus-within:ring-2 focus-within:ring-[#378ADD]/20">
+            </FormField>
+            <FormField
+              label="البريد الإلكتروني"
+              required
+              invalid={isInvalid("email")}
+              tip={<FieldTip>💡 استخدم إيميل احترافي — الأفضل: اسمك.كنيتك@gmail.com</FieldTip>}
+            >
+              <input
+                type="email"
+                dir="ltr"
+                value={data.email}
+                onChange={(e) => update("email", e.target.value)}
+                placeholder="mohammed.ali@gmail.com"
+                className={invalidFieldClass(`${inputClass} text-left`, isInvalid("email"))}
+              />
+            </FormField>
+            <FormField
+              label="رقم الجوال"
+              required
+              invalid={isInvalid("phone")}
+              tip={<FieldTip>💡 مثال: 501234567</FieldTip>}
+            >
+              <div
+                className={invalidFieldClass(
+                  "flex overflow-hidden rounded-xl border border-slate-200 focus-within:border-[#378ADD] focus-within:ring-2 focus-within:ring-[#378ADD]/20",
+                  isInvalid("phone")
+                )}
+              >
                 <span dir="ltr" className="flex shrink-0 items-center bg-slate-50 px-4 text-sm font-semibold text-slate-600">+966</span>
-                <input type="tel" dir="ltr" value={data.phone.replace(/^\+966/, "")} onChange={(e) => update("phone", e.target.value)} placeholder="5xxxxxxxx" className="w-full border-0 px-4 py-3 text-left outline-none" />
+                <input
+                  type="tel"
+                  dir="ltr"
+                  value={data.phone.replace(/^\+966/, "")}
+                  onChange={(e) => update("phone", e.target.value)}
+                  placeholder="5xxxxxxxx"
+                  className="w-full border-0 px-4 py-3 text-left outline-none"
+                />
               </div>
-              <FieldTip>💡 مثال: 501234567</FieldTip>
-            </div>
-            <div>
-              <label className={labelClass}>المدينة</label>
-              <select value={data.city} onChange={(e) => update("city", e.target.value)} className={selectClass}>
+            </FormField>
+            <FormField
+              label="المدينة"
+              required
+              invalid={isInvalid("city")}
+              tip={<FieldTip>💡 مثال: الرياض</FieldTip>}
+            >
+              <select
+                value={data.city}
+                onChange={(e) => update("city", e.target.value)}
+                className={invalidFieldClass(selectClass, isInvalid("city"))}
+              >
                 <option value="">اختر المدينة</option>
-                {SAUDI_CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                {SAUDI_CITIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
               </select>
-              <FieldTip>💡 مثال: الرياض</FieldTip>
-            </div>
-            <div>
-              <label className={labelClass}>
-                رابط LinkedIn <span className="font-normal text-slate-500">(اختياري)</span>
-              </label>
+            </FormField>
+            <FormField
+              label={
+                <>
+                  رابط LinkedIn <span className="font-normal text-slate-500">(اختياري)</span>
+                </>
+              }
+              invalid={isInvalid("linkedIn")}
+              tip={<FieldTip>💡 الصيغة المفضلة: linkedin.com/in/username</FieldTip>}
+            >
               <input
                 type="url"
                 dir="ltr"
                 value={data.linkedIn}
                 onChange={(e) => update("linkedIn", e.target.value)}
                 placeholder="linkedin.com/in/username"
-                className={`${inputClass} text-left`}
+                className={invalidFieldClass(`${inputClass} text-left`, isInvalid("linkedIn"))}
               />
-              <FieldTip>💡 الصيغة المفضلة: linkedin.com/in/username</FieldTip>
-            </div>
+            </FormField>
           </div>
         )}
 
@@ -575,59 +535,74 @@ export default function CreateForm() {
                     )}
                   </div>
                   <div className="mb-3 grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <label className={labelClass}>المسمى الوظيفي</label>
-                      <input value={job.jobTitle} onChange={(e) => updateWork(job.id, { jobTitle: e.target.value })} placeholder="مثال: مدير مشاريع" className={inputClass} />
-                    </div>
-                    <div>
-                      <label className={labelClass}>اسم الشركة</label>
-                      <input value={job.company} onChange={(e) => updateWork(job.id, { company: e.target.value })} placeholder="مثال: stc" className={inputClass} />
-                    </div>
+                    <FormField label="المسمى الوظيفي" required invalid={isInvalid(`work-${job.id}-jobTitle`)}>
+                      <input
+                        value={job.jobTitle}
+                        onChange={(e) =>
+                          updateWork(job.id, { jobTitle: e.target.value }, [`work-${job.id}-jobTitle`])
+                        }
+                        placeholder="مثال: مدير مشاريع"
+                        className={invalidFieldClass(inputClass, isInvalid(`work-${job.id}-jobTitle`))}
+                      />
+                    </FormField>
+                    <FormField label="اسم الشركة" required invalid={isInvalid(`work-${job.id}-company`)}>
+                      <input
+                        value={job.company}
+                        onChange={(e) =>
+                          updateWork(job.id, { company: e.target.value }, [`work-${job.id}-company`])
+                        }
+                        placeholder="مثال: stc"
+                        className={invalidFieldClass(inputClass, isInvalid(`work-${job.id}-company`))}
+                      />
+                    </FormField>
                   </div>
-                  <div className="mb-3">
-                    <label className={labelClass}>القسم / الإدارة</label>
-                    <input value={job.department} onChange={(e) => updateWork(job.id, { department: e.target.value })} placeholder="مثال: إدارة التسويق" className={inputClass} />
-                  </div>
+                  <FormField label="القسم / الإدارة" required invalid={isInvalid(`work-${job.id}-department`)}>
+                    <input
+                      value={job.department}
+                      onChange={(e) =>
+                        updateWork(job.id, { department: e.target.value }, [`work-${job.id}-department`])
+                      }
+                      placeholder="مثال: إدارة التسويق"
+                      className={invalidFieldClass(inputClass, isInvalid(`work-${job.id}-department`))}
+                    />
+                  </FormField>
                   <p className="mb-4 text-xs text-amber-700 sm:text-sm">⚠️ سنحافظ على اسم الشركة والمسمى كما هو</p>
                   <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
-                    <div>
-                      <label className={labelClass}>وصف الخبرة</label>
-                      <textarea value={job.description} onChange={(e) => updateWork(job.id, { description: e.target.value })} rows={5} placeholder="اكتب بأسلوبك العادي وش سويت في هذي الوظيفة..." className={inputClass} />
-                    </div>
+                    <FormField label="وصف الخبرة" required invalid={isInvalid(`work-${job.id}-description`)}>
+                      <textarea
+                        value={job.description}
+                        onChange={(e) =>
+                          updateWork(job.id, { description: e.target.value }, [`work-${job.id}-description`])
+                        }
+                        rows={5}
+                        placeholder="اكتب بأسلوبك العادي وش سويت في هذي الوظيفة..."
+                        className={invalidFieldClass(inputClass, isInvalid(`work-${job.id}-description`))}
+                      />
+                    </FormField>
                     <div className="rounded-xl border border-[#378ADD]/15 bg-[#378ADD]/5 p-4 text-sm text-slate-600">
                       ✅ مثال: كنت مسؤول عن إدارة 5 حسابات كبيرة، نظمت اجتماعات أسبوعية مع العملاء، وطورت استراتيجية تسويقية زادت المبيعات 30%
                     </div>
                   </div>
-                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                    <MonthYearSelect label="من" value={job.startDate} onChange={(v) => updateWork(job.id, { startDate: v })} />
-                    <div>
-                      <label className="mt-3 flex items-center gap-2 text-sm font-medium">
-                        <input
-                          type="checkbox"
-                          checked={job.isCurrent}
-                          onChange={(e) =>
-                            updateWork(job.id, {
-                              isCurrent: e.target.checked,
-                              endDate: e.target.checked ? "حتى الآن" : "",
-                            })
-                          }
-                          className="h-4 w-4 rounded text-[#378ADD]"
-                        />
-                        حتى الآن
-                      </label>
-                      {!job.isCurrent && (
-                        <div className="mt-3">
-                          <MonthYearSelect
-                            label="إلى"
-                            value={job.endDate}
-                            onChange={(v) =>
-                              updateWork(job.id, { endDate: v, isCurrent: false })
-                            }
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <WorkExperienceDateRange
+                    startDate={job.startDate}
+                    endDate={job.endDate}
+                    isCurrent={Boolean(job.isCurrent)}
+                    invalidStart={isInvalid(`work-${job.id}-startDate`)}
+                    invalidEnd={isInvalid(`work-${job.id}-endDate`)}
+                    onStartChange={(v) =>
+                      updateWork(job.id, { startDate: v }, [`work-${job.id}-startDate`])
+                    }
+                    onEndChange={(v) =>
+                      updateWork(job.id, { endDate: v, isCurrent: false }, [`work-${job.id}-endDate`])
+                    }
+                    onCurrentChange={(checked) =>
+                      updateWork(
+                        job.id,
+                        { isCurrent: checked, endDate: checked ? "حتى الآن" : "" },
+                        [`work-${job.id}-endDate`]
+                      )
+                    }
+                  />
                 </div>
               ))}
             </div>
@@ -642,32 +617,73 @@ export default function CreateForm() {
         {step === 3 && (
           <div className="space-y-5">
             <h2 className="text-xl font-extrabold sm:text-2xl">التعليم</h2>
-            <div>
-              <label className={labelClass}>اسم الجامعة</label>
-              <input value={edu.institution} onChange={(e) => update("education", [{ ...edu, institution: e.target.value }])} placeholder="مثال: جامعة الملك سعود" className={inputClass} />
-            </div>
-            <div>
-              <label className={labelClass}>التخصص</label>
-              <input value={edu.degree} onChange={(e) => update("education", [{ ...edu, degree: e.target.value }])} placeholder="مثال: إدارة أعمال" className={inputClass} />
-            </div>
-            <div>
-              <label className={labelClass}>سنة التخرج</label>
-              <select value={edu.endDate} onChange={(e) => update("education", [{ ...edu, endDate: e.target.value }])} className={selectClass}>
+            <FormField label="اسم الجامعة" required invalid={isInvalid("institution")}>
+              <input
+                value={edu.institution}
+                onChange={(e) => {
+                  clearInvalid("institution");
+                  update("education", [{ ...edu, institution: e.target.value }]);
+                }}
+                placeholder="مثال: جامعة الملك سعود"
+                className={invalidFieldClass(inputClass, isInvalid("institution"))}
+              />
+            </FormField>
+            <FormField label="التخصص" required invalid={isInvalid("degree")}>
+              <input
+                value={edu.degree}
+                onChange={(e) => {
+                  clearInvalid("degree");
+                  update("education", [{ ...edu, degree: e.target.value }]);
+                }}
+                placeholder="مثال: إدارة أعمال"
+                className={invalidFieldClass(inputClass, isInvalid("degree"))}
+              />
+            </FormField>
+            <FormField label="سنة التخرج" required invalid={isInvalid("graduationYear")}>
+              <select
+                value={edu.endDate}
+                onChange={(e) => {
+                  clearInvalid("graduationYear");
+                  update("education", [{ ...edu, endDate: e.target.value }]);
+                }}
+                className={invalidFieldClass(selectClass, isInvalid("graduationYear"))}
+              >
                 <option value="">اختر السنة</option>
-                {GRADUATION_YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
+                {GRADUATION_YEARS.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
               </select>
-            </div>
-            <div>
-              <label className={labelClass}>المعدل (اختياري)</label>
-              <input value={edu.gpa ?? ""} onChange={(e) => update("education", [{ ...edu, gpa: e.target.value }])} placeholder="4.5 / 5" dir="ltr" className={`${inputClass} text-left`} />
-            </div>
+            </FormField>
+            <FormField label="المعدل (اختياري)">
+              <input
+                value={edu.gpa ?? ""}
+                onChange={(e) => update("education", [{ ...edu, gpa: e.target.value }])}
+                placeholder="4.5 / 5"
+                dir="ltr"
+                className={`${inputClass} text-left`}
+              />
+            </FormField>
           </div>
         )}
 
         {step === 4 && (
           <div className="space-y-5">
             <h2 className="text-xl font-extrabold sm:text-2xl">المهارات</h2>
-            <input value={skillInput} onChange={(e) => setSkillInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSkill(skillInput); } }} placeholder="اكتب مهارة واضغط Enter" className={inputClass} />
+            {isInvalid("skills") && <RequiredMarker />}
+            <input
+              value={skillInput}
+              onChange={(e) => setSkillInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addSkill(skillInput);
+                }
+              }}
+              placeholder="اكتب مهارة واضغط Enter"
+              className={invalidFieldClass(inputClass, isInvalid("skills"))}
+            />
             <FieldTip>💡 مثال: Excel، إدارة المشاريع</FieldTip>
             {data.skills.length > 0 && (
               <div className="flex flex-wrap gap-2">
@@ -679,11 +695,20 @@ export default function CreateForm() {
                 ))}
               </div>
             )}
-            <div className="flex flex-wrap gap-2">
-              {SUGGESTED_SKILLS.map((skill) => (
-                <button key={skill} type="button" onClick={() => addSkill(skill)} className="rounded-full border border-slate-200 px-3 py-1.5 text-sm hover:border-[#378ADD]">+ {skill}</button>
-              ))}
-            </div>
+            {availableSuggestions.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {availableSuggestions.map((skill) => (
+                  <button
+                    key={skill}
+                    type="button"
+                    onClick={() => addSkill(skill)}
+                    className="rounded-full border border-slate-200 px-3 py-1.5 text-sm hover:border-[#378ADD]"
+                  >
+                    + {skill}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -737,8 +762,24 @@ export default function CreateForm() {
           <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
             <div>
               <h2 className="mb-4 text-xl font-extrabold sm:text-2xl">نبذة عنك</h2>
-              <textarea value={data.selfDescription} onChange={(e) => update("selfDescription", e.target.value)} rows={8} placeholder="أنا شخص طموح..." className={inputClass} />
-              <FieldTip>اكتب بأسلوبك العادي حتى لو بالعامية، الذكاء الاصطناعي سيحولها لنبذة احترافية</FieldTip>
+              <FormField
+                label="اكتب نبذة عنك بأسلوبك"
+                required
+                invalid={isInvalid("selfDescription")}
+                tip={
+                  <FieldTip>
+                    اكتب بأسلوبك العادي حتى لو بالعامية، الذكاء الاصطناعي سيحولها لنبذة احترافية بضمير المتكلم
+                  </FieldTip>
+                }
+              >
+                <textarea
+                  value={data.selfDescription}
+                  onChange={(e) => update("selfDescription", e.target.value)}
+                  rows={8}
+                  placeholder="أنا شخص طموح..."
+                  className={invalidFieldClass(inputClass, isInvalid("selfDescription"))}
+                />
+              </FormField>
             </div>
             <div className="rounded-xl border border-[#378ADD]/15 bg-[#378ADD]/5 p-4 text-sm text-slate-600">
               ✅ مثال: أنا شخص طموح عندي 5 سنوات خبرة في التسويق الرقمي، أحب أشتغل بفريق وأحقق أهداف واضحة

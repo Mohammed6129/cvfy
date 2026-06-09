@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import CvWritingLoader from "@/app/components/cv-writing-loader";
 import LoadingSpinner from "@/app/components/loading-spinner";
 import {
   CURRENT_CV_ID_KEY,
@@ -14,6 +15,16 @@ import type { GeneratedCv } from "@/lib/cv-types";
 
 const BRAND = "#378ADD";
 
+const PROGRESS_STEPS = [
+  { label: "تعبئة البيانات", status: "done" as const },
+  { label: "التحسين بالذكاء الاصطناعي", status: "active" as const },
+  { label: "التحميل", status: "pending" as const },
+];
+
+type EnhanceContentProps = {
+  userName: string;
+};
+
 function loadCvFromSession(): GeneratedCv | null {
   const stored = sessionStorage.getItem(STORAGE_KEY);
   if (!stored) return null;
@@ -23,15 +34,19 @@ function loadCvFromSession(): GeneratedCv | null {
     if (cv?.content && typeof cv.content === "object") {
       return cv;
     }
-    console.warn("[enhance] sessionStorage CV missing content");
     return null;
-  } catch (error) {
-    console.error("[enhance] sessionStorage parse failed:", error);
+  } catch {
     return null;
   }
 }
 
-export default function EnhanceContent() {
+function StepIcon({ status }: { status: "done" | "active" | "pending" }) {
+  if (status === "done") return <span aria-hidden>✅</span>;
+  if (status === "active") return <span aria-hidden>🔄</span>;
+  return <span aria-hidden>⬜</span>;
+}
+
+export default function EnhanceContent({ userName }: EnhanceContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [cv, setCv] = useState<GeneratedCv | null>(null);
@@ -48,12 +63,9 @@ export default function EnhanceContent() {
       const storedId = sessionStorage.getItem(CURRENT_CV_ID_KEY);
       const lookupId = paramId || storedId;
 
-      console.log("[enhance] Loading CV, lookupId:", lookupId);
-
       if (lookupId) {
         const accountData = await loadCvFromAccount(lookupId);
         if (!cancelled && accountData?.cv?.content) {
-          console.log("[enhance] Loaded from account:", accountData.id);
           setCv(accountData.cv);
           setCvId(accountData.id);
           sessionStorage.setItem(STORAGE_KEY, JSON.stringify(accountData.cv));
@@ -61,12 +73,10 @@ export default function EnhanceContent() {
           setLoading(false);
           return;
         }
-        console.warn("[enhance] Account load failed for id:", lookupId);
       }
 
       const sessionCv = loadCvFromSession();
       if (!cancelled && sessionCv) {
-        console.log("[enhance] Using sessionStorage CV fallback");
         setCv(sessionCv);
         setCvId(lookupId);
         setLoading(false);
@@ -74,7 +84,6 @@ export default function EnhanceContent() {
         if (!lookupId) {
           const saved = await saveCvToAccount(sessionCv);
           if (!cancelled && saved?.id) {
-            console.log("[enhance] Late save succeeded:", saved.id);
             setCvId(saved.id);
             sessionStorage.setItem(CURRENT_CV_ID_KEY, saved.id);
             router.replace(`/enhance?cv=${saved.id}`);
@@ -84,7 +93,6 @@ export default function EnhanceContent() {
       }
 
       if (!cancelled) {
-        console.error("[enhance] No CV found — redirecting to /create");
         setError("لم نجد سيرة محفوظة. يرجى إعادة تعبئة النموذج.");
         setLoading(false);
       }
@@ -103,8 +111,6 @@ export default function EnhanceContent() {
     setError(null);
 
     try {
-      console.log("[enhance] Calling enhance-cv API");
-
       const response = await fetch("/api/enhance-cv", {
         method: "POST",
         headers: {
@@ -115,21 +121,17 @@ export default function EnhanceContent() {
       });
 
       const text = await response.text();
-      console.log("[enhance] enhance-cv status:", response.status);
-
       let result: GeneratedCv & { error?: string };
 
       try {
         result = JSON.parse(text);
-      } catch (parseError) {
-        console.error("[enhance] JSON parse failed:", parseError);
+      } catch {
         setError("استجابة غير صالحة من الخادم.");
         setEnhancing(false);
         return;
       }
 
       if (!response.ok) {
-        console.error("[enhance] API error:", result);
         setError(result.error || "تعذر تحسين السيرة الذاتية.");
         setEnhancing(false);
         return;
@@ -137,6 +139,7 @@ export default function EnhanceContent() {
 
       const enhanced: GeneratedCv = {
         ...result,
+        contentEn: result.contentEn ?? cv.contentEn,
         aiEnhanced: true,
         language: "both",
       };
@@ -145,10 +148,8 @@ export default function EnhanceContent() {
       await saveCvToAccount(enhanced, undefined, cvId);
 
       const destination = cvId ? `/preview?cv=${cvId}` : "/preview";
-      console.log("[enhance] Redirecting to:", destination);
       router.push(destination);
-    } catch (enhanceError) {
-      console.error("[enhance] Submit error:", enhanceError);
+    } catch {
       setError("حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.");
       setEnhancing(false);
     }
@@ -177,24 +178,48 @@ export default function EnhanceContent() {
   }
 
   if (enhancing) {
-    return (
-      <div className="animate-fade-in rounded-2xl border border-slate-100 bg-white p-10 text-center shadow-lg">
-        <div className="mx-auto mb-6 h-14 w-14 animate-spin rounded-full border-4 border-[#e8f2fc] border-t-[#378ADD]" />
-        <h2 className="text-xl font-extrabold text-slate-900 sm:text-2xl">
-          جاري تحسين سيرتك الذاتية ✨
-        </h2>
-        <p className="mt-2 text-slate-600">
-          الذكاء الاصطناعي يجعلها متوافقة مع نظام ATS
-        </p>
-      </div>
-    );
+    return <CvWritingLoader mode="enhance" />;
   }
 
   return (
-    <div className="animate-fade-in mx-auto max-w-xl text-center">
-      <div className="mb-8 rounded-2xl border border-[#378ADD]/15 bg-[#378ADD]/5 px-5 py-4 text-sm leading-relaxed text-slate-700">
-        تم حفظ بياناتك بنجاح. الخطوة التالية: تحسين السيرة بالذكاء الاصطناعي
-        لتطابق نظام ATS — وستحصل على نسختين بالعربي والإنجليزي.
+    <div className="animate-fade-in mx-auto max-w-lg text-center">
+      <h1 className="text-2xl font-extrabold text-slate-900 sm:text-3xl">
+        أهلاً {userName}! 👋
+      </h1>
+      <p className="mt-2 text-base text-slate-600 sm:text-lg">
+        سيرتك جاهزة للتحسين
+      </p>
+
+      <div className="my-8 rounded-2xl border border-[#378ADD]/15 bg-[#378ADD]/5 px-4 py-5 sm:px-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+          {PROGRESS_STEPS.map((step, index) => (
+            <div key={step.label} className="flex flex-1 items-center gap-2 text-sm">
+              <StepIcon status={step.status} />
+              <span
+                className={`font-semibold ${
+                  step.status === "active"
+                    ? "text-[#378ADD]"
+                    : step.status === "done"
+                      ? "text-emerald-700"
+                      : "text-slate-400"
+                }`}
+              >
+                {step.label}
+              </span>
+              {index < PROGRESS_STEPS.length - 1 && (
+                <span className="mx-1 hidden text-slate-300 sm:inline" aria-hidden>
+                  →
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 h-2 overflow-hidden rounded-full bg-white">
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{ width: "66%", backgroundColor: BRAND }}
+          />
+        </div>
       </div>
 
       {error && (
@@ -206,14 +231,19 @@ export default function EnhanceContent() {
       <button
         type="button"
         onClick={handleEnhance}
-        className="w-full rounded-2xl px-8 py-5 text-lg font-extrabold text-white shadow-lg shadow-[#378ADD]/30 transition-transform hover:scale-[1.02] active:scale-[0.98] sm:text-xl"
+        className="mx-auto rounded-full px-8 py-3.5 text-base font-extrabold text-white shadow-lg shadow-[#378ADD]/30 transition-transform hover:scale-[1.02] active:scale-[0.98]"
         style={{ backgroundColor: BRAND }}
       >
-        حسّن السيرة الذاتية واجعلها تطابق نظام ATS ✨
+        حسّن السيرة الذاتية ✨
       </button>
 
+      <p className="mt-3 text-xs text-slate-500">عادةً يستغرق 30 ثانية</p>
+
       <p className="mt-6 text-sm text-slate-500">
-        <Link href="/create" className="font-semibold text-[#378ADD] hover:underline">
+        <Link
+          href={cvId ? `/create?edit=${cvId}` : "/create"}
+          className="font-semibold text-[#378ADD] hover:underline"
+        >
           تعديل البيانات
         </Link>
       </p>

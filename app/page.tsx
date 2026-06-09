@@ -4,9 +4,6 @@ import Hero from "./components/Hero";
 import CustomerJourney from "./components/CustomerJourney";
 import Features from "./components/Features";
 import AtsEducation from "./components/AtsEducation";
-import SocialProof from "./components/SocialProof";
-import Pricing from "./components/Pricing";
-import FAQ from "./components/FAQ";
 import Footer from "./components/Footer";
 
 export const metadata: Metadata = {
@@ -32,9 +29,6 @@ export default function Home() {
         </div>
         <Features />
         <AtsEducation />
-        <SocialProof />
-        <Pricing />
-        <FAQ />
       </main>
       <Footer />
     </div>

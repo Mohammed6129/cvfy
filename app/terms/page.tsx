@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import AppHeader from "@/app/components/app-header";
 
 export const metadata: Metadata = {
   title: "شروط الاستخدام — CVfy",
@@ -9,11 +10,7 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   return (
     <div className="min-h-full bg-white">
-      <header className="border-b border-slate-200 px-4 py-4 sm:px-6">
-        <Link href="/" className="text-2xl font-extrabold text-[#378ADD]">
-          CVfy
-        </Link>
-      </header>
+      <AppHeader maxWidth="3xl" />
       <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
         <h1 className="mb-6 text-3xl font-extrabold text-slate-900">
           شروط الاستخدام

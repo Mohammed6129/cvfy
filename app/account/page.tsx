@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import NavbarAuth from "@/app/components/navbar-auth";
+import AppHeader from "@/app/components/app-header";
 import { createClient } from "@/lib/supabase/server";
 import { getUserProfile } from "@/lib/user";
 
@@ -24,52 +23,26 @@ export default async function AccountPage() {
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-white">
-      <header className="border-b border-[#378ADD]/15 bg-white px-4 py-4 sm:px-6">
-        <div className="mx-auto flex max-w-2xl items-center justify-between">
-          <Link href="/" className="text-2xl font-extrabold text-[#378ADD]">
-            CVfy
-          </Link>
-          <NavbarAuth />
-        </div>
-      </header>
+      <AppHeader maxWidth="2xl" />
 
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
         <h1 className="mb-6 text-2xl font-extrabold text-slate-900">
           معلومات الحساب
         </h1>
 
-        <div className="space-y-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-lg shadow-slate-200/60">
+        <div className="space-y-6 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-slate-500">الاسم</p>
-            <p className="text-lg font-bold text-slate-900">{profile.name}</p>
+            <p className="mb-1 text-sm font-semibold text-slate-500">الاسم</p>
+            <p className="text-base font-bold text-slate-900">{profile.name}</p>
           </div>
           <div>
-            <p className="text-xs font-semibold text-slate-500">البريد الإلكتروني</p>
-            <p className="text-lg text-slate-900" dir="ltr">
+            <p className="mb-1 text-sm font-semibold text-slate-500">
+              البريد الإلكتروني
+            </p>
+            <p className="text-base text-slate-900" dir="ltr">
               {profile.email ?? "—"}
             </p>
           </div>
-          <div>
-            <p className="text-xs font-semibold text-slate-500">معرّف الحساب</p>
-            <p className="truncate text-sm text-slate-600" dir="ltr">
-              {user.id}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link
-            href="/my-cvs"
-            className="rounded-full bg-[#378ADD] px-6 py-3 text-sm font-semibold text-white shadow-md hover:bg-[#2a6bb8]"
-          >
-            سيرتي الذاتية
-          </Link>
-          <Link
-            href="/create"
-            className="rounded-full border-2 border-[#378ADD] px-6 py-3 text-sm font-semibold text-[#378ADD] hover:bg-[#e8f2fc]"
-          >
-            إنشاء سيرة جديدة
-          </Link>
         </div>
       </main>
     </div>

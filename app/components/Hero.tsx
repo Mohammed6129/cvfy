@@ -1,4 +1,3 @@
-import Link from "next/link";
 import StartNowLink from "./start-now-link";
 
 export default function Hero() {
@@ -7,7 +6,7 @@ export default function Hero() {
       <div className="relative mx-auto max-w-6xl">
         <div className="mx-auto max-w-3xl text-center">
           <span className="mb-6 inline-block rounded-full border border-[#378ADD]/20 bg-white px-4 py-1.5 text-sm font-medium text-[#378ADD]">
-            🇸🇦 لسوق العمل السعودي — متوافق مع ATS
+            متوافق مع نظام ATS
           </span>
 
           <h1 className="mb-6 text-3xl font-extrabold leading-tight text-slate-900 sm:text-4xl md:text-5xl lg:text-6xl">
@@ -20,16 +19,10 @@ export default function Hero() {
             مع تحسين بالذكاء الاصطناعي وفحص ATS — نسختان عربي وإنجليزي.
           </p>
 
-          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <div className="flex flex-col items-center justify-center">
             <StartNowLink className="w-full rounded-full bg-[#378ADD] px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-[#378ADD]/30 transition-all hover:bg-[#2a6bb8] sm:w-auto">
               ابدأ الآن
             </StartNowLink>
-            <Link
-              href="#journey"
-              className="w-full rounded-full border-2 border-[#378ADD] px-8 py-3.5 text-base font-semibold text-[#378ADD] transition-colors hover:bg-[#e8f2fc] sm:w-auto"
-            >
-              اكتشف المميزات
-            </Link>
           </div>
         </div>
       </div>

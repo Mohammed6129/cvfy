@@ -50,6 +50,86 @@ body {
   animation: fade-in 0.4s ease-out forwards;
 }
 
+/* Customer journey card animations */
+@keyframes journey-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.journey-card {
+  animation: journey-card-in 0.55s ease-out both;
+}
+
+.journey-card-played {
+  animation: journey-card-in 0.45s ease-out both;
+}
+
+.journey-card:hover .journey-card-icon {
+  transform: scale(1.12);
+  transition: transform 0.25s ease;
+}
+
+.journey-card-icon {
+  display: inline-block;
+  transition: transform 0.25s ease;
+}
+
+/* CV writing loader */
+@keyframes cv-writing-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cv-writing-line {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+.cv-writing-line-visible {
+  animation: cv-writing-reveal 0.35s ease-out forwards;
+}
+
+.cv-writing-paper {
+  animation: cv-gen-rustle 2.8s ease-in-out infinite;
+}
+
+@keyframes cv-gen-dot-bounce {
+  0%,
+  80%,
+  100% {
+    opacity: 0.2;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+.cv-gen-dots span {
+  animation: cv-gen-dot-bounce 1.4s ease-in-out infinite;
+}
+
+.cv-gen-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.cv-gen-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
 /* CV generation loader animations */
 @keyframes cv-gen-rustle {
   0%,

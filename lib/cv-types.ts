@@ -84,6 +84,7 @@ export type GeneratedCv = {
   linkedIn?: string;
   language?: Language;
   content: GeneratedCvContent;
+  contentEn?: GeneratedCvContent;
   aiEnhanced?: boolean;
   generatedWithFallback?: boolean;
   warning?: string;

@@ -3,6 +3,51 @@ import type { AtsScoreResult, CvFormData, CvRecord, GeneratedCv } from "@/lib/cv
 export const CURRENT_CV_ID_KEY = "cvfy-current-cv-id";
 export const STORAGE_KEY = "cvfy-generated-cv";
 
+function formatPeriod(start: string, end: string): string {
+  if (!start && !end) return "";
+  if (start && end) return `${start} — ${end}`;
+  return start || end;
+}
+
+export function createDraftGeneratedCv(formData: CvFormData): GeneratedCv {
+  return {
+    name: formData.name || "مسودة",
+    email: formData.email || "",
+    phone: formData.phone || "",
+    city: formData.city || "",
+    linkedIn: formData.linkedIn || undefined,
+    language: "both",
+    content: {
+      headline: formData.currentJobTitle || "",
+      summary: formData.selfDescription || "",
+      experiences: formData.workExperience.map((item) => ({
+        jobTitle: item.jobTitle,
+        company: item.company,
+        period: formatPeriod(item.startDate, item.endDate),
+        description: item.description,
+      })),
+      education: formData.education.map((item) => ({
+        degree: item.degree,
+        institution: item.institution,
+        period: formatPeriod(item.startDate, item.endDate),
+      })),
+      skills: formData.skills.map((s) => s.name),
+      courses: formData.courses.map((c) => ({
+        name: c.name,
+        provider: c.provider,
+        year: c.date || c.year,
+      })),
+    },
+  };
+}
+
+export async function saveFormDraft(
+  formData: CvFormData,
+  cvId?: string | null
+): Promise<{ id: string } | null> {
+  return saveCvToAccount(createDraftGeneratedCv(formData), formData, cvId);
+}
+
 export async function saveCvToAccount(
   generatedCv: GeneratedCv,
   formData?: CvFormData,

@@ -20,13 +20,6 @@ type PaymentSectionProps = {
   variant?: "default" | "overlay";
 };
 
-const PAYMENT_METHODS = [
-  { id: "apple", label: "Apple Pay", icon: "" },
-  { id: "google", label: "Google Pay", icon: "G" },
-  { id: "mada", label: "مدى", icon: "مدى" },
-  { id: "tamara", label: "تمارا", icon: "تمارا" },
-];
-
 export default function PaymentSection({
   onPaymentSuccess,
   isPaid,
@@ -79,28 +72,6 @@ export default function PaymentSection({
     );
   }
 
-  const methodsRow = (
-    <div className="mb-4 flex flex-wrap items-center justify-center gap-3">
-      {PAYMENT_METHODS.map((m) => (
-        <span
-          key={m.id}
-          className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700"
-        >
-          {m.icon || m.label}
-        </span>
-      ))}
-    </div>
-  );
-
-  const sbcLogo = (
-    <div className="mt-4 flex flex-col items-center gap-1 text-center">
-      <div className="flex h-10 items-center justify-center rounded border border-slate-200 bg-white px-4 text-xs font-bold text-slate-600">
-        مركز الأعمال السعودي
-      </div>
-      <span className="text-[10px] text-slate-400">Saudi Business Center</span>
-    </div>
-  );
-
   const payButton = !showPaymentForm ? (
     <button
       type="button"
@@ -137,9 +108,7 @@ export default function PaymentSection({
   if (variant === "overlay") {
     return (
       <div className="w-full">
-        {methodsRow}
         {payButton}
-        {sbcLogo}
         {paymentError && (
           <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-700">
             {paymentError}
@@ -158,9 +127,7 @@ export default function PaymentSection({
         {plan.price} <span className="text-sm text-slate-600">ر.س</span>
       </p>
       <p className="mb-4 text-center text-xs text-slate-500">{plan.description}</p>
-      {methodsRow}
       {payButton}
-      {sbcLogo}
       {paymentError && (
         <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-700">
           {paymentError}
