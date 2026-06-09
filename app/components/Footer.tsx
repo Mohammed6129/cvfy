@@ -1,12 +1,12 @@
 import Link from "next/link";
+import BrandLogo from "./brand-logo";
 
 export default function Footer() {
   return (
     <footer className="border-t border-slate-100 bg-white px-4 py-10 sm:px-6">
       <div className="mx-auto flex max-w-6xl flex-col gap-8 md:flex-row md:items-center md:justify-between">
-        <div className="text-center md:text-right">
-          <p className="text-xl font-extrabold text-[#378ADD]">CVfy</p>
-          <p className="text-sm text-slate-500">هويتك المهنية — لسوق العمل السعودي</p>
+        <div className="flex justify-center md:justify-start">
+          <BrandLogo asLink={false} />
         </div>
         <nav className="flex flex-wrap items-center justify-center gap-4 text-sm font-semibold text-slate-600">
           <Link href="/about-ats" className="hover:text-[#378ADD]">

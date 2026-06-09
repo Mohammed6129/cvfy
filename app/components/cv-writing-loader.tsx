@@ -6,12 +6,7 @@ type CvWritingLoaderProps = {
   mode: "generate" | "enhance";
 };
 
-const ENHANCE_MESSAGES = [
-  "جاري تحليل خبراتك...",
-  "جاري صياغة الإنجازات باحترافية...",
-  "جاري مطابقة كلمات نظام ATS...",
-  "اللمسات الأخيرة...",
-];
+const LOADER_SUBTITLE = "جاري صياغة الإنجازات باحترافية...";
 
 const GENERATE_LINES = [
   { delay: 0, text: "John Smith", className: "text-base font-bold" },
@@ -35,13 +30,8 @@ const ENHANCE_LINES = [
 
 export default function CvWritingLoader({ mode }: CvWritingLoaderProps) {
   const [visibleCount, setVisibleCount] = useState(0);
-  const [messageIndex, setMessageIndex] = useState(0);
 
   const lines = mode === "enhance" ? ENHANCE_LINES : GENERATE_LINES;
-  const title =
-    mode === "enhance"
-      ? ENHANCE_MESSAGES[messageIndex]
-      : "جاري إنشاء سيرتك الذاتية...";
 
   useEffect(() => {
     setVisibleCount(0);
@@ -52,19 +42,12 @@ export default function CvWritingLoader({ mode }: CvWritingLoaderProps) {
     return () => timers.forEach(clearTimeout);
   }, [mode]);
 
-  useEffect(() => {
-    if (mode !== "enhance") return;
-    const interval = window.setInterval(() => {
-      setMessageIndex((i) => (i + 1) % ENHANCE_MESSAGES.length);
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [mode]);
-
   return (
     <div
       className="animate-fade-in mx-auto max-w-lg rounded-2xl border border-slate-100 bg-white px-6 py-8 text-center shadow-lg sm:px-10 sm:py-10"
       role="status"
       aria-live="polite"
+      aria-label={LOADER_SUBTITLE}
     >
       <div className="mx-auto mb-6 w-full max-w-xs sm:max-w-sm">
         <div className="cv-writing-paper relative mx-auto aspect-[3/4] w-full max-w-[220px] rounded-lg border-2 border-[#378ADD]/30 bg-white p-4 shadow-lg shadow-[#378ADD]/10 sm:max-w-[260px] sm:p-5">
@@ -84,20 +67,9 @@ export default function CvWritingLoader({ mode }: CvWritingLoaderProps) {
         </div>
       </div>
 
-      <h2 className="text-lg font-extrabold text-slate-900 sm:text-xl">
-        {title}
-        {mode === "generate" && (
-          <span className="cv-gen-dots" aria-hidden="true">
-            <span>.</span>
-            <span>.</span>
-            <span>.</span>
-          </span>
-        )}
-      </h2>
-
-      {mode === "enhance" && (
-        <p className="mt-2 text-sm text-slate-500">عادةً يستغرق 30 ثانية</p>
-      )}
+      <p className="text-base font-semibold text-slate-700 sm:text-lg">
+        {LOADER_SUBTITLE}
+      </p>
     </div>
   );
 }
