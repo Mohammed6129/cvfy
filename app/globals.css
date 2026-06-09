@@ -98,40 +98,40 @@ body {
 @keyframes cv-gen-writer-slide {
   0%,
   100% {
-    transform: translate(-75px, -5px);
+    transform: translate(-55px, 18px);
   }
   50% {
-    transform: translate(-45px, -5px);
+    transform: translate(-15px, 18px);
   }
 }
 
 @keyframes cv-gen-organizer-slide {
   0%,
   100% {
-    transform: translate(15px, -35px);
+    transform: translate(5px, -8px);
   }
   50% {
-    transform: translate(55px, -35px);
+    transform: translate(45px, -8px);
   }
 }
 
 @keyframes cv-gen-papers-walk {
   0%,
   100% {
-    transform: translate(60px, 248px);
+    transform: translate(35px, 318px);
   }
   50% {
-    transform: translate(170px, 248px);
+    transform: translate(155px, 318px);
   }
 }
 
 @keyframes cv-gen-climb {
   0%,
   100% {
-    transform: translate(368px, 118px);
+    transform: translate(368px, 155px);
   }
   50% {
-    transform: translate(368px, 72px);
+    transform: translate(368px, 85px);
   }
 }
 
