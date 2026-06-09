@@ -53,7 +53,7 @@ export function chatAnswersToFormData(
   }));
 
   return {
-    language: answers.language,
+    language: "both",
     name: answers.name.trim(),
     city: "",
     phone: "",
@@ -64,6 +64,7 @@ export function chatAnswersToFormData(
         id: newId(),
         jobTitle: answers.jobTitle.trim(),
         company: "",
+        department: "",
         startDate: "",
         endDate: "",
         description: answers.experience.trim(),

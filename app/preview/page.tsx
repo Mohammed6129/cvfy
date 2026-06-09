@@ -23,7 +23,7 @@ export default function PreviewPage() {
           </Link>
           <div className="flex items-center gap-3 sm:gap-4">
             <Link
-              href="/dashboard"
+              href="/my-cvs"
               className="hidden text-sm font-semibold text-slate-600 transition-colors hover:text-[#378ADD] sm:inline"
             >
               لوحة التحكم

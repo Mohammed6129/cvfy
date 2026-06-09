@@ -6,9 +6,12 @@ export default function Footer() {
       <div className="mx-auto flex max-w-6xl flex-col gap-8 md:flex-row md:items-center md:justify-between">
         <div className="text-center md:text-right">
           <p className="text-xl font-extrabold text-[#378ADD]">CVfy</p>
-          <p className="text-sm text-slate-500">هويتك المهنية — للسوق السعودي</p>
+          <p className="text-sm text-slate-500">هويتك المهنية — لسوق العمل السعودي</p>
         </div>
         <nav className="flex flex-wrap items-center justify-center gap-4 text-sm font-semibold text-slate-600">
+          <Link href="/about-ats" className="hover:text-[#378ADD]">
+            ما هو ATS؟
+          </Link>
           <Link href="/terms" className="hover:text-[#378ADD]">
             شروط الاستخدام
           </Link>

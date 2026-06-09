@@ -1,8 +1,15 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import LoadingSpinner from "@/app/components/loading-spinner";
+import {
+  GRADUATION_YEARS,
+  MONTHS,
+  SAUDI_CITIES,
+  SUGGESTED_SKILLS,
+  WORK_YEARS,
+} from "@/lib/create-form-constants";
 import {
   CURRENT_CV_ID_KEY,
   STORAGE_KEY,
@@ -13,147 +20,188 @@ import { prepareCvPayload } from "@/lib/prepare-cv-payload";
 import type { CvFormData, GeneratedCv } from "@/lib/cv-types";
 
 const BRAND = "#378ADD";
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 6;
+const MAX_EXPERIENCES = 5;
+const MANDATORY_MSG =
+  "يجب تعبئة جميع الحقول لضمان سيرة ذاتية مثالية تطابق نظام ATS";
 
 const STEP_TITLES = [
-  "اختر اللغة",
   "المعلومات الشخصية",
   "الخبرات العملية",
   "التعليم",
   "المهارات",
-  "الدورات",
-  "الوصف الذاتي",
+  "الدورات والشهادات",
+  "نبذة عنك",
 ];
 
-type Language = "arabic" | "english" | "both" | "";
-
-type WorkExperience = {
-  id: string;
-  jobTitle: string;
-  company: string;
-  startDate: string;
-  endDate: string;
-  description: string;
-};
-
-type Education = {
-  id: string;
-  degree: string;
-  institution: string;
-  startDate: string;
-  endDate: string;
-};
-
-type Skill = {
-  id: string;
-  name: string;
-};
-
-type Course = {
-  id: string;
-  name: string;
-  provider: string;
-  year: string;
-};
-
-type FormData = {
-  language: Language;
-  name: string;
-  city: string;
-  phone: string;
-  email: string;
-  workExperience: WorkExperience[];
-  education: Education[];
-  skills: Skill[];
-  courses: Course[];
-  selfDescription: string;
-};
+const START_NOTICE =
+  "بعد تعبئة الفورم ستحصل على نسختين: عربي وإنجليزي. ملاحظة: السيرة الإنجليزية دائماً أفضل وتُفضّلها الشركات والجهات أكثر من العربية";
 
 const inputClass =
   "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#378ADD] focus:ring-2 focus:ring-[#378ADD]/20";
 
+const selectClass =
+  "w-full appearance-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition-colors focus:border-[#378ADD] focus:ring-2 focus:ring-[#378ADD]/20";
+
 const labelClass = "mb-2 block text-sm font-semibold text-slate-700";
+
+type FormData = CvFormData;
 
 function newId() {
   return Math.random().toString(36).slice(2, 11);
 }
 
-function emptyWork(): WorkExperience {
+function emptyWork(): FormData["workExperience"][number] {
   return {
     id: newId(),
     jobTitle: "",
     company: "",
+    department: "",
     startDate: "",
     endDate: "",
     description: "",
+    isCurrent: false,
   };
 }
 
-function emptyEducation(): Education {
-  return {
-    id: newId(),
-    degree: "",
-    institution: "",
-    startDate: "",
-    endDate: "",
-  };
+function emptyEducation(): FormData["education"][number] {
+  return { id: newId(), degree: "", institution: "", startDate: "", endDate: "", gpa: "" };
 }
 
-function emptySkill(): Skill {
-  return { id: newId(), name: "" };
-}
-
-function emptyCourse(): Course {
+function emptyCourse(): FormData["courses"][number] {
   return { id: newId(), name: "", provider: "", year: "" };
 }
 
 const initialData: FormData = {
-  language: "",
+  language: "both",
   name: "",
   city: "",
   phone: "",
   email: "",
   workExperience: [emptyWork()],
   education: [emptyEducation()],
-  skills: [emptySkill()],
+  skills: [],
   courses: [emptyCourse()],
   selfDescription: "",
 };
 
+function parseYearMonth(value: string) {
+  const [year = "", month = ""] = value.split("-");
+  return { year, month };
+}
+
+function formatYearMonth(year: string, month: string) {
+  if (!year && !month) return "";
+  if (!month) return year;
+  return `${year}-${month}`;
+}
+
+function normalizePhone(phone: string) {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.startsWith("966")) return `+${digits}`;
+  if (digits.startsWith("0")) return `+966${digits.slice(1)}`;
+  if (digits.length === 9) return `+966${digits}`;
+  return phone.trim();
+}
+
+function FieldTip({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mt-1.5 text-xs leading-relaxed text-slate-500">{children}</p>
+  );
+}
+
+function MonthYearSelect({
+  label,
+  value,
+  onChange,
+  disabled,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  disabled?: boolean;
+}) {
+  const { month, year } = parseYearMonth(value);
+  return (
+    <div>
+      <label className={labelClass}>{label}</label>
+      <div className="grid grid-cols-2 gap-2">
+        <select
+          value={month}
+          disabled={disabled}
+          onChange={(e) => onChange(formatYearMonth(year, e.target.value))}
+          className={selectClass}
+        >
+          <option value="">الشهر</option>
+          {MONTHS.map((m) => (
+            <option key={m.value} value={m.value}>
+              {m.label}
+            </option>
+          ))}
+        </select>
+        <select
+          value={year}
+          disabled={disabled}
+          onChange={(e) => onChange(formatYearMonth(e.target.value, month))}
+          className={selectClass}
+        >
+          <option value="">السنة</option>
+          {WORK_YEARS.map((y) => (
+            <option key={y} value={y}>
+              {y}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+  );
+}
+
 export default function CreateForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const fileRef = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState(1);
   const [data, setData] = useState<FormData>(initialData);
   const [error, setError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [loadingForm, setLoadingForm] = useState(false);
   const [editCvId, setEditCvId] = useState<string | null>(null);
+  const [skillInput, setSkillInput] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadParsed, setUploadParsed] = useState(false);
+  const [addFlags, setAddFlags] = useState({
+    experience: true,
+    courses: true,
+    certs: true,
+    extra: true,
+  });
 
   const progress = (step / TOTAL_STEPS) * 100;
 
   useEffect(() => {
     const editId = searchParams.get("edit");
     if (!editId) return;
-
     setLoadingForm(true);
     void loadCvFromAccount(editId).then((record) => {
       if (record?.formData) {
         setData({
           ...initialData,
           ...record.formData,
+          language: "both",
           workExperience:
             record.formData.workExperience.length > 0
-              ? record.formData.workExperience
+              ? record.formData.workExperience.map((w) => ({
+                  ...w,
+                  department: w.department ?? "",
+                  isCurrent: w.endDate === "حتى الآن" || w.isCurrent,
+                }))
               : [emptyWork()],
           education:
             record.formData.education.length > 0
               ? record.formData.education
               : [emptyEducation()],
-          skills:
-            record.formData.skills.length > 0
-              ? record.formData.skills
-              : [emptySkill()],
+          skills: record.formData.skills.filter((s) => s.name.trim()),
           courses:
             record.formData.courses.length > 0
               ? record.formData.courses
@@ -162,10 +210,6 @@ export default function CreateForm() {
         setEditCvId(editId);
       }
       setLoadingForm(false);
-
-      if (searchParams.get("regenerate") === "1") {
-        setStep(TOTAL_STEPS);
-      }
     });
   }, [searchParams]);
 
@@ -173,27 +217,111 @@ export default function CreateForm() {
     setData((prev) => ({ ...prev, [key]: value }));
   };
 
+  const updateWork = (id: string, patch: Partial<FormData["workExperience"][number]>) => {
+    update(
+      "workExperience",
+      data.workExperience.map((w) => (w.id === id ? { ...w, ...patch } : w))
+    );
+  };
+
+  const addSkill = (name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed || data.skills.some((s) => s.name.toLowerCase() === trimmed.toLowerCase())) return;
+    update("skills", [...data.skills, { id: newId(), name: trimmed }]);
+    setSkillInput("");
+  };
+
+  const handleUpload = async (file: File) => {
+    setUploading(true);
+    setError(null);
+    const form = new FormData();
+    form.append("file", file);
+    try {
+      const res = await fetch("/api/parse-cv", { method: "POST", body: form });
+      const json = (await res.json()) as { formData?: Partial<FormData>; error?: string };
+      if (!res.ok) throw new Error(json.error || "فشل رفع الملف");
+      const p = json.formData;
+      if (p) {
+        setData((prev) => ({
+          ...prev,
+          name: p.name || prev.name,
+          email: p.email || prev.email,
+          phone: p.phone || prev.phone,
+          city: p.city || prev.city,
+          selfDescription: p.selfDescription || prev.selfDescription,
+          workExperience: p.workExperience?.length
+            ? p.workExperience.map((w) => ({ ...emptyWork(), ...w, department: w.department ?? "" }))
+            : prev.workExperience,
+          education: p.education?.length
+            ? p.education.map((e) => ({ ...emptyEducation(), ...e }))
+            : prev.education,
+          skills: p.skills?.filter((s) => s.name?.trim()).map((s) => ({ id: newId(), name: s.name })) ?? prev.skills,
+          courses: p.courses?.length
+            ? p.courses.map((c) => ({ ...emptyCourse(), ...c }))
+            : prev.courses,
+        }));
+        setUploadParsed(true);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "تعذر قراءة الملف");
+    }
+    setUploading(false);
+  };
+
+  const applyUploadFlags = () => {
+    if (addFlags.experience) setStep(2);
+    else if (addFlags.courses || addFlags.certs) setStep(5);
+    else if (addFlags.extra) setStep(6);
+    setUploadParsed(false);
+  };
+
   const validateStep = (): boolean => {
     setError(null);
 
-    if (step === 1 && !data.language) {
-      setError("يرجى اختيار لغة السيرة الذاتية.");
-      return false;
+    if (step === 1) {
+      if (!data.name.trim() || !data.email.trim() || !data.email.includes("@") || !data.phone.trim() || !data.city) {
+        setError(MANDATORY_MSG);
+        return false;
+      }
     }
 
     if (step === 2) {
-      if (!data.name.trim()) {
-        setError("يرجى إدخال الاسم الكامل.");
-        return false;
+      for (const w of data.workExperience) {
+        if (!w.jobTitle.trim() || !w.company.trim() || !w.department.trim() || !w.description.trim() || !w.startDate) {
+          setError(MANDATORY_MSG);
+          return false;
+        }
+        if (!w.isCurrent && !w.endDate) {
+          setError(MANDATORY_MSG);
+          return false;
+        }
       }
-      if (!data.email.trim()) {
-        setError("يرجى إدخال البريد الإلكتروني.");
+    }
+
+    if (step === 3) {
+      const edu = data.education[0];
+      if (!edu?.institution.trim() || !edu.degree.trim() || !edu.endDate.trim()) {
+        setError(MANDATORY_MSG);
         return false;
       }
     }
 
-    if (step === 7 && !data.selfDescription.trim()) {
-      setError("يرجى كتابة الوصف الذاتي.");
+    if (step === 4 && data.skills.length === 0) {
+      setError(MANDATORY_MSG);
+      return false;
+    }
+
+    if (step === 5) {
+      for (const c of data.courses) {
+        if (!c.name.trim() || !c.provider.trim()) {
+          setError(MANDATORY_MSG);
+          return false;
+        }
+      }
+    }
+
+    if (step === 6 && !data.selfDescription.trim()) {
+      setError(MANDATORY_MSG);
       return false;
     }
 
@@ -213,22 +341,15 @@ export default function CreateForm() {
   const handleSubmit = async () => {
     if (!validateStep()) return;
 
-    const payload: CvFormData = prepareCvPayload(data);
-
-    if (!payload.language) {
-      setError("يرجى اختيار لغة السيرة الذاتية.");
-      return;
-    }
-
-    if (!payload.name || !payload.email) {
-      setError("يرجى إدخال الاسم والبريد الإلكتروني.");
-      return;
-    }
-
-    if (!payload.selfDescription) {
-      setError("يرجى كتابة الوصف الذاتي.");
-      return;
-    }
+    const payload = prepareCvPayload({
+      ...data,
+      language: "both",
+      phone: normalizePhone(data.phone),
+      workExperience: data.workExperience.map((w) => ({
+        ...w,
+        endDate: w.isCurrent ? "حتى الآن" : w.endDate,
+      })),
+    });
 
     setGenerating(true);
     setError(null);
@@ -236,683 +357,300 @@ export default function CreateForm() {
     try {
       const response = await fetch("/api/generate-cv", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json; charset=utf-8",
-          Accept: "application/json",
-        },
+        headers: { "Content-Type": "application/json; charset=utf-8", Accept: "application/json" },
         body: JSON.stringify(payload),
       });
-
-      const responseText = await response.text();
-      let result: Record<string, unknown>;
-
-      try {
-        result = JSON.parse(responseText) as Record<string, unknown>;
-      } catch (parseError) {
-        console.error("[create-form] Invalid JSON response:", responseText);
-        console.error("[create-form] Parse error:", parseError);
-        setError("استجابة غير صالحة من الخادم.");
-        setGenerating(false);
-        return;
-      }
-
+      const text = await response.text();
+      const result = JSON.parse(text) as GeneratedCv & { error?: string };
       if (!response.ok) {
-        console.error("[create-form] API error:", result);
-        setError(
-          typeof result.error === "string"
-            ? result.error
-            : "حدث خطأ أثناء إنشاء السيرة الذاتية."
-        );
+        setError(result.error || "حدث خطأ أثناء إنشاء السيرة.");
         setGenerating(false);
         return;
       }
-
-      const generatedCv = result as GeneratedCv;
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(generatedCv));
-      const saved = await saveCvToAccount(generatedCv, payload, editCvId);
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ ...result, language: "both" }));
+      const saved = await saveCvToAccount({ ...result, language: "both" }, payload, editCvId);
       const cvId = saved?.id ?? editCvId;
-      if (cvId) {
-        sessionStorage.setItem(CURRENT_CV_ID_KEY, cvId);
-        router.push(`/preview?cv=${cvId}`);
-      } else {
-        router.push("/preview");
-      }
-    } catch (submitError) {
-      console.error("[create-form] Submit error:", submitError);
-      setError("حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.");
+      if (cvId) sessionStorage.setItem(CURRENT_CV_ID_KEY, cvId);
+      router.push(cvId ? `/enhance?cv=${cvId}` : "/enhance");
+    } catch {
+      setError("حدث خطأ في الاتصال.");
       setGenerating(false);
     }
   };
 
-  if (loadingForm) {
-    return <LoadingSpinner label="جاري تحميل بيانات السيرة..." />;
-  }
+  if (loadingForm) return <LoadingSpinner label="جاري تحميل بيانات السيرة..." />;
 
   if (generating) {
     return (
-      <div className="animate-fade-in rounded-2xl border border-slate-100 bg-white p-8 text-center shadow-lg shadow-slate-200/60 sm:p-12">
+      <div className="animate-fade-in rounded-2xl border border-slate-100 bg-white p-10 text-center shadow-lg">
         <div className="mx-auto mb-6 h-12 w-12 animate-spin rounded-full border-4 border-[#e8f2fc] border-t-[#378ADD]" />
-        <h2 className="mb-2 text-xl font-extrabold text-slate-900 sm:text-2xl">
-          جاري إنشاء سيرتك الذاتية...
-        </h2>
-        <p className="text-sm text-slate-600 sm:text-base">
-          الذكاء الاصطناعي يعمل على صياغة سيرة ذاتية احترافية ومتوافقة مع ATS
-        </p>
+        <h2 className="text-xl font-extrabold">جاري إنشاء سيرتك الذاتية...</h2>
       </div>
     );
   }
 
+  const edu = data.education[0] ?? emptyEducation();
+
   return (
     <div className="animate-fade-in">
+      <div className="mb-6 rounded-2xl border border-[#378ADD]/20 bg-[#378ADD]/5 px-4 py-4 text-sm leading-relaxed text-slate-700 sm:px-5">
+        {START_NOTICE}
+      </div>
+
+      <div className="mb-8 rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 p-4 sm:p-5">
+        <p className="mb-3 text-sm font-bold text-slate-800">عندك سيرة قديمة؟ ارفعها هنا</p>
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".pdf,.doc,.docx,.txt"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) void handleUpload(f);
+          }}
+        />
+        <button
+          type="button"
+          disabled={uploading}
+          onClick={() => fileRef.current?.click()}
+          className="rounded-xl border-2 border-[#378ADD]/30 bg-white px-5 py-2.5 text-sm font-semibold text-[#378ADD] hover:bg-[#e8f2fc] disabled:opacity-60"
+        >
+          {uploading ? "جاري الاستخراج..." : "رفع سيرة (PDF أو Word)"}
+        </button>
+
+        {uploadParsed && (
+          <div className="mt-4 space-y-3 rounded-xl border border-[#378ADD]/20 bg-white p-4">
+            <p className="text-sm font-semibold text-slate-800">تبي تضيف معلومات إضافية؟</p>
+            {[
+              { key: "experience" as const, label: "خبرات" },
+              { key: "courses" as const, label: "دورات" },
+              { key: "certs" as const, label: "شهادات" },
+              { key: "extra" as const, label: "معلومات إضافية" },
+            ].map((item) => (
+              <label key={item.key} className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={addFlags[item.key]}
+                  onChange={(e) => setAddFlags((f) => ({ ...f, [item.key]: e.target.checked }))}
+                  className="h-4 w-4 rounded text-[#378ADD]"
+                />
+                {item.label}
+              </label>
+            ))}
+            <button
+              type="button"
+              onClick={applyUploadFlags}
+              className="mt-2 rounded-lg bg-[#378ADD] px-4 py-2 text-sm font-semibold text-white"
+            >
+              متابعة
+            </button>
+          </div>
+        )}
+      </div>
+
       <div className="mb-8">
-        <div className="mb-3 flex items-center justify-between text-sm">
-          <span className="font-semibold text-[#378ADD]">
-            الخطوة {step} من {TOTAL_STEPS}
-          </span>
+        <div className="mb-3 flex justify-between text-sm">
+          <span className="font-semibold text-[#378ADD]">الخطوة {step} من {TOTAL_STEPS}</span>
           <span className="text-slate-500">{STEP_TITLES[step - 1]}</span>
         </div>
-        <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
-          <div
-            className="h-full rounded-full transition-all duration-300"
-            style={{ width: `${progress}%`, backgroundColor: BRAND }}
-          />
+        <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
+          <div className="h-full rounded-full transition-all duration-300" style={{ width: `${progress}%`, backgroundColor: BRAND }} />
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-lg shadow-slate-200/60 sm:p-8">
+      <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-lg sm:p-8">
         {error && (
-          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
-          </div>
+          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
         )}
 
         {step === 1 && (
-          <div>
-            <h2 className="mb-2 text-2xl font-extrabold text-slate-900">
-              اختر لغة السيرة الذاتية
-            </h2>
-            <p className="mb-6 text-slate-600">
-              حدد اللغة التي تريد إنشاء سيرتك الذاتية بها.
-            </p>
-            <div className="grid gap-4 sm:grid-cols-3">
-              {(
-                [
-                  { value: "arabic", label: "العربية", desc: "سيرة ذاتية باللغة العربية" },
-                  { value: "english", label: "الإنجليزية", desc: "سيرة ذاتية باللغة الإنجليزية" },
-                  { value: "both", label: "كلاهما", desc: "نسخة عربية وإنجليزية" },
-                ] as const
-              ).map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => update("language", option.value)}
-                  className={`rounded-xl border-2 p-5 text-right transition-all ${
-                    data.language === option.value
-                      ? "border-[#378ADD] bg-[#e8f2fc] shadow-md shadow-[#378ADD]/10"
-                      : "border-slate-200 bg-white hover:border-[#378ADD]/40"
-                  }`}
-                >
-                  <p className="mb-1 text-lg font-bold text-slate-900">
-                    {option.label}
-                  </p>
-                  <p className="text-sm text-slate-500">{option.desc}</p>
-                </button>
-              ))}
+          <div className="space-y-5">
+            <h2 className="text-xl font-extrabold sm:text-2xl">المعلومات الشخصية</h2>
+            <div>
+              <label className={labelClass}>اسمك الكامل</label>
+              <input value={data.name} onChange={(e) => update("name", e.target.value)} placeholder="مثال: محمد عبدالله العمري" className={inputClass} />
+              <FieldTip>💡 مثال: محمد عبدالله العمري</FieldTip>
+            </div>
+            <div>
+              <label className={labelClass}>البريد الإلكتروني</label>
+              <input type="email" dir="ltr" value={data.email} onChange={(e) => update("email", e.target.value)} placeholder="mohammed.ali@gmail.com" className={`${inputClass} text-left`} />
+              <FieldTip>💡 استخدم إيميل احترافي — الأفضل: اسمك.كنيتك@gmail.com</FieldTip>
+            </div>
+            <div>
+              <label className={labelClass}>رقم الجوال</label>
+              <div className="flex overflow-hidden rounded-xl border border-slate-200 focus-within:border-[#378ADD] focus-within:ring-2 focus-within:ring-[#378ADD]/20">
+                <span dir="ltr" className="flex shrink-0 items-center bg-slate-50 px-4 text-sm font-semibold text-slate-600">+966</span>
+                <input type="tel" dir="ltr" value={data.phone.replace(/^\+966/, "")} onChange={(e) => update("phone", e.target.value)} placeholder="5xxxxxxxx" className="w-full border-0 px-4 py-3 text-left outline-none" />
+              </div>
+              <FieldTip>💡 مثال: 501234567</FieldTip>
+            </div>
+            <div>
+              <label className={labelClass}>المدينة</label>
+              <select value={data.city} onChange={(e) => update("city", e.target.value)} className={selectClass}>
+                <option value="">اختر المدينة</option>
+                {SAUDI_CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <FieldTip>💡 مثال: الرياض</FieldTip>
             </div>
           </div>
         )}
 
         {step === 2 && (
-          <div className="space-y-5">
-            <div>
-              <h2 className="mb-2 text-2xl font-extrabold text-slate-900">
-                المعلومات الشخصية
-              </h2>
-              <p className="mb-6 text-slate-600">
-                أدخل بياناتك الأساسية للتواصل.
-              </p>
+          <div>
+            <h2 className="mb-2 text-xl font-extrabold sm:text-2xl">سولف لنا عن خبراتك المهنية</h2>
+            <p className="mb-2 text-sm font-semibold text-amber-700">التواريخ إلزامية لمطابقة نظام ATS</p>
+            <div className="space-y-8">
+              {data.workExperience.map((job, i) => (
+                <div key={job.id} className="rounded-2xl border border-slate-100 bg-slate-50/60 p-4 sm:p-6">
+                  <div className="mb-4 flex justify-between">
+                    <span className="text-sm font-bold text-[#378ADD]">الخبرة {i + 1}</span>
+                    {data.workExperience.length > 1 && (
+                      <button type="button" onClick={() => update("workExperience", data.workExperience.filter((w) => w.id !== job.id))} className="text-sm text-red-500">حذف</button>
+                    )}
+                  </div>
+                  <div className="mb-3 grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className={labelClass}>المسمى الوظيفي</label>
+                      <input value={job.jobTitle} onChange={(e) => updateWork(job.id, { jobTitle: e.target.value })} placeholder="مثال: مدير مشاريع" className={inputClass} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>اسم الشركة</label>
+                      <input value={job.company} onChange={(e) => updateWork(job.id, { company: e.target.value })} placeholder="مثال: stc" className={inputClass} />
+                    </div>
+                  </div>
+                  <div className="mb-3">
+                    <label className={labelClass}>القسم / الإدارة</label>
+                    <input value={job.department} onChange={(e) => updateWork(job.id, { department: e.target.value })} placeholder="مثال: إدارة التسويق" className={inputClass} />
+                  </div>
+                  <p className="mb-4 text-xs text-amber-700 sm:text-sm">⚠️ سنحافظ على اسم الشركة والمسمى كما هو</p>
+                  <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
+                    <div>
+                      <label className={labelClass}>وصف الخبرة</label>
+                      <textarea value={job.description} onChange={(e) => updateWork(job.id, { description: e.target.value })} rows={5} placeholder="اكتب بأسلوبك العادي وش سويت في هذي الوظيفة..." className={inputClass} />
+                    </div>
+                    <div className="rounded-xl border border-[#378ADD]/15 bg-[#378ADD]/5 p-4 text-sm text-slate-600">
+                      ✅ مثال: كنت مسؤول عن إدارة 5 حسابات كبيرة، نظمت اجتماعات أسبوعية مع العملاء، وطورت استراتيجية تسويقية زادت المبيعات 30%
+                    </div>
+                  </div>
+                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    <MonthYearSelect label="من" value={job.startDate} onChange={(v) => updateWork(job.id, { startDate: v })} />
+                    <div>
+                      <MonthYearSelect label="إلى" value={job.isCurrent ? "" : job.endDate} onChange={(v) => updateWork(job.id, { endDate: v, isCurrent: false })} disabled={job.isCurrent} />
+                      <label className="mt-3 flex items-center gap-2 text-sm font-medium">
+                        <input type="checkbox" checked={job.isCurrent} onChange={(e) => updateWork(job.id, { isCurrent: e.target.checked, endDate: e.target.checked ? "حتى الآن" : "" })} className="h-4 w-4 rounded text-[#378ADD]" />
+                        حتى الآن
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-            <div>
-              <label htmlFor="name" className={labelClass}>
-                الاسم الكامل
-              </label>
-              <input
-                id="name"
-                value={data.name}
-                onChange={(e) => update("name", e.target.value)}
-                placeholder="محمد أحمد العلي"
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label htmlFor="city" className={labelClass}>
-                المدينة
-              </label>
-              <input
-                id="city"
-                value={data.city}
-                onChange={(e) => update("city", e.target.value)}
-                placeholder="الرياض"
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label htmlFor="phone" className={labelClass}>
-                رقم الجوال
-              </label>
-              <input
-                id="phone"
-                type="tel"
-                value={data.phone}
-                onChange={(e) => update("phone", e.target.value)}
-                placeholder="05xxxxxxxx"
-                dir="ltr"
-                className={`${inputClass} text-left`}
-              />
-            </div>
-            <div>
-              <label htmlFor="email" className={labelClass}>
-                البريد الإلكتروني
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={data.email}
-                onChange={(e) => update("email", e.target.value)}
-                placeholder="example@email.com"
-                dir="ltr"
-                className={`${inputClass} text-left`}
-              />
-            </div>
+            {data.workExperience.length < MAX_EXPERIENCES && (
+              <button type="button" onClick={() => update("workExperience", [...data.workExperience, emptyWork()])} className="mt-6 w-full rounded-xl border-2 border-dashed border-[#378ADD]/40 py-3 text-sm font-semibold text-[#378ADD]">
+                + إضافة خبرة أخرى
+              </button>
+            )}
           </div>
         )}
 
         {step === 3 && (
-          <div>
-            <h2 className="mb-2 text-2xl font-extrabold text-slate-900">
-              الخبرات العملية
-            </h2>
-            <p className="mb-6 text-slate-600">
-              أضف خبراتك العملية مع وصف باللغة العربية.
-            </p>
-            <div className="space-y-6">
-              {data.workExperience.map((job, index) => (
-                <div
-                  key={job.id}
-                  className="rounded-xl border border-slate-100 bg-slate-50/50 p-5"
-                >
-                  <div className="mb-4 flex items-center justify-between">
-                    <span className="text-sm font-bold text-[#378ADD]">
-                      الخبرة {index + 1}
-                    </span>
-                    {data.workExperience.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          update(
-                            "workExperience",
-                            data.workExperience.filter((w) => w.id !== job.id)
-                          )
-                        }
-                        className="text-sm text-red-500 hover:text-red-700"
-                      >
-                        حذف
-                      </button>
-                    )}
-                  </div>
-                  <div className="space-y-4">
-                    <div>
-                      <label className={labelClass}>المسمى الوظيفي</label>
-                      <input
-                        value={job.jobTitle}
-                        onChange={(e) =>
-                          update(
-                            "workExperience",
-                            data.workExperience.map((w) =>
-                              w.id === job.id
-                                ? { ...w, jobTitle: e.target.value }
-                                : w
-                            )
-                          )
-                        }
-                        placeholder="مهندس برمجيات"
-                        className={inputClass}
-                      />
-                    </div>
-                    <div>
-                      <label className={labelClass}>اسم الشركة</label>
-                      <input
-                        value={job.company}
-                        onChange={(e) =>
-                          update(
-                            "workExperience",
-                            data.workExperience.map((w) =>
-                              w.id === job.id
-                                ? { ...w, company: e.target.value }
-                                : w
-                            )
-                          )
-                        }
-                        placeholder="شركة التقنية المتقدمة"
-                        className={inputClass}
-                      />
-                    </div>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div>
-                        <label className={labelClass}>تاريخ البداية</label>
-                        <input
-                          type="month"
-                          value={job.startDate}
-                          onChange={(e) =>
-                            update(
-                              "workExperience",
-                              data.workExperience.map((w) =>
-                                w.id === job.id
-                                  ? { ...w, startDate: e.target.value }
-                                  : w
-                              )
-                            )
-                          }
-                          dir="ltr"
-                          className={`${inputClass} text-left`}
-                        />
-                      </div>
-                      <div>
-                        <label className={labelClass}>تاريخ النهاية</label>
-                        <input
-                          type="month"
-                          value={job.endDate}
-                          onChange={(e) =>
-                            update(
-                              "workExperience",
-                              data.workExperience.map((w) =>
-                                w.id === job.id
-                                  ? { ...w, endDate: e.target.value }
-                                  : w
-                              )
-                            )
-                          }
-                          dir="ltr"
-                          className={`${inputClass} text-left`}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className={labelClass}>الوصف (بالعربية)</label>
-                      <textarea
-                        value={job.description}
-                        onChange={(e) =>
-                          update(
-                            "workExperience",
-                            data.workExperience.map((w) =>
-                              w.id === job.id
-                                ? { ...w, description: e.target.value }
-                                : w
-                            )
-                          )
-                        }
-                        rows={4}
-                        placeholder="اكتب وصفاً لمهامك وإنجازاتك في هذا المنصب..."
-                        className={inputClass}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
+          <div className="space-y-5">
+            <h2 className="text-xl font-extrabold sm:text-2xl">التعليم</h2>
+            <div>
+              <label className={labelClass}>اسم الجامعة</label>
+              <input value={edu.institution} onChange={(e) => update("education", [{ ...edu, institution: e.target.value }])} placeholder="مثال: جامعة الملك سعود" className={inputClass} />
             </div>
-            <button
-              type="button"
-              onClick={() =>
-                update("workExperience", [...data.workExperience, emptyWork()])
-              }
-              className="mt-4 text-sm font-semibold text-[#378ADD] hover:text-[#2a6bb8]"
-            >
-              + إضافة خبرة أخرى
-            </button>
+            <div>
+              <label className={labelClass}>التخصص</label>
+              <input value={edu.degree} onChange={(e) => update("education", [{ ...edu, degree: e.target.value }])} placeholder="مثال: إدارة أعمال" className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass}>سنة التخرج</label>
+              <select value={edu.endDate} onChange={(e) => update("education", [{ ...edu, endDate: e.target.value }])} className={selectClass}>
+                <option value="">اختر السنة</option>
+                {GRADUATION_YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={labelClass}>المعدل (اختياري)</label>
+              <input value={edu.gpa ?? ""} onChange={(e) => update("education", [{ ...edu, gpa: e.target.value }])} placeholder="4.5 / 5" dir="ltr" className={`${inputClass} text-left`} />
+            </div>
           </div>
         )}
 
         {step === 4 && (
-          <div>
-            <h2 className="mb-2 text-2xl font-extrabold text-slate-900">
-              التعليم
-            </h2>
-            <p className="mb-6 text-slate-600">
-              أضف مؤهلاتك التعليمية وشهاداتك الأكاديمية.
-            </p>
-            <div className="space-y-6">
-              {data.education.map((edu, index) => (
-                <div
-                  key={edu.id}
-                  className="rounded-xl border border-slate-100 bg-slate-50/50 p-5"
-                >
-                  <div className="mb-4 flex items-center justify-between">
-                    <span className="text-sm font-bold text-[#378ADD]">
-                      المؤهل {index + 1}
-                    </span>
-                    {data.education.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          update(
-                            "education",
-                            data.education.filter((e) => e.id !== edu.id)
-                          )
-                        }
-                        className="text-sm text-red-500 hover:text-red-700"
-                      >
-                        حذف
-                      </button>
-                    )}
-                  </div>
-                  <div className="space-y-4">
-                    <div>
-                      <label className={labelClass}>الدرجة / المؤهل</label>
-                      <input
-                        value={edu.degree}
-                        onChange={(e) =>
-                          update(
-                            "education",
-                            data.education.map((item) =>
-                              item.id === edu.id
-                                ? { ...item, degree: e.target.value }
-                                : item
-                            )
-                          )
-                        }
-                        placeholder="بكالوريوس علوم الحاسب"
-                        className={inputClass}
-                      />
-                    </div>
-                    <div>
-                      <label className={labelClass}>المؤسسة التعليمية</label>
-                      <input
-                        value={edu.institution}
-                        onChange={(e) =>
-                          update(
-                            "education",
-                            data.education.map((item) =>
-                              item.id === edu.id
-                                ? { ...item, institution: e.target.value }
-                                : item
-                            )
-                          )
-                        }
-                        placeholder="جامعة الملك سعود"
-                        className={inputClass}
-                      />
-                    </div>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div>
-                        <label className={labelClass}>تاريخ البداية</label>
-                        <input
-                          type="month"
-                          value={edu.startDate}
-                          onChange={(e) =>
-                            update(
-                              "education",
-                              data.education.map((item) =>
-                                item.id === edu.id
-                                  ? { ...item, startDate: e.target.value }
-                                  : item
-                              )
-                            )
-                          }
-                          dir="ltr"
-                          className={`${inputClass} text-left`}
-                        />
-                      </div>
-                      <div>
-                        <label className={labelClass}>تاريخ التخرج</label>
-                        <input
-                          type="month"
-                          value={edu.endDate}
-                          onChange={(e) =>
-                            update(
-                              "education",
-                              data.education.map((item) =>
-                                item.id === edu.id
-                                  ? { ...item, endDate: e.target.value }
-                                  : item
-                              )
-                            )
-                          }
-                          dir="ltr"
-                          className={`${inputClass} text-left`}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
+          <div className="space-y-5">
+            <h2 className="text-xl font-extrabold sm:text-2xl">المهارات</h2>
+            <input value={skillInput} onChange={(e) => setSkillInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSkill(skillInput); } }} placeholder="اكتب مهارة واضغط Enter" className={inputClass} />
+            <FieldTip>💡 مثال: Excel، إدارة المشاريع</FieldTip>
+            {data.skills.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {data.skills.map((s) => (
+                  <span key={s.id} className="inline-flex items-center gap-2 rounded-full bg-[#e8f2fc] px-3 py-1.5 text-sm font-semibold text-[#378ADD]">
+                    {s.name}
+                    <button type="button" onClick={() => update("skills", data.skills.filter((x) => x.id !== s.id))}>×</button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="flex flex-wrap gap-2">
+              {SUGGESTED_SKILLS.map((skill) => (
+                <button key={skill} type="button" onClick={() => addSkill(skill)} className="rounded-full border border-slate-200 px-3 py-1.5 text-sm hover:border-[#378ADD]">+ {skill}</button>
               ))}
             </div>
-            <button
-              type="button"
-              onClick={() =>
-                update("education", [...data.education, emptyEducation()])
-              }
-              className="mt-4 text-sm font-semibold text-[#378ADD] hover:text-[#2a6bb8]"
-            >
-              + إضافة مؤهل آخر
-            </button>
           </div>
         )}
 
         {step === 5 && (
           <div>
-            <h2 className="mb-2 text-2xl font-extrabold text-slate-900">
-              المهارات
-            </h2>
-            <p className="mb-6 text-slate-600">
-              أضف مهاراتك التقنية والشخصية.
-            </p>
-            <div className="space-y-4">
-              {data.skills.map((skill, index) => (
-                <div key={skill.id} className="flex items-end gap-3">
-                  <div className="flex-1">
-                    <label className={labelClass}>المهارة {index + 1}</label>
-                    <input
-                      value={skill.name}
-                      onChange={(e) =>
-                        update(
-                          "skills",
-                          data.skills.map((s) =>
-                            s.id === skill.id
-                              ? { ...s, name: e.target.value }
-                              : s
-                          )
-                        )
-                      }
-                      placeholder="مثال: React، إدارة المشاريع"
-                      className={inputClass}
-                    />
-                  </div>
-                  {data.skills.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        update(
-                          "skills",
-                          data.skills.filter((s) => s.id !== skill.id)
-                        )
-                      }
-                      className="mb-3 text-sm text-red-500 hover:text-red-700"
-                    >
-                      حذف
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-            <button
-              type="button"
-              onClick={() => update("skills", [...data.skills, emptySkill()])}
-              className="mt-4 text-sm font-semibold text-[#378ADD] hover:text-[#2a6bb8]"
-            >
-              + إضافة مهارة أخرى
-            </button>
-          </div>
-        )}
-
-        {step === 6 && (
-          <div>
-            <h2 className="mb-2 text-2xl font-extrabold text-slate-900">
-              الدورات
-            </h2>
-            <p className="mb-6 text-slate-600">
-              أضف الدورات التدريبية والشهادات المهنية التي حصلت عليها.
-            </p>
+            <h2 className="mb-6 text-xl font-extrabold sm:text-2xl">الدورات والشهادات</h2>
             <div className="space-y-6">
-              {data.courses.map((course, index) => (
-                <div
-                  key={course.id}
-                  className="rounded-xl border border-slate-100 bg-slate-50/50 p-5"
-                >
-                  <div className="mb-4 flex items-center justify-between">
-                    <span className="text-sm font-bold text-[#378ADD]">
-                      الدورة {index + 1}
-                    </span>
+              {data.courses.map((course, i) => (
+                <div key={course.id} className="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
+                  <div className="mb-3 flex justify-between">
+                    <span className="text-sm font-bold text-[#378ADD]">الدورة {i + 1}</span>
                     {data.courses.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          update(
-                            "courses",
-                            data.courses.filter((c) => c.id !== course.id)
-                          )
-                        }
-                        className="text-sm text-red-500 hover:text-red-700"
-                      >
-                        حذف
-                      </button>
+                      <button type="button" onClick={() => update("courses", data.courses.filter((c) => c.id !== course.id))} className="text-sm text-red-500">حذف</button>
                     )}
                   </div>
-                  <div className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
                     <div>
-                      <label className={labelClass}>اسم الدورة</label>
-                      <input
-                        value={course.name}
-                        onChange={(e) =>
-                          update(
-                            "courses",
-                            data.courses.map((c) =>
-                              c.id === course.id
-                                ? { ...c, name: e.target.value }
-                                : c
-                            )
-                          )
-                        }
-                        placeholder="دورة تطوير تطبيقات الويب"
-                        className={inputClass}
-                      />
+                      <label className={labelClass}>اسم الدورة / الشهادة</label>
+                      <input value={course.name} onChange={(e) => update("courses", data.courses.map((c) => c.id === course.id ? { ...c, name: e.target.value } : c))} placeholder="مثال: PMP" className={inputClass} />
                     </div>
                     <div>
-                      <label className={labelClass}>الجهة المقدمة</label>
-                      <input
-                        value={course.provider}
-                        onChange={(e) =>
-                          update(
-                            "courses",
-                            data.courses.map((c) =>
-                              c.id === course.id
-                                ? { ...c, provider: e.target.value }
-                                : c
-                            )
-                          )
-                        }
-                        placeholder="أكاديمية سدايا"
-                        className={inputClass}
-                      />
-                    </div>
-                    <div>
-                      <label className={labelClass}>سنة الإنجاز</label>
-                      <input
-                        type="number"
-                        min="1990"
-                        max="2030"
-                        value={course.year}
-                        onChange={(e) =>
-                          update(
-                            "courses",
-                            data.courses.map((c) =>
-                              c.id === course.id
-                                ? { ...c, year: e.target.value }
-                                : c
-                            )
-                          )
-                        }
-                        placeholder="2024"
-                        dir="ltr"
-                        className={`${inputClass} text-left`}
-                      />
+                      <label className={labelClass}>الجهة المانحة</label>
+                      <input value={course.provider} onChange={(e) => update("courses", data.courses.map((c) => c.id === course.id ? { ...c, provider: e.target.value } : c))} placeholder="مثال: PMI" className={inputClass} />
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-            <button
-              type="button"
-              onClick={() =>
-                update("courses", [...data.courses, emptyCourse()])
-              }
-              className="mt-4 text-sm font-semibold text-[#378ADD] hover:text-[#2a6bb8]"
-            >
+            <button type="button" onClick={() => update("courses", [...data.courses, emptyCourse()])} className="mt-6 w-full rounded-xl border-2 border-dashed border-[#378ADD]/40 py-3 text-sm font-semibold text-[#378ADD]">
               + إضافة دورة أخرى
             </button>
           </div>
         )}
 
-        {step === 7 && (
-          <div>
-            <h2 className="mb-2 text-2xl font-extrabold text-slate-900">
-              الوصف الذاتي
-            </h2>
-            <p className="mb-6 text-slate-600">
-              اكتب نبذة مختصرة عن نفسك وخبراتك وطموحاتك المهنية.
-            </p>
+        {step === 6 && (
+          <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
             <div>
-              <label htmlFor="selfDescription" className={labelClass}>
-                الوصف الذاتي (بالعربية)
-              </label>
-              <textarea
-                id="selfDescription"
-                value={data.selfDescription}
-                onChange={(e) => update("selfDescription", e.target.value)}
-                rows={8}
-                placeholder="أنا محترف في مجال... أتميز بـ... أسعى إلى..."
-                className={inputClass}
-              />
+              <h2 className="mb-4 text-xl font-extrabold sm:text-2xl">نبذة عنك</h2>
+              <textarea value={data.selfDescription} onChange={(e) => update("selfDescription", e.target.value)} rows={8} placeholder="أنا شخص طموح..." className={inputClass} />
+              <FieldTip>اكتب بأسلوبك العادي حتى لو بالعامية، الذكاء الاصطناعي سيحولها لنبذة احترافية</FieldTip>
+            </div>
+            <div className="rounded-xl border border-[#378ADD]/15 bg-[#378ADD]/5 p-4 text-sm text-slate-600">
+              ✅ مثال: أنا شخص طموح عندي 5 سنوات خبرة في التسويق الرقمي، أحب أشتغل بفريق وأحقق أهداف واضحة
             </div>
           </div>
         )}
 
-        <div className="mt-8 flex items-center justify-between gap-4">
-          <button
-            type="button"
-            onClick={goBack}
-            disabled={step === 1}
-            className="rounded-full border-2 border-slate-200 px-6 py-3 text-sm font-semibold text-slate-600 transition-colors hover:border-[#378ADD] hover:text-[#378ADD] disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            السابق
-          </button>
-
+        <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+          <button type="button" onClick={goBack} disabled={step === 1} className="rounded-full border-2 border-slate-200 px-6 py-3 text-sm font-semibold text-slate-600 disabled:opacity-40">السابق</button>
           {step < TOTAL_STEPS ? (
-            <button
-              type="button"
-              onClick={goNext}
-              className="rounded-full bg-[#378ADD] px-8 py-3 text-sm font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8]"
-            >
-              التالي
-            </button>
+            <button type="button" onClick={goNext} className="rounded-full bg-[#378ADD] px-8 py-3 text-sm font-semibold text-white shadow-md">التالي</button>
           ) : (
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={generating}
-              className="rounded-full bg-[#378ADD] px-8 py-3 text-sm font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              إنهاء وإنشاء السيرة الذاتية
-            </button>
+            <button type="button" onClick={handleSubmit} className="rounded-full bg-[#378ADD] px-8 py-3 text-sm font-semibold text-white shadow-md">إنشاء السيرة الذاتية ✨</button>
           )}
         </div>
       </div>

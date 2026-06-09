@@ -8,8 +8,8 @@ import {
 } from "@/lib/moyasar";
 import MoyasarPaymentForm from "./moyasar-payment-form";
 import {
-  PLANS,
   PENDING_PLAN_KEY,
+  SINGLE_PLAN,
   markPaymentComplete,
   type PlanId,
 } from "@/lib/payment";
@@ -20,17 +20,23 @@ type PaymentSectionProps = {
   variant?: "default" | "overlay";
 };
 
+const PAYMENT_METHODS = [
+  { id: "apple", label: "Apple Pay", icon: "" },
+  { id: "google", label: "Google Pay", icon: "G" },
+  { id: "mada", label: "مدى", icon: "مدى" },
+  { id: "tamara", label: "تمارا", icon: "تمارا" },
+];
+
 export default function PaymentSection({
   onPaymentSuccess,
   isPaid,
   variant = "default",
 }: PaymentSectionProps) {
-  const [selectedPlan, setSelectedPlan] = useState<PlanId>("single");
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
-  const selected = PLANS.find((p) => p.id === selectedPlan)!;
+  const plan = SINGLE_PLAN;
   const environmentError = getMoyasarEnvironmentError();
 
   useEffect(() => {
@@ -40,44 +46,60 @@ export default function PaymentSection({
   }, []);
 
   const handlePaymentSuccess = useCallback(() => {
-    markPaymentComplete(selectedPlan);
+    markPaymentComplete("bilingual");
     setPaymentSuccess(true);
     setShowPaymentForm(false);
     setPaymentError(null);
-    onPaymentSuccess(selectedPlan);
+    onPaymentSuccess("bilingual");
     window.history.replaceState({}, "", "/preview");
-  }, [selectedPlan, onPaymentSuccess]);
+  }, [onPaymentSuccess]);
 
   const handlePay = () => {
     setPaymentError(null);
-    sessionStorage.setItem(PENDING_PLAN_KEY, selectedPlan);
+    sessionStorage.setItem(PENDING_PLAN_KEY, "bilingual");
     setShowPaymentForm(true);
   };
 
   if (isPaid || paymentSuccess) {
     if (variant === "overlay") return null;
-
     return (
       <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-center">
         <p className="text-sm font-bold text-emerald-800">
-          تم الدفع بنجاح! يمكنك الآن تحميل سيرتك الذاتية بدون علامة مائية.
+          تم الدفع بنجاح! يمكنك الآن تحميل نسختيك بالعربي والإنجليزي.
         </p>
       </div>
     );
   }
 
   if (environmentError) {
-    const errorBox = (
-      <div
-        className={`rounded-xl border border-amber-200 bg-amber-50 p-4 text-center ${
-          variant === "overlay" ? "" : "p-5"
-        }`}
-      >
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-center">
         <p className="text-sm font-semibold text-amber-900">{environmentError}</p>
       </div>
     );
-    return errorBox;
   }
+
+  const methodsRow = (
+    <div className="mb-4 flex flex-wrap items-center justify-center gap-3">
+      {PAYMENT_METHODS.map((m) => (
+        <span
+          key={m.id}
+          className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700"
+        >
+          {m.icon || m.label}
+        </span>
+      ))}
+    </div>
+  );
+
+  const sbcLogo = (
+    <div className="mt-4 flex flex-col items-center gap-1 text-center">
+      <div className="flex h-10 items-center justify-center rounded border border-slate-200 bg-white px-4 text-xs font-bold text-slate-600">
+        مركز الأعمال السعودي
+      </div>
+      <span className="text-[10px] text-slate-400">Saudi Business Center</span>
+    </div>
+  );
 
   const payButton = !showPaymentForm ? (
     <button
@@ -85,15 +107,13 @@ export default function PaymentSection({
       onClick={handlePay}
       className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#378ADD] px-6 py-3.5 text-sm font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8]"
     >
-      {variant === "overlay"
-        ? "ادفع 69 ر.س وحمّل السيرة"
-        : `ادفع وحمّل السيرة — ${selected.price} ر.س`}
+      ادفع {plan.price} ر.س وحمّل النسختين
     </button>
   ) : (
     <div className="space-y-4">
       <div className="flex items-center justify-between rounded-xl bg-[#e8f2fc] px-4 py-3">
         <p className="text-sm font-semibold text-[#378ADD]">
-          الدفع: {selected.title} — {selected.price} ر.س
+          {plan.title} — {plan.price} ر.س
         </p>
         <button
           type="button"
@@ -106,10 +126,8 @@ export default function PaymentSection({
           إلغاء
         </button>
       </div>
-
       <MoyasarPaymentForm
-        key={selectedPlan}
-        planId={selectedPlan}
+        planId="bilingual"
         onSuccess={handlePaymentSuccess}
         onError={setPaymentError}
       />
@@ -119,7 +137,9 @@ export default function PaymentSection({
   if (variant === "overlay") {
     return (
       <div className="w-full">
+        {methodsRow}
         {payButton}
+        {sbcLogo}
         {paymentError && (
           <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-700">
             {paymentError}
@@ -132,42 +152,15 @@ export default function PaymentSection({
   return (
     <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
       <h3 className="mb-1 text-center text-sm font-bold text-slate-800">
-        اختر باقة التحميل
+        {plan.title}
       </h3>
-      <p className="mb-4 text-center text-xs text-slate-500">
-        ادفع لإزالة العلامة المائية وتحميل سيرتك الذاتية
+      <p className="mb-2 text-center text-2xl font-extrabold text-[#378ADD]">
+        {plan.price} <span className="text-sm text-slate-600">ر.س</span>
       </p>
-
-      <div className="mb-4 grid gap-3 sm:grid-cols-2">
-        {PLANS.map((plan) => (
-          <button
-            key={plan.id}
-            type="button"
-            disabled={showPaymentForm}
-            onClick={() => {
-              setSelectedPlan(plan.id);
-              setPaymentError(null);
-            }}
-            className={`rounded-xl border-2 p-4 text-right transition-all disabled:opacity-60 ${
-              selectedPlan === plan.id
-                ? "border-[#378ADD] bg-[#e8f2fc] shadow-md shadow-[#378ADD]/10"
-                : "border-slate-200 bg-white hover:border-[#378ADD]/40"
-            }`}
-          >
-            <p className="mb-1 font-bold text-slate-900">{plan.title}</p>
-            <p className="mb-3 text-xs text-slate-500">{plan.description}</p>
-            <p className="text-2xl font-extrabold text-[#378ADD]">
-              {plan.price}
-              <span className="mr-1 text-sm font-semibold text-slate-600">
-                ر.س
-              </span>
-            </p>
-          </button>
-        ))}
-      </div>
-
+      <p className="mb-4 text-center text-xs text-slate-500">{plan.description}</p>
+      {methodsRow}
       {payButton}
-
+      {sbcLogo}
       {paymentError && (
         <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-700">
           {paymentError}

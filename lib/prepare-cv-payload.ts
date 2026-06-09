@@ -13,25 +13,33 @@ export function prepareCvPayload(data: CvFormData): CvFormData {
         (item) =>
           item.jobTitle.trim() ||
           item.company.trim() ||
+          item.department?.trim() ||
           item.description.trim()
       )
       .map((item) => ({
         id: item.id,
         jobTitle: item.jobTitle.trim(),
         company: item.company.trim(),
+        department: item.department?.trim() ?? "",
         startDate: item.startDate,
         endDate: item.endDate,
         description: item.description.trim(),
       })),
     education: data.education
       .filter((item) => item.degree.trim() || item.institution.trim())
-      .map((item) => ({
-        id: item.id,
-        degree: item.degree.trim(),
-        institution: item.institution.trim(),
-        startDate: item.startDate,
-        endDate: item.endDate,
-      })),
+      .map((item) => {
+        const degreeParts = [item.degree.trim()];
+        if (item.gpa?.trim()) {
+          degreeParts.push(`المعدل: ${item.gpa.trim()}`);
+        }
+        return {
+          id: item.id,
+          degree: degreeParts.join(" — "),
+          institution: item.institution.trim(),
+          startDate: item.startDate,
+          endDate: item.endDate,
+        };
+      }),
     skills: data.skills
       .filter((item) => item.name.trim())
       .map((item) => ({

@@ -29,8 +29,6 @@ export default function CvPreview() {
   const [cv, setCv] = useState<GeneratedCv | null>(null);
   const [cvId, setCvId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [enhancing, setEnhancing] = useState(false);
-  const [enhanceError, setEnhanceError] = useState<string | null>(null);
   const [isPaid, setIsPaid] = useState(false);
 
   useEffect(() => {
@@ -78,8 +76,7 @@ export default function CvPreview() {
 
       if (paymentId && (paymentStatus === "paid" || paymentStatus === null)) {
         const pendingPlan = sessionStorage.getItem(PENDING_PLAN_KEY);
-        const planId: PlanId =
-          pendingPlan === "bilingual" ? "bilingual" : "single";
+        const planId: PlanId = "bilingual";
         markPaymentComplete(planId);
         sessionStorage.removeItem(PENDING_PLAN_KEY);
         setIsPaid(true);
@@ -112,58 +109,6 @@ export default function CvPreview() {
     [cvId]
   );
 
-  const saveCv = (updated: GeneratedCv) => {
-    setCv(updated);
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    void saveCvToAccount(updated, undefined, cvId);
-  };
-
-  const handleEnhance = async () => {
-    if (!cv || enhancing) return;
-
-    setEnhancing(true);
-    setEnhanceError(null);
-
-    try {
-      const response = await fetch("/api/enhance-cv", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json; charset=utf-8",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(cv),
-      });
-
-      const text = await response.text();
-      let result: GeneratedCv & { error?: string; debug?: string };
-
-      try {
-        result = JSON.parse(text);
-      } catch {
-        setEnhanceError("استجابة غير صالحة من الخادم.");
-        setEnhancing(false);
-        return;
-      }
-
-      if (!response.ok) {
-        setEnhanceError(
-          result.debug
-            ? `${result.error} (${result.debug})`
-            : result.error || "تعذر تحسين السيرة الذاتية."
-        );
-        setEnhancing(false);
-        return;
-      }
-
-      saveCv({ ...result, aiEnhanced: true });
-      setEnhancing(false);
-    } catch (error) {
-      console.error("[cv-preview] Enhance failed:", error);
-      setEnhanceError("حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.");
-      setEnhancing(false);
-    }
-  };
-
   if (loading) {
     return <LoadingSpinner label="جاري تحميل السيرة الذاتية..." size="lg" />;
   }
@@ -190,43 +135,21 @@ export default function CvPreview() {
       </div>
 
       <div className="mb-6 space-y-4 print:hidden">
-        <button
-          type="button"
-          onClick={handleEnhance}
-          disabled={enhancing}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#378ADD] px-6 py-3.5 text-sm font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-all hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {enhancing ? (
-            <>
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-              جاري التحسين بالذكاء الاصطناعي...
-            </>
-          ) : (
-            <>✨ حسّن سيرتي بالذكاء الاصطناعي</>
-          )}
-        </button>
-
-        {enhanceError && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {enhanceError}
-          </div>
-        )}
-
         <AtsScoreChecker cv={cv} cvId={cvId} />
 
         {isPaid && (
           <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-center">
             <p className="text-sm font-bold text-emerald-800">
-              تم الدفع بنجاح! يمكنك الآن تحميل سيرتك الذاتية بدون علامة مائية.
+              تم الدفع بنجاح! يمكنك الآن تحميل نسختيك بالعربي والإنجليزي.
             </p>
           </div>
         )}
       </div>
 
       <div
-        className={`cv-preview relative overflow-hidden rounded-2xl border bg-white p-4 shadow-lg shadow-slate-200/60 sm:p-8 md:p-10 ${
-          enhancing ? "pointer-events-none opacity-50" : "border-slate-200"
-        } ${isPaid ? "cv-paid" : "cv-locked"}`}
+        className={`cv-preview relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-lg shadow-slate-200/60 sm:p-8 md:p-10 ${
+          isPaid ? "cv-paid" : "cv-locked"
+        }`}
       >
         {!isPaid && (
           <div
@@ -236,13 +159,6 @@ export default function CvPreview() {
             <span className="rotate-[-35deg] select-none whitespace-nowrap text-2xl font-extrabold text-slate-400/25 sm:text-4xl md:text-5xl">
               CVfy - نموذج مجاني
             </span>
-          </div>
-        )}
-
-        {enhancing && (
-          <div className="relative z-30 mb-6 flex items-center justify-center gap-3 rounded-xl bg-[#e8f2fc] py-4 text-sm font-semibold text-[#378ADD] print:hidden">
-            <span className="h-5 w-5 animate-spin rounded-full border-2 border-[#378ADD]/30 border-t-[#378ADD]" />
-            جاري تحسين المحتوى...
           </div>
         )}
 
@@ -257,11 +173,14 @@ export default function CvPreview() {
               />
               <div className="cv-paywall-overlay absolute inset-x-0 top-1/2 bottom-0 z-30 flex items-center justify-center p-4 sm:p-6 print:hidden">
                 <div className="w-full max-w-md rounded-2xl border border-slate-200/80 bg-white/95 p-6 text-center shadow-2xl shadow-slate-300/40 backdrop-blur-sm sm:p-8">
+                  <div className="mb-3 text-4xl" aria-hidden>
+                    🔒
+                  </div>
                   <h3 className="mb-2 text-lg font-extrabold text-slate-900 sm:text-xl">
-                    🔒 اكمل سيرتك الذاتية كاملة
+                    اكمل سيرتك الذاتية كاملة
                   </h3>
                   <p className="mb-6 text-sm leading-relaxed text-slate-600 sm:text-base">
-                    ادفع 69 ر.س وحمّل نسختك الاحترافية بدون علامة مائية
+                    ادفع 99 ر.س واحصل على نسختيك كاملتين بالعربي والإنجليزي
                   </p>
                   <PaymentSection
                     variant="overlay"

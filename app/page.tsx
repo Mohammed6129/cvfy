@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
+import CustomerJourney from "./components/CustomerJourney";
 import Features from "./components/Features";
+import AtsEducation from "./components/AtsEducation";
 import SocialProof from "./components/SocialProof";
 import Pricing from "./components/Pricing";
 import FAQ from "./components/FAQ";
@@ -10,10 +12,10 @@ import Footer from "./components/Footer";
 export const metadata: Metadata = {
   title: "CVfy — منصة السيرة الذاتية الاحترافية بالعربية",
   description:
-    "أنشئ سيرتك الذاتية الاحترافية في دقائق. قالب ATS، تحسين بالذكاء الاصطناعي، وفحص توافق — مصمم للسوق السعودي.",
+    "أنشئ سيرتك الذاتية الاحترافية في دقائق. قالب ATS رسمي، تحسين بالذكاء الاصطناعي، وفحص توافق — لسوق العمل السعودي.",
   openGraph: {
     title: "CVfy — هويتك المهنية",
-    description: "منصة السيرة الذاتية الأولى بالعربية للسوق السعودي",
+    description: "منصة السيرة الذاتية الأولى بالعربية لسوق العمل السعودي",
     locale: "ar_SA",
     type: "website",
   },
@@ -25,7 +27,11 @@ export default function Home() {
       <Navbar />
       <main className="bg-white">
         <Hero />
+        <div id="journey">
+          <CustomerJourney />
+        </div>
         <Features />
+        <AtsEducation />
         <SocialProof />
         <Pricing />
         <FAQ />

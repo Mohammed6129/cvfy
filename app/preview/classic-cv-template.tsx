@@ -1,34 +1,16 @@
-import type { GeneratedCv, Language } from "@/lib/cv-types";
+import type { GeneratedCv } from "@/lib/cv-types";
 
-const SECTION_LABELS: Record<
-  Exclude<Language, "" | "both">,
-  {
-    summary: string;
-    experience: string;
-    education: string;
-    skills: string;
-    courses: string;
-  }
-> = {
-  arabic: {
-    summary: "الملخص المهني",
-    experience: "الخبرات العملية",
-    education: "التعليم",
-    skills: "المهارات",
-    courses: "الدورات والشهادات",
-  },
-  english: {
-    summary: "Professional Summary",
-    experience: "Work Experience",
-    education: "Education",
-    skills: "Skills",
-    courses: "Courses & Certifications",
-  },
+const SECTION_LABELS = {
+  summary: "الملخص المهني / Professional Summary",
+  experience: "الخبرات العملية / Work Experience",
+  education: "التعليم / Education",
+  skills: "المهارات / Skills",
+  courses: "الدورات والشهادات / Courses & Certifications",
 };
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="mb-3 border-b-2 border-[#378ADD] pb-1.5 text-base font-bold uppercase tracking-wide text-[#378ADD] sm:text-lg">
+    <h2 className="cv-section-title mb-3 border-b border-black pb-1 text-sm font-bold uppercase tracking-wide text-black">
       {children}
     </h2>
   );
@@ -40,24 +22,23 @@ type ClassicCvTemplateProps = {
 
 export default function ClassicCvTemplate({ cv }: ClassicCvTemplateProps) {
   const { content } = cv;
-  const isEnglish = cv.language === "english";
-  const labels = isEnglish ? SECTION_LABELS.english : SECTION_LABELS.arabic;
 
   return (
     <article
-      className="cv-document mx-auto max-w-[210mm] bg-white text-[13px] leading-relaxed text-slate-800 sm:text-sm"
-      dir={isEnglish ? "ltr" : "rtl"}
+      className="cv-document mx-auto max-w-[210mm] bg-white font-serif text-[13px] leading-relaxed text-black sm:text-sm"
+      dir="rtl"
+      style={{ fontFamily: '"Times New Roman", Times, serif' }}
     >
-      <header className="mb-6 border-b-2 border-slate-200 pb-5 text-center sm:mb-8 sm:pb-6">
-        <h1 className="mb-1 text-2xl font-extrabold tracking-tight text-[#378ADD] sm:text-3xl md:text-4xl">
+      <header className="mb-6 border-b border-black pb-5 text-center sm:mb-8 sm:pb-6">
+        <h1 className="mb-1 text-2xl font-bold tracking-tight text-black sm:text-3xl md:text-4xl">
           {cv.name}
         </h1>
         {content.headline && (
-          <p className="mb-3 text-base font-semibold text-slate-700 sm:text-lg">
+          <p className="mb-3 text-base font-semibold text-black sm:text-lg">
             {content.headline}
           </p>
         )}
-        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-slate-600 sm:text-sm">
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-black sm:text-sm">
           {cv.city && <span>{cv.city}</span>}
           {cv.phone && (
             <span dir="ltr" className="inline-block">
@@ -74,25 +55,23 @@ export default function ClassicCvTemplate({ cv }: ClassicCvTemplateProps) {
 
       {content.summary && (
         <section className="mb-6 sm:mb-7">
-          <SectionTitle>{labels.summary}</SectionTitle>
-          <p className="text-justify leading-7 text-slate-700">
-            {content.summary}
-          </p>
+          <SectionTitle>{SECTION_LABELS.summary}</SectionTitle>
+          <p className="text-justify leading-7 text-black">{content.summary}</p>
         </section>
       )}
 
       {content.experiences.length > 0 && (
         <section className="mb-6 sm:mb-7">
-          <SectionTitle>{labels.experience}</SectionTitle>
+          <SectionTitle>{SECTION_LABELS.experience}</SectionTitle>
           <div className="space-y-5">
             {content.experiences.map((exp, index) => (
               <div key={`${exp.jobTitle}-${index}`}>
                 <div className="mb-1 flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between">
-                  <h3 className="text-sm font-bold text-slate-900 sm:text-base">
+                  <h3 className="text-sm font-bold text-black sm:text-base">
                     {exp.jobTitle}
                     {exp.company && (
-                      <span className="font-semibold text-slate-600">
-                        {isEnglish ? " at " : " — "}
+                      <span className="font-semibold text-black">
+                        {" — "}
                         {exp.company}
                       </span>
                     )}
@@ -100,14 +79,14 @@ export default function ClassicCvTemplate({ cv }: ClassicCvTemplateProps) {
                   {exp.period && (
                     <span
                       dir="ltr"
-                      className="shrink-0 text-xs font-medium text-slate-500"
+                      className="shrink-0 text-xs font-medium text-black"
                     >
                       {exp.period}
                     </span>
                   )}
                 </div>
                 {exp.description && (
-                  <p className="text-justify leading-6 text-slate-700">
+                  <p className="whitespace-pre-line text-justify leading-6 text-black">
                     {exp.description}
                   </p>
                 )}
@@ -119,7 +98,7 @@ export default function ClassicCvTemplate({ cv }: ClassicCvTemplateProps) {
 
       {content.education.length > 0 && (
         <section className="mb-6 sm:mb-7">
-          <SectionTitle>{labels.education}</SectionTitle>
+          <SectionTitle>{SECTION_LABELS.education}</SectionTitle>
           <div className="space-y-3">
             {content.education.map((edu, index) => (
               <div
@@ -127,13 +106,13 @@ export default function ClassicCvTemplate({ cv }: ClassicCvTemplateProps) {
                 className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between"
               >
                 <div>
-                  <h3 className="font-bold text-slate-900">{edu.degree}</h3>
+                  <h3 className="font-bold text-black">{edu.degree}</h3>
                   {edu.institution && (
-                    <p className="text-slate-600">{edu.institution}</p>
+                    <p className="text-black">{edu.institution}</p>
                   )}
                 </div>
                 {edu.period && (
-                  <span dir="ltr" className="text-xs text-slate-500">
+                  <span dir="ltr" className="text-xs text-black">
                     {edu.period}
                   </span>
                 )}
@@ -145,16 +124,16 @@ export default function ClassicCvTemplate({ cv }: ClassicCvTemplateProps) {
 
       {content.skills.length > 0 && (
         <section className="mb-6 sm:mb-7">
-          <SectionTitle>{labels.skills}</SectionTitle>
-          <p className="leading-7 text-slate-700">
-            {content.skills.join(isEnglish ? " • " : " • ")}
+          <SectionTitle>{SECTION_LABELS.skills}</SectionTitle>
+          <p className="leading-7 text-black">
+            {content.skills.join(" • ")}
           </p>
         </section>
       )}
 
       {content.courses.length > 0 && (
         <section>
-          <SectionTitle>{labels.courses}</SectionTitle>
+          <SectionTitle>{SECTION_LABELS.courses}</SectionTitle>
           <div className="space-y-2">
             {content.courses.map((course, index) => (
               <div
@@ -162,13 +141,13 @@ export default function ClassicCvTemplate({ cv }: ClassicCvTemplateProps) {
                 className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between"
               >
                 <div>
-                  <h3 className="font-semibold text-slate-900">{course.name}</h3>
+                  <h3 className="font-semibold text-black">{course.name}</h3>
                   {course.provider && (
-                    <p className="text-xs text-slate-600">{course.provider}</p>
+                    <p className="text-xs text-black">{course.provider}</p>
                   )}
                 </div>
                 {course.year && (
-                  <span dir="ltr" className="text-xs text-slate-500">
+                  <span dir="ltr" className="text-xs text-black">
                     {course.year}
                   </span>
                 )}

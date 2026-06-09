@@ -1,5 +1,7 @@
 import type { GeneratedCv } from "@/lib/cv-types";
 
+const CV_FONT = '"Times New Roman", Times, serif';
+
 function escapeHtml(text: string): string {
   return text
     .replace(/&/g, "&amp;")
@@ -9,22 +11,20 @@ function escapeHtml(text: string): string {
 }
 
 function buildCvHtml(cv: GeneratedCv): string {
-  const isEnglish = cv.language === "english";
-  const dir = isEnglish ? "ltr" : "rtl";
   const { content } = cv;
 
   const section = (title: string, body: string) =>
     body
-      ? `<h2 style="color:#378ADD;border-bottom:2px solid #378ADD;padding-bottom:6px;margin:24px 0 12px;font-size:16px;">${escapeHtml(title)}</h2>${body}`
+      ? `<h2 style="font-family:${CV_FONT};color:#000;border-bottom:1px solid #000;padding-bottom:6px;margin:24px 0 12px;font-size:14px;font-weight:bold;">${escapeHtml(title)}</h2>${body}`
       : "";
 
   const experiences = content.experiences
     .map(
       (exp) => `
       <div style="margin-bottom:16px;">
-        <p style="margin:0;font-weight:bold;color:#0f172a;">${escapeHtml(exp.jobTitle)}${exp.company ? ` — ${escapeHtml(exp.company)}` : ""}</p>
-        ${exp.period ? `<p style="margin:4px 0;color:#64748b;font-size:13px;">${escapeHtml(exp.period)}</p>` : ""}
-        ${exp.description ? `<p style="margin:6px 0 0;color:#334155;line-height:1.6;">${escapeHtml(exp.description)}</p>` : ""}
+        <p style="margin:0;font-weight:bold;color:#000;font-family:${CV_FONT};">${escapeHtml(exp.jobTitle)}${exp.company ? ` — ${escapeHtml(exp.company)}` : ""}</p>
+        ${exp.period ? `<p style="margin:4px 0;color:#000;font-size:13px;font-family:${CV_FONT};">${escapeHtml(exp.period)}</p>` : ""}
+        ${exp.description ? `<p style="margin:6px 0 0;color:#000;line-height:1.6;font-family:${CV_FONT};">${escapeHtml(exp.description)}</p>` : ""}
       </div>`
     )
     .join("");
@@ -33,49 +33,48 @@ function buildCvHtml(cv: GeneratedCv): string {
     .map(
       (edu) => `
       <div style="margin-bottom:12px;">
-        <p style="margin:0;font-weight:bold;">${escapeHtml(edu.degree)}</p>
-        ${edu.institution ? `<p style="margin:4px 0;color:#64748b;">${escapeHtml(edu.institution)}</p>` : ""}
-        ${edu.period ? `<p style="margin:0;color:#64748b;font-size:13px;">${escapeHtml(edu.period)}</p>` : ""}
+        <p style="margin:0;font-weight:bold;color:#000;font-family:${CV_FONT};">${escapeHtml(edu.degree)}</p>
+        ${edu.institution ? `<p style="margin:4px 0;color:#000;font-family:${CV_FONT};">${escapeHtml(edu.institution)}</p>` : ""}
+        ${edu.period ? `<p style="margin:0;color:#000;font-size:13px;font-family:${CV_FONT};">${escapeHtml(edu.period)}</p>` : ""}
       </div>`
     )
     .join("");
 
-  const skills = content.skills
-    .map(
-      (skill) =>
-        `<span style="display:inline-block;background:#e8f2fc;color:#378ADD;padding:4px 10px;margin:4px;border-radius:6px;font-size:13px;">${escapeHtml(skill)}</span>`
-    )
-    .join("");
+  const skills = content.skills.map(escapeHtml).join(" • ");
 
   const courses = content.courses
     .map(
       (course) => `
       <div style="margin-bottom:10px;">
-        <p style="margin:0;font-weight:600;">${escapeHtml(course.name)}</p>
-        ${course.provider ? `<p style="margin:2px 0;color:#64748b;font-size:13px;">${escapeHtml(course.provider)}</p>` : ""}
+        <p style="margin:0;font-weight:600;color:#000;font-family:${CV_FONT};">${escapeHtml(course.name)}</p>
+        ${course.provider ? `<p style="margin:2px 0;color:#000;font-size:13px;font-family:${CV_FONT};">${escapeHtml(course.provider)}</p>` : ""}
       </div>`
     )
     .join("");
 
   return `<!DOCTYPE html>
-<html lang="${isEnglish ? "en" : "ar"}" dir="${dir}">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
   <title>${escapeHtml(cv.name)} - CV</title>
+  <style>
+    * { color: #000 !important; background: #fff !important; }
+    body { font-family: ${CV_FONT}; color: #000; max-width: 800px; margin: 0 auto; padding: 32px; }
+  </style>
 </head>
-<body style="font-family:Arial,sans-serif;color:#1e293b;max-width:800px;margin:0 auto;padding:32px;">
-  <header style="text-align:center;border-bottom:1px solid #e2e8f0;padding-bottom:20px;margin-bottom:20px;">
-    <h1 style="color:#378ADD;margin:0 0 8px;font-size:28px;">${escapeHtml(cv.name)}</h1>
-    ${content.headline ? `<p style="font-size:16px;font-weight:600;margin:0 0 12px;">${escapeHtml(content.headline)}</p>` : ""}
-    <p style="margin:0;color:#64748b;font-size:14px;">
+<body>
+  <header style="text-align:center;border-bottom:1px solid #000;padding-bottom:20px;margin-bottom:20px;">
+    <h1 style="color:#000;margin:0 0 8px;font-size:28px;font-family:${CV_FONT};">${escapeHtml(cv.name)}</h1>
+    ${content.headline ? `<p style="font-size:16px;font-weight:600;margin:0 0 12px;font-family:${CV_FONT};">${escapeHtml(content.headline)}</p>` : ""}
+    <p style="margin:0;color:#000;font-size:14px;font-family:${CV_FONT};">
       ${[cv.city, cv.phone, cv.email].filter(Boolean).map(escapeHtml).join(" · ")}
     </p>
   </header>
-  ${section(isEnglish ? "Professional Summary" : "الوصف الذاتي", content.summary ? `<p style="line-height:1.7;">${escapeHtml(content.summary)}</p>` : "")}
-  ${section(isEnglish ? "Work Experience" : "الخبرات العملية", experiences)}
-  ${section(isEnglish ? "Education" : "التعليم", education)}
-  ${section(isEnglish ? "Skills" : "المهارات", skills ? `<div>${skills}</div>` : "")}
-  ${section(isEnglish ? "Courses" : "الدورات والشهادات", courses)}
+  ${section("الملخص المهني / Professional Summary", content.summary ? `<p style="line-height:1.7;font-family:${CV_FONT};">${escapeHtml(content.summary)}</p>` : "")}
+  ${section("الخبرات العملية / Work Experience", experiences)}
+  ${section("التعليم / Education", education)}
+  ${section("المهارات / Skills", skills ? `<p style="font-family:${CV_FONT};">${skills}</p>` : "")}
+  ${section("الدورات والشهادات / Courses & Certifications", courses)}
 </body>
 </html>`;
 }

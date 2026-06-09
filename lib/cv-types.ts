@@ -4,9 +4,11 @@ export type WorkExperience = {
   id: string;
   jobTitle: string;
   company: string;
+  department: string;
   startDate: string;
   endDate: string;
   description: string;
+  isCurrent?: boolean;
 };
 
 export type Education = {
@@ -15,6 +17,7 @@ export type Education = {
   institution: string;
   startDate: string;
   endDate: string;
+  gpa?: string;
 };
 
 export type Skill = {

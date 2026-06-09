@@ -19,7 +19,12 @@ export const metadata: Metadata = {
     template: "%s | CVfy",
   },
   description:
-    "أنشئ سيرتك الذاتية الاحترافية في دقائق. قوالب ATS، تحسين بالذكاء الاصطناعي، وتصدير فوري للسوق السعودي.",
+    "أنشئ سيرتك الذاتية الاحترافية في دقائق. قوالب ATS رسمية، تحسين بالذكاء الاصطناعي، وتصدير فوري لسوق العمل السعودي.",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
   keywords: [
     "سيرة ذاتية",
     "CV",
