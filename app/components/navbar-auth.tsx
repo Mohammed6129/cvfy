@@ -3,15 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUserProfile } from "@/lib/user";
 import UserMenu from "./user-menu";
 
-type NavbarAuthProps = {
-  loginHref?: string;
-  loginLabel?: string;
-};
-
-export default async function NavbarAuth({
-  loginHref = "/login",
-  loginLabel = "ابدأ الآن",
-}: NavbarAuthProps) {
+export default async function NavbarAuth() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -23,11 +15,19 @@ export default async function NavbarAuth({
   }
 
   return (
-    <Link
-      href={loginHref}
-      className="shrink-0 rounded-full bg-[#378ADD] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8]"
-    >
-      {loginLabel}
-    </Link>
+    <div className="flex shrink-0 items-center gap-4">
+      <Link
+        href="/login"
+        className="text-sm font-semibold text-slate-700 transition-colors hover:text-[#378ADD]"
+      >
+        تسجيل دخول
+      </Link>
+      <Link
+        href="/login?next=/create"
+        className="rounded-lg bg-[#378ADD] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#2a6bb8]"
+      >
+        ابدأ الآن
+      </Link>
+    </div>
   );
 }

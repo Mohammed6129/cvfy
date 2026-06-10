@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
-import HeroLiveBar from "./components/hero-live-bar";
+import CompanyBar from "./components/company-bar";
 import CustomerJourney from "./components/CustomerJourney";
-import Footer from "./components/Footer";
+import HomeFeatures from "./components/home-features";
+import HomeReviews from "./components/home-reviews";
+import HomeCta from "./components/home-cta";
+import HeroLiveBar from "./components/hero-live-bar";
 
 export const metadata: Metadata = {
   title: "CVfy — منصة السيرة الذاتية الاحترافية بالعربية",
@@ -23,12 +26,13 @@ export default function Home() {
       <Navbar />
       <main className="bg-white">
         <Hero />
+        <CompanyBar />
+        <CustomerJourney />
+        <HomeFeatures />
+        <HomeReviews />
+        <HomeCta />
         <HeroLiveBar />
-        <div id="journey">
-          <CustomerJourney />
-        </div>
       </main>
-      <Footer />
     </div>
   );
 }

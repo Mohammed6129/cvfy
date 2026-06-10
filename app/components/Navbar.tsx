@@ -9,11 +9,11 @@ const navLinks = [
 
 export default function Navbar() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-[#378ADD]/15 bg-white/95 shadow-sm backdrop-blur-sm">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3.5 sm:px-8">
+    <header className="sticky top-0 z-50 w-full border-b border-[#F0F0F0] bg-white">
+      <nav className="mx-auto flex max-w-[1100px] items-center justify-between gap-4 px-6 py-4 md:px-12">
         <BrandLogo />
 
-        <div className="hidden items-center gap-6 md:flex">
+        <div className="hidden items-center gap-8 md:flex">
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -25,7 +25,7 @@ export default function Navbar() {
           ))}
         </div>
 
-        <NavbarAuth loginHref="/login?next=/create" loginLabel="ابدأ الآن" />
+        <NavbarAuth />
       </nav>
     </header>
   );

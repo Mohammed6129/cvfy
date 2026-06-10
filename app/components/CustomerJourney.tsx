@@ -1,7 +1,8 @@
 const STEPS = [
   {
+    num: "01",
     title: "تعبئة الفورم",
-    desc: "أدخل بياناتك بأسلوبك العادي، بدون تعقيد",
+    desc: "أدخل بياناتك بأسلوبك العادي — بدون تعقيد أو تنسيق مسبق",
     iconBg: "#EAF3DE",
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden>
@@ -14,8 +15,9 @@ const STEPS = [
     ),
   },
   {
+    num: "02",
     title: "تحسين AI",
-    desc: "الذكاء الاصطناعي يصيغ خبراتك بلغة احترافية",
+    desc: "الذكاء الاصطناعي يصيغ خبراتك بلغة احترافية تناسب سوق العمل",
     iconBg: "#E6F1FB",
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden>
@@ -26,8 +28,9 @@ const STEPS = [
     ),
   },
   {
+    num: "03",
     title: "فحص ATS",
-    desc: "نتحقق إن سيرتك تجتاز أنظمة الفرز الآلي",
+    desc: "نتحقق إن سيرتك تجتاز أنظمة الفرز الآلي وتوصل للمسؤولين",
     iconBg: "#EEEDFE",
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden>
@@ -37,8 +40,9 @@ const STEPS = [
     ),
   },
   {
+    num: "04",
     title: "التحميل",
-    desc: "نسختان جاهزتان — عربي وإنجليزي بصيغة PDF و Word",
+    desc: "نسختان جاهزتان — عربي وإنجليزي بصيغة PDF و Word فوراً",
     iconBg: "#FAEEDA",
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden>
@@ -51,26 +55,42 @@ const STEPS = [
 
 export default function CustomerJourney() {
   return (
-    <section className="bg-[#F8FBFF] px-4 py-14 sm:px-8 sm:py-16" dir="rtl">
-      <div className="mx-auto max-w-6xl">
-        <h2 className="mb-10 text-center text-2xl font-extrabold text-[#0C447C] sm:text-3xl">
-          رحلتك مع <span className="text-[#378ADD]">CVfy</span>
-        </h2>
+    <section id="journey" className="bg-white" dir="rtl">
+      <div className="mx-auto max-w-[1100px] px-6 py-16 md:px-12">
+        <div className="mb-10 text-center">
+          <span className="mb-3 inline-block rounded-full bg-[#E6F1FB] px-3 py-1 text-xs font-semibold text-[#378ADD]">
+            كيف يعمل CVfy؟
+          </span>
+          <h2 className="mb-2 text-[26px] font-extrabold text-[#0C447C]">
+            رحلتك مع <span className="text-[#378ADD]">CVfy</span>
+          </h2>
+          <p className="text-sm text-[#555]">
+            من الفورم إلى السيرة الجاهزة في خطوات بسيطة — بدون تعقيد
+          </p>
+        </div>
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((step) => (
             <div
-              key={step.title}
-              className="rounded-2xl border border-white bg-white p-5 text-center shadow-sm"
+              key={step.num}
+              className="relative overflow-hidden rounded-2xl border border-[#EEF3FA] bg-[#F8FAFE] p-5"
             >
+              <span
+                className="pointer-events-none absolute -top-1 right-2 select-none text-[52px] font-extrabold leading-none text-[#EEF3FA]"
+                aria-hidden
+              >
+                {step.num}
+              </span>
               <div
-                className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-xl"
+                className="relative mb-3 flex h-12 w-12 items-center justify-center rounded-xl"
                 style={{ backgroundColor: step.iconBg }}
               >
                 {step.icon}
               </div>
-              <h3 className="mb-1.5 text-sm font-bold text-[#0C447C]">{step.title}</h3>
-              <p className="text-xs leading-relaxed text-[#566573]">{step.desc}</p>
+              <h3 className="relative mb-1.5 text-[13px] font-bold text-[#0C447C]">
+                {step.title}
+              </h3>
+              <p className="relative text-xs leading-relaxed text-[#555]">{step.desc}</p>
             </div>
           ))}
         </div>
