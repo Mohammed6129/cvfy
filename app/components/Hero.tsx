@@ -98,13 +98,11 @@ export default function Hero() {
   }, []);
 
   return (
-    <section
-      dir="rtl"
-      className="bg-gradient-to-b from-[#F0F7FF] to-white px-6 py-9"
-    >
-      <div className="mx-auto grid w-full max-w-[1200px] grid-cols-1 items-center gap-6 md:grid-cols-2 md:gap-7">
+    <section dir="rtl" className="bg-gradient-to-b from-[#F0F7FF] to-white">
+      <div className="mx-auto max-w-[1100px] px-4 py-6 md:px-8 md:py-8 lg:px-16 lg:py-12">
+        <div className="grid grid-cols-1 items-center gap-6 md:grid-cols-2 md:gap-7 lg:grid-cols-[1fr_420px]">
         {/* العمود الأيمن — النص */}
-        <div className="text-right">
+        <div className="min-w-0 text-right">
           <span className="mb-3 inline-flex items-center gap-1.5 rounded-[50px] border border-[#B5D4F4] bg-[#E6F1FB] px-3.5 py-1 text-[12px] font-medium text-[#185FA5]">
             <StarIcon />
             متوافق مع أنظمة ATS
@@ -166,7 +164,7 @@ export default function Hero() {
         </div>
 
         {/* العمود الأيسر — السيرة + السعر */}
-        <div className="relative w-full">
+        <div className="relative mx-auto w-full max-w-[380px] justify-self-center md:max-w-[380px] lg:mx-0 lg:justify-self-end">
           <div className="absolute -right-2 -top-2 z-20 rounded-full bg-[#E6F1FB] px-2.5 py-0.5 text-[10px] font-bold text-[#378ADD] shadow-sm md:text-[11px]">
             تحسين AI
           </div>
@@ -264,6 +262,7 @@ export default function Hero() {
               </div>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </section>
