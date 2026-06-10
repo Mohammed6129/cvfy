@@ -26,23 +26,29 @@ export default function Hero() {
             </StartNowLink>
 
             <div
-              className="inline-flex items-center gap-4 rounded-[12px] border border-[#378ADD] bg-white px-5 py-2.5 shadow-sm"
+              className="inline-flex items-center gap-[10px] rounded-[12px] bg-white px-5 py-[10px]"
+              style={{ border: "1.5px solid #378ADD" }}
               dir="ltr"
             >
               <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-bold leading-none text-[#0C447C]">
+                <span
+                  className="leading-none text-[#0C447C]"
+                  style={{ fontSize: "22px", fontWeight: 900 }}
+                >
                   {SINGLE_PLAN.price}
                 </span>
-                <span className="text-sm font-semibold text-[#378ADD]">ر.س</span>
+                <span className="text-[13px] text-[#378ADD]">ر.س</span>
               </div>
 
-              <div className="h-10 w-px bg-[#378ADD]/30" aria-hidden />
+              <div
+                className="w-px shrink-0"
+                style={{ height: "28px", background: "#E6F1FB" }}
+                aria-hidden
+              />
 
-              <div className="text-right leading-snug">
-                <p className="text-sm font-semibold text-slate-800">
-                  نسختان عربي وإنجليزي
-                </p>
-                <p className="text-xs text-slate-500">+ تقرير ATS + PDF و Word</p>
+              <div className="text-[12px] leading-snug text-[#555]">
+                <p>نسختان عربي وإنجليزي</p>
+                <p>+ تقرير ATS + PDF و Word</p>
               </div>
             </div>
           </div>
