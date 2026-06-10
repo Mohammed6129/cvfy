@@ -34,6 +34,7 @@ type PaymentSectionProps = {
   cvId?: string | null;
   atsResult?: AtsScoreResult | null;
   onAtsResult?: (result: AtsScoreResult) => void;
+  onPersistFiles?: () => Promise<void>;
 };
 
 type DownloadKind = "pdf" | "word" | "ats" | null;
@@ -188,12 +189,14 @@ function CvDownloadButtons({
   cvId,
   atsResult,
   onAtsResult,
+  onPersistFiles,
   editHref,
 }: {
   cv: GeneratedCv | null | undefined;
   cvId?: string | null;
   atsResult?: AtsScoreResult | null;
   onAtsResult?: (result: AtsScoreResult) => void;
+  onPersistFiles?: () => Promise<void>;
   editHref: string;
 }) {
   const [downloading, setDownloading] = useState<DownloadKind>(null);
@@ -205,6 +208,9 @@ function CvDownloadButtons({
     setError(null);
     try {
       await downloadCvAsPdf(cv);
+      if (onPersistFiles) {
+        void onPersistFiles();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "تعذر تحميل ملف PDF للسيرة.");
     } finally {
@@ -217,6 +223,9 @@ function CvDownloadButtons({
     setError(null);
     try {
       downloadCvAsWord(cv);
+      if (onPersistFiles) {
+        void onPersistFiles();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "تعذر تحميل ملف Word للسيرة.");
     }
@@ -236,6 +245,9 @@ function CvDownloadButtons({
         }
       }
       await downloadAtsReportPdf(cv, result);
+      if (onPersistFiles) {
+        void onPersistFiles();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "تعذر تحميل تقرير ATS.");
     } finally {
@@ -290,12 +302,14 @@ function TestModePanel({
   cvId,
   atsResult,
   onAtsResult,
+  onPersistFiles,
   editHref,
 }: {
   cv: GeneratedCv | null | undefined;
   cvId?: string | null;
   atsResult?: AtsScoreResult | null;
   onAtsResult?: (result: AtsScoreResult) => void;
+  onPersistFiles?: () => Promise<void>;
   editHref: string;
 }) {
   return (
@@ -309,6 +323,7 @@ function TestModePanel({
         cvId={cvId}
         atsResult={atsResult}
         onAtsResult={onAtsResult}
+        onPersistFiles={onPersistFiles}
         editHref={editHref}
       />
     </div>
@@ -326,6 +341,7 @@ export default function PaymentSection({
   cvId = null,
   atsResult = null,
   onAtsResult,
+  onPersistFiles,
 }: PaymentSectionProps) {
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
@@ -362,6 +378,7 @@ export default function PaymentSection({
         cvId={cvId}
         atsResult={atsResult}
         onAtsResult={onAtsResult}
+        onPersistFiles={onPersistFiles}
         editHref={editHref}
       />
     );
@@ -387,6 +404,7 @@ export default function PaymentSection({
             cvId={cvId}
             atsResult={atsResult}
             onAtsResult={onAtsResult}
+            onPersistFiles={onPersistFiles}
             editHref={editHref}
           />
         </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import AppHeader from "@/app/components/app-header";
+import MyFilesSection from "@/app/components/my-files-section";
 import { createClient } from "@/lib/supabase/server";
 import { getUserProfile } from "@/lib/user";
 
@@ -30,19 +31,23 @@ export default async function AccountPage() {
           معلومات الحساب
         </h1>
 
-        <div className="space-y-6 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-          <div>
-            <p className="mb-1 text-sm font-semibold text-slate-500">الاسم</p>
-            <p className="text-base font-bold text-slate-900">{profile.name}</p>
+        <div className="space-y-6">
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+            <div>
+              <p className="mb-1 text-sm font-semibold text-slate-500">الاسم</p>
+              <p className="text-base font-bold text-slate-900">{profile.name}</p>
+            </div>
+            <div className="mt-6">
+              <p className="mb-1 text-sm font-semibold text-slate-500">
+                البريد الإلكتروني
+              </p>
+              <p className="text-base text-slate-900" dir="ltr">
+                {profile.email ?? "—"}
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="mb-1 text-sm font-semibold text-slate-500">
-              البريد الإلكتروني
-            </p>
-            <p className="text-base text-slate-900" dir="ltr">
-              {profile.email ?? "—"}
-            </p>
-          </div>
+
+          <MyFilesSection />
         </div>
       </main>
     </div>

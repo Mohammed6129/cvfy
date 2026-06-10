@@ -70,7 +70,7 @@ function addSectionTitle(doc: jsPDF, title: string, y: number, maxWidth: number)
   return y + LINE_HEIGHT;
 }
 
-function buildCvPdfBlob(cv: GeneratedCv): Blob {
+export function buildCvPdfBlob(cv: GeneratedCv): Blob {
   const content = cv.contentEn ?? cv.content;
   const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -180,7 +180,7 @@ async function waitForIframeDocument(iframe: HTMLIFrameElement): Promise<Documen
   return doc;
 }
 
-async function downloadHtmlAsPdf(html: string, filename: string): Promise<void> {
+async function renderHtmlToPdfBlob(html: string): Promise<Blob> {
   const iframe = document.createElement("iframe");
   iframe.setAttribute(
     "style",
@@ -208,7 +208,7 @@ async function downloadHtmlAsPdf(html: string, filename: string): Promise<void> 
     const blob = (await html2pdf()
       .set({
         margin: [10, 10, 10, 10],
-        filename,
+        filename: "report.pdf",
         image: { type: "jpeg", quality: 0.98 },
         html2canvas: {
           scale: 2,
@@ -226,10 +226,15 @@ async function downloadHtmlAsPdf(html: string, filename: string): Promise<void> 
       throw new Error("ملف PDF فارغ.");
     }
 
-    triggerBlobDownload(blob, filename);
+    return blob;
   } finally {
     document.body.removeChild(iframe);
   }
+}
+
+async function downloadHtmlAsPdf(html: string, filename: string): Promise<void> {
+  const blob = await renderHtmlToPdfBlob(html);
+  triggerBlobDownload(blob, filename);
 }
 
 export function buildCvHtml(cv: GeneratedCv): string {
@@ -368,15 +373,18 @@ export async function downloadCvAsPdf(cv: GeneratedCv): Promise<void> {
   triggerBlobDownload(blob, `${sanitizeFilename(cv.name)}_CV.pdf`);
 }
 
-export function downloadCvAsWord(cv: GeneratedCv): void {
+export function buildCvWordBlob(cv: GeneratedCv): Blob {
   const html = buildCvHtml(cv);
-  const blob = new Blob([`\ufeff${html}`], {
+  return new Blob([`\ufeff${html}`], {
     type: "application/msword;charset=utf-8",
   });
-  triggerBlobDownload(blob, `${sanitizeFilename(cv.name)}_CV.doc`);
 }
 
-function buildAtsPdfBlob(cv: GeneratedCv, result: AtsScoreResult): Blob {
+export function downloadCvAsWord(cv: GeneratedCv): void {
+  triggerBlobDownload(buildCvWordBlob(cv), `${sanitizeFilename(cv.name)}_CV.doc`);
+}
+
+export function buildAtsPdfBlob(cv: GeneratedCv, result: AtsScoreResult): Blob {
   const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
   const maxWidth = doc.internal.pageSize.getWidth() - PAGE_MARGIN * 2;
   let y = PAGE_MARGIN;
@@ -418,22 +426,44 @@ function buildAtsPdfBlob(cv: GeneratedCv, result: AtsScoreResult): Blob {
   return doc.output("blob");
 }
 
-export async function downloadAtsReportPdf(
+export async function buildAtsPdfBlobAsync(
   cv: GeneratedCv,
   result: AtsScoreResult
-): Promise<void> {
-  const filename = `${sanitizeFilename(cv.name)}_ATS_Report.pdf`;
-
+): Promise<Blob> {
   try {
     const html = buildAtsReportHtml(cv, result);
-    await downloadHtmlAsPdf(html, filename);
+    return await renderHtmlToPdfBlob(html);
   } catch {
     const blob = buildAtsPdfBlob(cv, result);
     if (!blob || blob.size < 500) {
       throw new Error("ملف PDF فارغ.");
     }
-    triggerBlobDownload(blob, filename);
+    return blob;
   }
+}
+
+export async function buildAllCvFileBlobs(
+  cv: GeneratedCv,
+  atsResult: AtsScoreResult
+): Promise<{ cvPdf: Blob; cvWord: Blob; atsPdf: Blob }> {
+  const cvPdf = buildCvPdfBlob(cv);
+  const cvWord = buildCvWordBlob(cv);
+  const atsPdf = await buildAtsPdfBlobAsync(cv, atsResult);
+
+  if (cvPdf.size < 500) throw new Error("ملف PDF للسيرة فارغ.");
+  if (cvWord.size < 100) throw new Error("ملف Word للسيرة فارغ.");
+  if (atsPdf.size < 500) throw new Error("ملف تقرير ATS فارغ.");
+
+  return { cvPdf, cvWord, atsPdf };
+}
+
+export async function downloadAtsReportPdf(
+  cv: GeneratedCv,
+  result: AtsScoreResult
+): Promise<void> {
+  const filename = `${sanitizeFilename(cv.name)}_ATS_Report.pdf`;
+  const blob = await buildAtsPdfBlobAsync(cv, result);
+  triggerBlobDownload(blob, filename);
 }
 
 export async function fetchAtsResult(cv: GeneratedCv): Promise<AtsScoreResult> {

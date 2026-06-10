@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import LoadingSpinner from "@/app/components/loading-spinner";
 import {
   CURRENT_CV_ID_KEY,
@@ -16,6 +16,7 @@ import {
   markPaymentComplete,
   type PlanId,
 } from "@/lib/payment";
+import { saveCvFilesToProfile } from "@/lib/cv-file-storage";
 import { createClient } from "@/lib/supabase/client";
 import { isTestUserEmail } from "@/lib/test-user";
 import PaymentSection from "./payment-section";
@@ -69,6 +70,19 @@ export default function CvPreview() {
   const [isPaid, setIsPaid] = useState(false);
   const [isTestUser, setIsTestUser] = useState(false);
   const [atsResult, setAtsResult] = useState<AtsScoreResult | null>(null);
+  const filesPersistedRef = useRef(false);
+
+  const persistFilesToProfile = useCallback(async () => {
+    if (!cv || filesPersistedRef.current) return;
+
+    filesPersistedRef.current = true;
+    try {
+      await saveCvFilesToProfile(cv, atsResult);
+    } catch (error) {
+      filesPersistedRef.current = false;
+      console.error("[cv-preview] profile file save failed:", error);
+    }
+  }, [cv, atsResult]);
 
   useEffect(() => {
     let cancelled = false;
@@ -157,9 +171,22 @@ export default function CvPreview() {
       if (cvId) {
         void recordPayment(cvId, planId);
       }
+      void persistFilesToProfile();
     },
-    [cvId]
+    [cvId, persistFilesToProfile]
   );
+
+  useEffect(() => {
+    if (!loading && isTestUser && cv) {
+      void persistFilesToProfile();
+    }
+  }, [loading, isTestUser, cv, persistFilesToProfile]);
+
+  useEffect(() => {
+    if (!loading && isPaid && cv && !isTestUser) {
+      void persistFilesToProfile();
+    }
+  }, [loading, isPaid, cv, isTestUser, persistFilesToProfile]);
 
   if (loading) {
     return <LoadingSpinner label="جاري تحميل السيرة الذاتية..." size="lg" />;
@@ -188,6 +215,7 @@ export default function CvPreview() {
           atsResult={atsResult}
           onAtsResult={setAtsResult}
           onPaymentSuccess={handlePaymentSuccess}
+          onPersistFiles={persistFilesToProfile}
           editHref={editHref}
         />
       </div>
