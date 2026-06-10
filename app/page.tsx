@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
-import StatsBar from "./components/stats-bar";
 import CustomerJourney from "./components/CustomerJourney";
 import HomeFeatures from "./components/home-features";
 import HomeReviews from "./components/home-reviews";
@@ -26,7 +25,6 @@ export default function Home() {
       <Navbar />
       <main className="bg-white">
         <Hero />
-        <StatsBar />
         <CustomerJourney />
         <HomeFeatures />
         <HomeReviews />
