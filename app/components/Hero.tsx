@@ -1,6 +1,12 @@
 import StartNowLink from "./start-now-link";
 import { SINGLE_PLAN } from "@/lib/payment";
 
+const PRICE_FEATURES = [
+  "نسختان عربي وإنجليزي",
+  "PDF و Word",
+  "تقرير ATS",
+];
+
 export default function Hero() {
   return (
     <section className="relative overflow-hidden bg-white px-4 pb-16 pt-12 sm:px-6 sm:pb-24 sm:pt-20">
@@ -26,30 +32,30 @@ export default function Hero() {
             </StartNowLink>
 
             <div
-              className="inline-flex items-center gap-[10px] rounded-[12px] bg-white px-5 py-[10px]"
+              className="inline-flex flex-col items-center gap-2 rounded-[12px] bg-white px-5 py-[10px]"
               style={{ border: "1.5px solid #378ADD" }}
-              dir="ltr"
             >
-              <div className="flex items-baseline gap-1">
+              <div className="flex items-baseline justify-center gap-1">
                 <span
                   className="leading-none text-[#0C447C]"
-                  style={{ fontSize: "22px", fontWeight: 900 }}
+                  style={{ fontSize: "28px", fontWeight: 900 }}
                 >
                   {SINGLE_PLAN.price}
                 </span>
-                <span className="text-[13px] text-[#378ADD]">ر.س</span>
+                <span className="text-base font-semibold text-[#0C447C]">ر.س</span>
               </div>
 
-              <div
-                className="w-px shrink-0"
-                style={{ height: "28px", background: "#E6F1FB" }}
-                aria-hidden
-              />
-
-              <div className="text-[12px] leading-snug text-[#555]">
-                <p>نسختان عربي وإنجليزي</p>
-                <p>+ تقرير ATS + PDF و Word</p>
-              </div>
+              <ul className="flex flex-col gap-1">
+                {PRICE_FEATURES.map((feature) => (
+                  <li
+                    key={feature}
+                    className="flex items-center gap-2 text-[12px] text-[#555]"
+                  >
+                    <span className="shrink-0 font-bold text-[#378ADD]">✓</span>
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>
