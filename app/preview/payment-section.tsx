@@ -180,7 +180,10 @@ function PreviewPriceCard() {
   );
 }
 
-function TestModePanel({
+const downloadButtonClass =
+  "flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#378ADD] px-4 py-3 text-sm font-extrabold text-white transition-colors hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-60";
+
+function CvDownloadButtons({
   cv,
   cvId,
   atsResult,
@@ -202,8 +205,8 @@ function TestModePanel({
     setError(null);
     try {
       await downloadCvAsPdf(cv);
-    } catch {
-      setError("تعذر تحميل ملف PDF للسيرة.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "تعذر تحميل ملف PDF للسيرة.");
     } finally {
       setDownloading(null);
     }
@@ -214,8 +217,8 @@ function TestModePanel({
     setError(null);
     try {
       downloadCvAsWord(cv);
-    } catch {
-      setError("تعذر تحميل ملف Word للسيرة.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "تعذر تحميل ملف Word للسيرة.");
     }
   };
 
@@ -240,20 +243,13 @@ function TestModePanel({
     }
   };
 
-  const buttonClass =
-    "flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#378ADD] px-4 py-3 text-sm font-extrabold text-white transition-colors hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-60";
-
   return (
-    <div className="flex flex-col gap-3">
-      <div className="rounded-[20px] border border-[#C0DD97] bg-[#EAF3DE] p-4 text-center">
-        <p className="text-sm font-bold text-[#27500A]">وضع تجريبي — تجاوز الدفع مفعّل</p>
-      </div>
-
+    <>
       <button
         type="button"
         onClick={() => void handleCvPdf()}
         disabled={!cv || downloading !== null}
-        className={buttonClass}
+        className={downloadButtonClass}
       >
         {downloading === "pdf" ? "جاري التحميل..." : "تحميل السيرة PDF"}
       </button>
@@ -262,7 +258,7 @@ function TestModePanel({
         type="button"
         onClick={handleCvWord}
         disabled={!cv || downloading !== null}
-        className={buttonClass}
+        className={downloadButtonClass}
       >
         تحميل السيرة Word
       </button>
@@ -271,7 +267,7 @@ function TestModePanel({
         type="button"
         onClick={() => void handleAtsPdf()}
         disabled={!cv || downloading !== null}
-        className={buttonClass}
+        className={downloadButtonClass}
       >
         {downloading === "ats" ? "جاري إنشاء التقرير..." : "تحميل تقرير ATS"}
       </button>
@@ -285,6 +281,36 @@ function TestModePanel({
       <Link href={editHref} className="text-center text-xs text-[#378ADD] underline">
         تعديل البيانات
       </Link>
+    </>
+  );
+}
+
+function TestModePanel({
+  cv,
+  cvId,
+  atsResult,
+  onAtsResult,
+  editHref,
+}: {
+  cv: GeneratedCv | null | undefined;
+  cvId?: string | null;
+  atsResult?: AtsScoreResult | null;
+  onAtsResult?: (result: AtsScoreResult) => void;
+  editHref: string;
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="rounded-[20px] border border-[#C0DD97] bg-[#EAF3DE] p-4 text-center">
+        <p className="text-sm font-bold text-[#27500A]">وضع تجريبي — تجاوز الدفع مفعّل</p>
+      </div>
+
+      <CvDownloadButtons
+        cv={cv}
+        cvId={cvId}
+        atsResult={atsResult}
+        onAtsResult={onAtsResult}
+        editHref={editHref}
+      />
     </div>
   );
 }
@@ -354,14 +380,15 @@ export default function PaymentSection({
 
     if (variant === "preview") {
       return (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           {successBox}
-          <Link
-            href={editHref}
-            className="text-center text-xs text-[#378ADD] underline"
-          >
-            تعديل البيانات
-          </Link>
+          <CvDownloadButtons
+            cv={cv}
+            cvId={cvId}
+            atsResult={atsResult}
+            onAtsResult={onAtsResult}
+            editHref={editHref}
+          />
         </div>
       );
     }
