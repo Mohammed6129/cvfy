@@ -16,6 +16,8 @@ import {
   markPaymentComplete,
   type PlanId,
 } from "@/lib/payment";
+import { createClient } from "@/lib/supabase/client";
+import { isTestUserEmail } from "@/lib/test-user";
 import PaymentSection from "./payment-section";
 import PreviewCvCard from "./preview-cv-card";
 
@@ -65,11 +67,22 @@ export default function CvPreview() {
   const [cvId, setCvId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPaid, setIsPaid] = useState(false);
+  const [isTestUser, setIsTestUser] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
     const loadCv = async () => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      const testUser = isTestUserEmail(user?.email);
+      if (testUser) {
+        setIsTestUser(true);
+        setIsPaid(true);
+        markPaymentComplete("bilingual");
+      }
       const paramId = searchParams.get("cv");
       let loadedCv: GeneratedCv | null = null;
       let loadedId: string | null = paramId;
@@ -167,6 +180,8 @@ export default function CvPreview() {
         <PaymentSection
           variant="preview"
           isPaid={isPaid}
+          isTestUser={isTestUser}
+          cv={cv}
           onPaymentSuccess={handlePaymentSuccess}
           editHref={editHref}
         />

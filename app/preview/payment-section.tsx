@@ -8,6 +8,8 @@ import {
   loadMoyasarAssets,
 } from "@/lib/moyasar";
 import MoyasarPaymentForm from "./moyasar-payment-form";
+import type { GeneratedCv } from "@/lib/cv-types";
+import { downloadCvAsPdf, downloadCvAsWord } from "@/lib/cv-export";
 import {
   PENDING_PLAN_KEY,
   SINGLE_PLAN,
@@ -21,6 +23,8 @@ type PaymentSectionProps = {
   variant?: "default" | "overlay" | "preview";
   compact?: boolean;
   editHref?: string;
+  isTestUser?: boolean;
+  cv?: GeneratedCv | null;
 };
 
 function StarIcon({ size = 20 }: { size?: number }) {
@@ -165,12 +169,49 @@ function PreviewPriceCard() {
   );
 }
 
+function TestModePanel({
+  cv,
+  editHref,
+}: {
+  cv: GeneratedCv | null | undefined;
+  editHref: string;
+}) {
+  const handleDownload = () => {
+    if (!cv) return;
+    downloadCvAsPdf(cv);
+    downloadCvAsWord(cv);
+  };
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="rounded-[20px] border border-[#C0DD97] bg-[#EAF3DE] p-4 text-center">
+        <p className="text-sm font-bold text-[#27500A]">وضع تجريبي — تجاوز الدفع مفعّل</p>
+      </div>
+
+      <button
+        type="button"
+        onClick={handleDownload}
+        disabled={!cv}
+        className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#378ADD] px-4 py-[15px] text-[15px] font-extrabold text-white transition-colors hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        تحميل (وضع تجريبي)
+      </button>
+
+      <Link href={editHref} className="text-center text-xs text-[#378ADD] underline">
+        تعديل البيانات
+      </Link>
+    </div>
+  );
+}
+
 export default function PaymentSection({
   onPaymentSuccess,
   isPaid,
   variant = "default",
   compact = false,
   editHref = "/create",
+  isTestUser = false,
+  cv = null,
 }: PaymentSectionProps) {
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
@@ -199,6 +240,10 @@ export default function PaymentSection({
     sessionStorage.setItem(PENDING_PLAN_KEY, "bilingual");
     setShowPaymentForm(true);
   };
+
+  if (isTestUser && variant === "preview") {
+    return <TestModePanel cv={cv} editHref={editHref} />;
+  }
 
   if (isPaid || paymentSuccess) {
     if (variant === "overlay") return null;
