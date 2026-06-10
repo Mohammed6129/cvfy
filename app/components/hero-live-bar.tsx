@@ -19,10 +19,7 @@ export default function HeroLiveBar() {
   }, []);
 
   return (
-    <div
-      className="flex flex-wrap items-center justify-center gap-3 bg-[#0C447C] px-8 py-3.5 text-white sm:justify-between"
-      style={{ padding: "14px 32px" }}
-    >
+    <div className="fixed bottom-0 left-0 right-0 z-50 flex flex-wrap items-center justify-center gap-3 bg-[#0C447C] px-6 py-3.5 text-white sm:justify-between md:static md:z-auto md:px-8">
       <div className="flex items-center gap-2.5 text-sm">
         <LogoIcon className="[&_rect]:fill-[#1a3d6b]" />
         <span>

@@ -100,10 +100,9 @@ export default function Hero() {
   return (
     <section
       dir="rtl"
-      className="bg-gradient-to-b from-[#F0F7FF] to-white"
-      style={{ padding: "36px 32px 32px" }}
+      className="bg-gradient-to-b from-[#F0F7FF] to-white px-6 py-9"
     >
-      <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-7 lg:grid-cols-2">
+      <div className="mx-auto grid w-full max-w-[1200px] grid-cols-1 items-center gap-6 md:grid-cols-2 md:gap-7">
         {/* العمود الأيمن — النص */}
         <div className="text-right">
           <span className="mb-3 inline-flex items-center gap-1.5 rounded-[50px] border border-[#B5D4F4] bg-[#E6F1FB] px-3.5 py-1 text-[12px] font-medium text-[#185FA5]">
@@ -167,18 +166,18 @@ export default function Hero() {
         </div>
 
         {/* العمود الأيسر — السيرة + السعر */}
-        <div className="relative mx-auto w-[210px] lg:mx-0 lg:ms-auto">
-          <div className="absolute -right-2 -top-2 z-20 rounded-full bg-[#E6F1FB] px-2 py-0.5 text-[9px] font-bold text-[#378ADD] shadow-sm">
+        <div className="relative w-full">
+          <div className="absolute -right-2 -top-2 z-20 rounded-full bg-[#E6F1FB] px-2.5 py-0.5 text-[10px] font-bold text-[#378ADD] shadow-sm md:text-[11px]">
             تحسين AI
           </div>
-          <div className="absolute -bottom-2 -left-2 z-20 rounded-full bg-[#DCFCE7] px-2 py-0.5 text-[9px] font-bold text-[#16A34A] shadow-sm">
+          <div className="absolute -bottom-2 -left-2 z-20 rounded-full bg-[#DCFCE7] px-2.5 py-0.5 text-[10px] font-bold text-[#16A34A] shadow-sm md:text-[11px]">
             ATS Score: 94%
           </div>
 
-          <div className="flex items-center justify-between rounded-t-[12px] bg-[#0C447C] px-4 py-3">
+          <div className="flex w-full items-center justify-between rounded-t-[12px] bg-[#0C447C] px-4 py-3 md:px-5 md:py-3.5">
             <ul className="space-y-1">
               {PRICE_ITEMS.map((item) => (
-                <li key={item} className="flex items-center gap-1 text-[8px] text-white/90">
+                <li key={item} className="flex items-center gap-1.5 text-[10px] text-white/90 md:text-xs">
                   <GreenCheckIcon />
                   <span>{item}</span>
                 </li>
@@ -186,24 +185,24 @@ export default function Hero() {
             </ul>
             <div className="shrink-0 text-left" dir="ltr">
               <div className="flex items-baseline gap-0.5">
-                <span className="text-[30px] font-bold leading-none text-white">
+                <span className="text-[30px] font-bold leading-none text-white md:text-[34px]">
                   {SINGLE_PLAN.price}
                 </span>
-                <span className="text-[11px] text-[#85B7EB]">ر.س</span>
+                <span className="text-[11px] text-[#85B7EB] md:text-xs">ر.س</span>
               </div>
-              <p className="mt-0.5 text-[9px] text-[#85B7EB]">دفعة واحدة — بدون اشتراك</p>
+              <p className="mt-0.5 text-[9px] text-[#85B7EB] md:text-[10px]">دفعة واحدة — بدون اشتراك</p>
             </div>
           </div>
 
           <div
-            className="overflow-hidden rounded-b-[12px] border border-t-0 border-[#C8DCF0] bg-white"
+            className="w-full overflow-hidden rounded-b-[12px] border border-t-0 border-[#C8DCF0] bg-white"
             dir="ltr"
             style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
           >
-            <div className="bg-[#1a2e4a] px-2.5 py-2">
-              <p className="text-[11px] font-bold text-white">Faisal Ali</p>
-              <p className="text-[9px] text-[#85B7EB]">Senior Software Engineer</p>
-              <div className="mt-1 flex flex-wrap items-center gap-2 text-[7px] text-[#85B7EB]">
+            <div className="bg-[#1a2e4a] px-3 py-2.5 md:px-4 md:py-3">
+              <p className="text-xs font-bold text-white md:text-sm">Faisal Ali</p>
+              <p className="text-[10px] text-[#85B7EB] md:text-xs">Senior Software Engineer</p>
+              <div className="mt-1 flex flex-wrap items-center gap-2 text-[8px] text-[#85B7EB] md:text-[9px]">
                 <span className="inline-flex items-center gap-0.5">
                   <MailIcon />
                   faisal@email.com
@@ -216,9 +215,9 @@ export default function Hero() {
               </div>
             </div>
 
-            <div className="space-y-2.5 px-2.5 py-2">
+            <div className="space-y-3 px-3 py-2.5 md:px-4 md:py-3">
               <div>
-                <p className="mb-1 text-[7px] font-bold tracking-wide text-[#0C447C]">
+                <p className="mb-1 text-[8px] font-bold tracking-wide text-[#0C447C] md:text-[9px]">
                   PROFESSIONAL SUMMARY
                 </p>
                 <div className="space-y-0.5">
@@ -229,20 +228,20 @@ export default function Hero() {
               </div>
 
               <div>
-                <p className="mb-1 text-[7px] font-bold tracking-wide text-[#0C447C]">
+                <p className="mb-1 text-[8px] font-bold tracking-wide text-[#0C447C] md:text-[9px]">
                   WORK EXPERIENCE
                 </p>
                 <div className="mb-1.5">
-                  <p className="text-[7px] font-bold text-[#0C447C]">Senior Software Engineer</p>
-                  <p className="text-[6px] text-[#64748b]">Saudi Aramco · 2021 — Present</p>
+                  <p className="text-[8px] font-bold text-[#0C447C] md:text-[9px]">Senior Software Engineer</p>
+                  <p className="text-[7px] text-[#64748b] md:text-[8px]">Saudi Aramco · 2021 — Present</p>
                   <div className="mt-0.5 space-y-0.5">
                     <CvBar width="w-full" />
                     <CvBar width="w-4/5" />
                   </div>
                 </div>
                 <div>
-                  <p className="text-[7px] font-bold text-[#0C447C]">Software Developer</p>
-                  <p className="text-[6px] text-[#64748b]">STC · 2018 — 2021</p>
+                  <p className="text-[8px] font-bold text-[#0C447C] md:text-[9px]">Software Developer</p>
+                  <p className="text-[7px] text-[#64748b] md:text-[8px]">STC · 2018 — 2021</p>
                   <div className="mt-0.5 space-y-0.5">
                     <CvBar width="w-full" />
                     <CvBar width="w-11/12" />
@@ -251,12 +250,12 @@ export default function Hero() {
               </div>
 
               <div>
-                <p className="mb-1 text-[7px] font-bold tracking-wide text-[#0C447C]">SKILLS</p>
-                <div className="flex flex-wrap gap-1">
+                <p className="mb-1 text-[8px] font-bold tracking-wide text-[#0C447C] md:text-[9px]">SKILLS</p>
+                <div className="flex flex-wrap gap-1.5">
                   {SKILLS.map((skill) => (
                     <span
                       key={skill}
-                      className="rounded bg-[#EEF5FC] px-1 py-0.5 text-[6px] font-semibold text-[#378ADD]"
+                      className="rounded bg-[#EEF5FC] px-1.5 py-0.5 text-[7px] font-semibold text-[#378ADD] md:text-[8px]"
                     >
                       {skill}
                     </span>

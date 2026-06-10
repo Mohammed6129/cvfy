@@ -1,6 +1,7 @@
 const STEPS = [
   {
     title: "تعبئة الفورم",
+    desc: "أدخل بياناتك بأسلوبك العادي، بدون تعقيد",
     iconBg: "#EAF3DE",
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden>
@@ -14,6 +15,7 @@ const STEPS = [
   },
   {
     title: "تحسين AI",
+    desc: "الذكاء الاصطناعي يصيغ خبراتك بلغة احترافية",
     iconBg: "#E6F1FB",
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden>
@@ -25,6 +27,7 @@ const STEPS = [
   },
   {
     title: "فحص ATS",
+    desc: "نتحقق إن سيرتك تجتاز أنظمة الفرز الآلي",
     iconBg: "#EEEDFE",
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden>
@@ -35,6 +38,7 @@ const STEPS = [
   },
   {
     title: "التحميل",
+    desc: "نسختان جاهزتان — عربي وإنجليزي بصيغة PDF و Word",
     iconBg: "#FAEEDA",
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden>
@@ -65,7 +69,8 @@ export default function CustomerJourney() {
               >
                 {step.icon}
               </div>
-              <h3 className="text-sm font-bold text-[#0C447C]">{step.title}</h3>
+              <h3 className="mb-1.5 text-sm font-bold text-[#0C447C]">{step.title}</h3>
+              <p className="text-xs leading-relaxed text-[#566573]">{step.desc}</p>
             </div>
           ))}
         </div>

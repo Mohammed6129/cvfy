@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <div className="flex flex-1 flex-col bg-white">
+    <div className="flex flex-1 flex-col bg-white pb-16 md:pb-0">
       <Navbar />
       <main className="bg-white">
         <Hero />
