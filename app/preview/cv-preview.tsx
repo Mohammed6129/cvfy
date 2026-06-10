@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import LoadingSpinner from "@/app/components/loading-spinner";
@@ -17,23 +16,45 @@ import {
   markPaymentComplete,
   type PlanId,
 } from "@/lib/payment";
-import EnglishCvTemplate from "./english-cv-template";
 import PaymentSection from "./payment-section";
+import PreviewCvCard from "./preview-cv-card";
 
-function BlueCheckIcon() {
+function AiReadyBadge() {
   return (
-    <svg
-      className="h-4 w-4 shrink-0 text-[#378ADD]"
-      viewBox="0 0 20 20"
-      fill="currentColor"
-      aria-hidden
-    >
-      <path
-        fillRule="evenodd"
-        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-        clipRule="evenodd"
-      />
-    </svg>
+    <div className="mb-6 flex justify-center">
+      <div className="inline-flex items-center gap-2 rounded-full border border-[#C0DD97] bg-[#EAF3DE] px-[18px] py-[7px]">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+          <circle cx="8" cy="8" r="7" fill="#639922" fillOpacity="0.15" />
+          <path
+            d="M5 8L7 10L11 6"
+            stroke="#639922"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+        <span className="text-[13px] font-semibold text-[#27500A]">
+          تم التحسين بالذكاء الاصطناعي — سيرتك جاهزة
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function AiStamp() {
+  return (
+    <div className="mt-3 flex items-center gap-2 rounded-xl border border-[#B5D4F4] bg-[#E6F1FB] px-3 py-2">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+        <path
+          d="M8 2L9.67 6.26L14.26 6.76L10.82 9.82L11.74 14.36L8 12.22L4.26 14.36L5.18 9.82L1.74 6.76L6.33 6.26L8 2Z"
+          fill="#378ADD"
+        />
+      </svg>
+      <div>
+        <p className="text-xs font-bold text-[#185FA5]">محسّنة بالذكاء الاصطناعي</p>
+        <p className="text-[9px] text-[#378ADD]">صياغة احترافية تناسب سوق العمل السعودي</p>
+      </div>
+    </div>
   );
 }
 
@@ -131,53 +152,24 @@ export default function CvPreview() {
 
   if (!cv) return null;
 
+  const editHref = cvId ? `/create?edit=${cvId}` : "/create";
+
   return (
-    <div className="animate-fade-in flex flex-col items-center print:hidden">
-      {cv.aiEnhanced && (
-        <div className="mb-3 flex items-center justify-center gap-1.5">
-          <BlueCheckIcon />
-          <span className="text-xs font-semibold text-[#378ADD] sm:text-sm">
-            تم التحسين بالذكاء الاصطناعي
-          </span>
-        </div>
-      )}
+    <div className="animate-fade-in w-full" dir="rtl">
+      <AiReadyBadge />
 
-      <div
-        className={`cv-preview-compact relative mx-auto h-[300px] max-h-[300px] w-full max-w-sm overflow-hidden rounded-xl border border-slate-200 bg-white shadow-md ${
-          isPaid ? "cv-paid" : "cv-locked"
-        }`}
-      >
-        <div className="absolute left-1/2 top-0 w-[200%] -translate-x-1/2 origin-top scale-50">
-          <EnglishCvTemplate cv={cv} />
+      <div className="mx-auto grid max-w-[1100px] grid-cols-1 items-start gap-5 lg:grid-cols-[1fr_300px]">
+        <div>
+          <PreviewCvCard cv={cv} />
+          {cv.aiEnhanced && <AiStamp />}
         </div>
 
-        {!isPaid && (
-          <>
-            <div
-              className="cv-paywall-blur pointer-events-none absolute inset-x-0 top-1/2 bottom-0 z-20"
-              aria-hidden
-            />
-            <div className="cv-paywall-overlay absolute inset-x-0 top-1/2 bottom-0 z-30 flex items-center justify-center px-4">
-              <div className="w-full max-w-[220px]">
-                <PaymentSection
-                  variant="overlay"
-                  compact
-                  isPaid={isPaid}
-                  onPaymentSuccess={handlePaymentSuccess}
-                />
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-
-      <div className="mt-3 flex items-center justify-center">
-        <Link
-          href={cvId ? `/create?edit=${cvId}` : "/create"}
-          className="text-xs font-semibold text-[#378ADD] hover:underline sm:text-sm"
-        >
-          تعديل البيانات
-        </Link>
+        <PaymentSection
+          variant="preview"
+          isPaid={isPaid}
+          onPaymentSuccess={handlePaymentSuccess}
+          editHref={editHref}
+        />
       </div>
     </div>
   );
