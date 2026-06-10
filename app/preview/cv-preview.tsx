@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import LoadingSpinner from "@/app/components/loading-spinner";
-import { downloadCvAsPdf, downloadCvAsWord } from "@/lib/cv-export";
 import {
   CURRENT_CV_ID_KEY,
   STORAGE_KEY,
@@ -18,14 +17,13 @@ import {
   markPaymentComplete,
   type PlanId,
 } from "@/lib/payment";
-import AtsScoreChecker from "./ats-score-checker";
 import EnglishCvTemplate from "./english-cv-template";
 import PaymentSection from "./payment-section";
 
 function BlueCheckIcon() {
   return (
     <svg
-      className="h-5 w-5 shrink-0 text-[#378ADD]"
+      className="h-4 w-4 shrink-0 text-[#378ADD]"
       viewBox="0 0 20 20"
       fill="currentColor"
       aria-hidden
@@ -62,8 +60,7 @@ export default function CvPreview() {
           if (parsed?.content && typeof parsed.content === "object") {
             loadedCv = parsed;
           }
-        } catch (parseError) {
-          console.error("[preview] sessionStorage parse failed:", parseError);
+        } catch {
           sessionStorage.removeItem(STORAGE_KEY);
         }
       }
@@ -128,12 +125,6 @@ export default function CvPreview() {
     [cvId]
   );
 
-  const handleDownloadBoth = () => {
-    if (!cv || !isPaid) return;
-    downloadCvAsPdf(cv);
-    window.setTimeout(() => downloadCvAsWord(cv), 600);
-  };
-
   if (loading) {
     return <LoadingSpinner label="جاري تحميل السيرة الذاتية..." size="lg" />;
   }
@@ -141,104 +132,52 @@ export default function CvPreview() {
   if (!cv) return null;
 
   return (
-    <div className="animate-fade-in">
-      <div className="mb-8 text-center print:hidden">
-        <h1 className="text-2xl font-extrabold text-slate-900 sm:text-3xl">
-          معاينة السيرة الذاتية
-        </h1>
-        {cv.aiEnhanced && (
-          <div className="mt-3 flex items-center justify-center gap-1.5">
-            <BlueCheckIcon />
-            <span className="text-sm font-semibold text-[#378ADD]">
-              تم التحسين بالذكاء الاصطناعي
-            </span>
-          </div>
-        )}
-        <p className="mt-3 text-sm text-slate-600 sm:text-base">
-          سيرة ذاتية احترافية لـ{" "}
-          <span className="font-semibold text-[#378ADD]">{cv.name}</span>
-        </p>
-      </div>
-
-      <div className="mb-6 space-y-4 print:hidden">
-        <AtsScoreChecker cv={cv} cvId={cvId} isPaid={isPaid} />
-
-        {isPaid && (
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-center">
-            <p className="text-sm font-bold text-emerald-800">
-              تم الدفع بنجاح! يمكنك الآن تحميل نسختيك بالعربي والإنجليزي.
-            </p>
-          </div>
-        )}
-      </div>
+    <div className="animate-fade-in flex flex-col items-center print:hidden">
+      {cv.aiEnhanced && (
+        <div className="mb-3 flex items-center justify-center gap-1.5">
+          <BlueCheckIcon />
+          <span className="text-xs font-semibold text-[#378ADD] sm:text-sm">
+            تم التحسين بالذكاء الاصطناعي
+          </span>
+        </div>
+      )}
 
       <div
-        className={`cv-preview relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-lg shadow-slate-200/60 sm:p-8 md:p-10 ${
+        className={`cv-preview-compact relative mx-auto h-[300px] max-h-[300px] w-full max-w-sm overflow-hidden rounded-xl border border-slate-200 bg-white shadow-md ${
           isPaid ? "cv-paid" : "cv-locked"
         }`}
       >
-        {!isPaid && (
-          <div
-            className="cv-watermark pointer-events-none absolute inset-0 z-10 flex items-center justify-center print:hidden"
-            aria-hidden
-          >
-            <span className="rotate-[-35deg] select-none whitespace-nowrap text-2xl font-extrabold text-slate-400/25 sm:text-4xl md:text-5xl">
-              CVfy - نموذج مجاني
-            </span>
-          </div>
-        )}
-
-        <div className="relative z-0">
+        <div className="absolute left-1/2 top-0 w-[200%] -translate-x-1/2 origin-top scale-50">
           <EnglishCvTemplate cv={cv} />
-
-          {!isPaid && (
-            <>
-              <div
-                className="cv-paywall-blur pointer-events-none absolute inset-x-0 top-1/2 bottom-0 z-20 print:hidden"
-                aria-hidden
-              />
-              <div className="cv-paywall-overlay absolute inset-x-0 top-1/2 bottom-0 z-30 flex flex-col items-center justify-end px-4 pb-6 pt-16 sm:px-8 sm:pb-8 print:hidden">
-                <div className="w-full max-w-md text-center">
-                  <div className="mb-3 text-4xl" aria-hidden>
-                    🔒
-                  </div>
-                  <p className="mb-5 text-sm font-semibold leading-relaxed text-slate-800 sm:text-base">
-                    للوصول إلى السيرة الذاتية ونتيجة فحص الـ ATS — ادفع 99 ر.س
-                  </p>
-                  <PaymentSection
-                    variant="overlay"
-                    isPaid={isPaid}
-                    onPaymentSuccess={handlePaymentSuccess}
-                  />
-                </div>
-              </div>
-            </>
-          )}
         </div>
+
+        {!isPaid && (
+          <>
+            <div
+              className="cv-paywall-blur pointer-events-none absolute inset-x-0 top-1/2 bottom-0 z-20"
+              aria-hidden
+            />
+            <div className="cv-paywall-overlay absolute inset-x-0 top-1/2 bottom-0 z-30 flex items-center justify-center px-4">
+              <div className="w-full max-w-[220px]">
+                <PaymentSection
+                  variant="overlay"
+                  compact
+                  isPaid={isPaid}
+                  onPaymentSuccess={handlePaymentSuccess}
+                />
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
-      <div className="mt-8 flex flex-col items-center gap-4 print:hidden">
-        <div className="flex w-full max-w-lg flex-col items-center gap-3 sm:flex-row sm:justify-center">
-          <Link
-            href={cvId ? `/create?edit=${cvId}` : "/create"}
-            className="w-full rounded-full border-2 border-[#378ADD] px-6 py-3 text-center text-sm font-semibold text-[#378ADD] transition-colors hover:bg-[#e8f2fc] sm:w-auto"
-          >
-            تعديل البيانات
-          </Link>
-          <button
-            type="button"
-            onClick={handleDownloadBoth}
-            disabled={!isPaid}
-            className="w-full rounded-full bg-[#378ADD] px-6 py-3 text-sm font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-          >
-            {isPaid ? "تحميل PDF و Word" : "تحميل PDF و Word (يتطلب الدفع)"}
-          </button>
-        </div>
-        {!isPaid && (
-          <p className="text-center text-xs text-slate-500">
-            أكمل الدفع أعلاه لإزالة العلامة المائية وتحميل السيرة الذاتية
-          </p>
-        )}
+      <div className="mt-3 flex items-center justify-center">
+        <Link
+          href={cvId ? `/create?edit=${cvId}` : "/create"}
+          className="text-xs font-semibold text-[#378ADD] hover:underline sm:text-sm"
+        >
+          تعديل البيانات
+        </Link>
       </div>
     </div>
   );

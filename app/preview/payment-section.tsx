@@ -18,12 +18,14 @@ type PaymentSectionProps = {
   onPaymentSuccess: (planId: PlanId) => void;
   isPaid: boolean;
   variant?: "default" | "overlay";
+  compact?: boolean;
 };
 
 export default function PaymentSection({
   onPaymentSuccess,
   isPaid,
   variant = "default",
+  compact = false,
 }: PaymentSectionProps) {
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
@@ -72,18 +74,20 @@ export default function PaymentSection({
     );
   }
 
+  const buttonClass = compact
+    ? "flex w-full items-center justify-center rounded-lg bg-[#378ADD] px-4 py-2 text-xs font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8]"
+    : "flex w-full items-center justify-center gap-2 rounded-xl bg-[#378ADD] px-6 py-3.5 text-sm font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8]";
+
   const payButton = !showPaymentForm ? (
-    <button
-      type="button"
-      onClick={handlePay}
-      className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#378ADD] px-6 py-3.5 text-sm font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8]"
-    >
+    <button type="button" onClick={handlePay} className={buttonClass}>
       ادفع {plan.price} ر.س وحمّل النسختين
     </button>
   ) : (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between rounded-xl bg-[#e8f2fc] px-4 py-3">
-        <p className="text-sm font-semibold text-[#378ADD]">
+    <div className={compact ? "space-y-2" : "space-y-4"}>
+      <div
+        className={`flex items-center justify-between rounded-xl bg-[#e8f2fc] ${compact ? "px-3 py-2" : "px-4 py-3"}`}
+      >
+        <p className={`font-semibold text-[#378ADD] ${compact ? "text-xs" : "text-sm"}`}>
           {plan.title} — {plan.price} ر.س
         </p>
         <button

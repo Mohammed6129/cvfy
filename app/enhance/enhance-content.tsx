@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import CvWritingLoader from "@/app/components/cv-writing-loader";
+import CvLaptopLoader from "@/app/components/cv-laptop-loader";
 import LoadingSpinner from "@/app/components/loading-spinner";
 import {
   CURRENT_CV_ID_KEY,
@@ -178,7 +178,7 @@ export default function EnhanceContent({ userName }: EnhanceContentProps) {
   }
 
   if (enhancing) {
-    return <CvWritingLoader mode="enhance" />;
+    return <CvLaptopLoader mode="enhance" />;
   }
 
   return (

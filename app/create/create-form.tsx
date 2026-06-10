@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import CvWritingLoader from "@/app/components/cv-writing-loader";
+import CvLaptopLoader from "@/app/components/cv-laptop-loader";
 import LoadingSpinner from "@/app/components/loading-spinner";
 import CvUpload from "./cv-upload";
 import {
@@ -379,7 +379,7 @@ export default function CreateForm() {
   if (loadingForm) return <LoadingSpinner label="جاري تحميل بيانات السيرة..." />;
 
   if (generating) {
-    return <CvWritingLoader mode="generate" />;
+    return <CvLaptopLoader mode="generate" />;
   }
 
   const availableSuggestions = SUGGESTED_SKILLS.filter(
