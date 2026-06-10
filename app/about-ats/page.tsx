@@ -5,50 +5,48 @@ import Footer from "@/app/components/Footer";
 
 export const metadata: Metadata = {
   title: "ما هو ATS؟ — CVfy",
-  description: "شرح مبسط لنظام ATS ولماذا سيرتك الذاتية الاحترافية بالأبيض والأسود أفضل.",
+  description:
+    "شرح مبسط لنظام ATS ولماذا سيرتك الذاتية الاحترافية بالأبيض والأسود أفضل.",
 };
+
+const BW_REASONS = [
+  "الصندوق الذكي يقرأ النص فقط — لا يفهم الألوان والتصاميم",
+  "السيرة الرسمية (Times New Roman، أبيض وأسود) أوضح للقراءة",
+  "الشركات والجهات تفضّل النسخة الإنجليزية الاحترافية",
+];
 
 export default function AboutAtsPage() {
   return (
     <div className="flex flex-1 flex-col bg-white">
       <Navbar />
-      <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
+      <main className="mx-auto w-full max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
         <h1 className="mb-6 text-3xl font-extrabold text-slate-900 sm:text-4xl">
           ما هو <span className="text-[#378ADD]">ATS</span>؟
         </h1>
 
-        <div className="space-y-6 text-base leading-8 text-slate-700">
-          <p>
-            تخيّل أن عند الشركة صندوق ذكي يقرأ آلاف السير الذاتية بسرعة البرق.
-            هذا الصندوق اسمه <strong>ATS</strong> — نظام تتبع المتقدمين.
-          </p>
-          <p>
-            لما ترسل سيرتك، الصندوق يبحث عن كلمات مهمة: مسمّاك الوظيفي، خبراتك،
-            تواريخك، مهاراتك. إذا كانت سيرتك واضحة ومنظمة، الصندوق يقول: «هذا
-            مرشح مناسب!» ويرفعها للموظف البشري.
-          </p>
-          <p>
-            إذا كانت سيرتك ملونة وفوضوية أو ناقصة التواريخ، الصندوق قد لا يفهمها
-            ويتجاهلها — حتى لو أنت مؤهل!
-          </p>
+        <p className="mb-10 text-base leading-8 text-slate-600">
+          تخيّل صندوقاً ذكياً عند الشركة يقرأ آلاف السير بسرعة. يبحث عن كلمات
+          مثل مسمّاك الوظيفي وتواريخك ومهاراتك. إذا فهم سيرتك، يرفعها للموظف.
+          إذا ما فهمها — قد تُتجاهل حتى لو أنت مؤهل!
+        </p>
 
-          <h2 className="pt-4 text-xl font-extrabold text-slate-900">
+        <div className="rounded-2xl border border-slate-100 bg-slate-50 p-6 sm:p-8">
+          <h2 className="mb-4 text-xl font-extrabold text-slate-900 sm:text-2xl">
             لماذا السيرة بالأبيض والأسود أفضل؟
           </h2>
-          <p>
-            السيرة الاحترافية الرسمية (أبيض وأسود، خط Times New Roman، بدون صور
-            أو ألوان) مثل الورقة الرسمية في المدرسة — واضحة، نظيفة، وسهلة القراءة
-            للصندوق الذكي وللموظف البشري.
-          </p>
-          <p>
-            السيرة الملونة والمزخرفة قد تبدو جميلة للعين، لكن الصندوق الذكي لا
-            «يشوف» الجمال — يقرأ النص فقط. كلما كانت أبسط وأوضح، كلما زادت فرصتك.
-          </p>
+          <ul className="space-y-3 text-sm leading-relaxed text-slate-700 sm:text-base">
+            {BW_REASONS.map((reason) => (
+              <li key={reason} className="flex gap-2">
+                <span className="shrink-0 font-bold text-[#378ADD]">✓</span>
+                <span>{reason}</span>
+              </li>
+            ))}
+          </ul>
         </div>
 
         <Link
           href="/create"
-          className="mt-10 inline-block rounded-full bg-[#378ADD] px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-[#378ADD]/25 hover:bg-[#2a6bb8]"
+          className="mt-10 inline-block rounded-full bg-[#378ADD] px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8]"
         >
           ابدأ الآن
         </Link>

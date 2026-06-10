@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import CustomerJourney from "./components/CustomerJourney";
-import Features from "./components/Features";
-import AtsEducation from "./components/AtsEducation";
 import Footer from "./components/Footer";
 
 export const metadata: Metadata = {
@@ -27,8 +25,6 @@ export default function Home() {
         <div id="journey">
           <CustomerJourney />
         </div>
-        <Features />
-        <AtsEducation />
       </main>
       <Footer />
     </div>
