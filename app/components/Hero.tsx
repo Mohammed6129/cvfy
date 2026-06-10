@@ -151,8 +151,8 @@ export default function Hero() {
             className="mb-4 leading-tight text-[#0C447C]"
             style={{ fontSize: "36px", fontWeight: 800 }}
           >
-            سيرتك تفتح الأبواب —
-            <span className="block text-[#378ADD]">نحن نبنيها لك</span>
+            سيرة تليق بطموحك —
+            <span className="block text-[#378ADD]">نبنيها لك في دقائق</span>
           </h1>
 
           <p className="mb-6 max-w-lg text-sm leading-relaxed text-[#555]">
@@ -179,16 +179,9 @@ export default function Hero() {
             <span>سيرة ذاتية أنجزناها — والعدد يكبر كل يوم</span>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div>
-              <p className="text-xl font-bold text-[#378ADD]">48%</p>
-              <p className="text-[10px] text-[#555]">أكثر حظاً في الحصول على مقابلة</p>
-            </div>
-            <div className="h-8 w-px shrink-0 bg-[#D8EAF8]" aria-hidden />
-            <div>
-              <p className="text-xl font-bold text-[#D97706]">{SINGLE_PLAN.price} ر.س</p>
-              <p className="text-[10px] text-[#555]">نسختان + ATS + Word و PDF</p>
-            </div>
+          <div>
+            <p className="text-xl font-bold text-[#378ADD]">48%</p>
+            <p className="text-[10px] text-[#555]">أكثر حظاً في الحصول على مقابلة</p>
           </div>
         </div>
 
