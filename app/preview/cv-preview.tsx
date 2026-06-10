@@ -9,7 +9,7 @@ import {
   loadCvFromAccount,
   recordPayment,
 } from "@/lib/cv-storage";
-import type { GeneratedCv } from "@/lib/cv-types";
+import type { AtsScoreResult, GeneratedCv } from "@/lib/cv-types";
 import {
   PENDING_PLAN_KEY,
   isPaymentComplete,
@@ -68,6 +68,7 @@ export default function CvPreview() {
   const [loading, setLoading] = useState(true);
   const [isPaid, setIsPaid] = useState(false);
   const [isTestUser, setIsTestUser] = useState(false);
+  const [atsResult, setAtsResult] = useState<AtsScoreResult | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -107,6 +108,7 @@ export default function CvPreview() {
         loadedCv = accountData.cv;
         loadedId = accountData.id;
         if (accountData.isPaid) setIsPaid(true);
+        if (accountData.atsResult) setAtsResult(accountData.atsResult);
         sessionStorage.setItem(STORAGE_KEY, JSON.stringify(loadedCv));
         sessionStorage.setItem(CURRENT_CV_ID_KEY, loadedId);
       }
@@ -182,6 +184,9 @@ export default function CvPreview() {
           isPaid={isPaid}
           isTestUser={isTestUser}
           cv={cv}
+          cvId={cvId}
+          atsResult={atsResult}
+          onAtsResult={setAtsResult}
           onPaymentSuccess={handlePaymentSuccess}
           editHref={editHref}
         />

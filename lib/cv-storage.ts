@@ -98,7 +98,13 @@ export async function saveCvToAccount(
 
 export async function loadCvFromAccount(
   cvId?: string | null
-): Promise<{ cv: GeneratedCv; id: string; isPaid: boolean; formData: CvFormData | null } | null> {
+): Promise<{
+  cv: GeneratedCv;
+  id: string;
+  isPaid: boolean;
+  formData: CvFormData | null;
+  atsResult: AtsScoreResult | null;
+} | null> {
   try {
     const query = cvId ? `?id=${encodeURIComponent(cvId)}` : "";
     const response = await fetch(`/api/cvs${query}`, {
@@ -123,6 +129,7 @@ export async function loadCvFromAccount(
       id?: string;
       isPaid?: boolean;
       formData?: CvFormData | null;
+      atsResult?: AtsScoreResult | null;
     };
 
     try {
@@ -142,6 +149,7 @@ export async function loadCvFromAccount(
       id: data.id,
       isPaid: Boolean(data.isPaid),
       formData: data.formData ?? null,
+      atsResult: data.atsResult ?? null,
     };
   } catch (error) {
     console.error("[cv-storage] load failed:", error);

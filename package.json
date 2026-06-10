@@ -6,13 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "create-test-user": "npx ts-node -P scripts/tsconfig.json scripts/create-test-user.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.102.0",
+    "@napi-rs/canvas": "^0.1.80",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.107.0",
-    "@napi-rs/canvas": "^0.1.80",
+    "html2pdf.js": "^0.14.0",
     "mammoth": "^1.12.0",
     "next": "16.2.7",
     "pdf-parse": "^2.4.5",

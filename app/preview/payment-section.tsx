@@ -8,8 +8,14 @@ import {
   loadMoyasarAssets,
 } from "@/lib/moyasar";
 import MoyasarPaymentForm from "./moyasar-payment-form";
-import type { GeneratedCv } from "@/lib/cv-types";
-import { downloadCvAsPdf, downloadCvAsWord } from "@/lib/cv-export";
+import type { AtsScoreResult, GeneratedCv } from "@/lib/cv-types";
+import { saveAtsResult } from "@/lib/cv-storage";
+import {
+  downloadAtsReportPdf,
+  downloadCvAsPdf,
+  downloadCvAsWord,
+  fetchAtsResult,
+} from "@/lib/cv-export";
 import {
   PENDING_PLAN_KEY,
   SINGLE_PLAN,
@@ -25,7 +31,12 @@ type PaymentSectionProps = {
   editHref?: string;
   isTestUser?: boolean;
   cv?: GeneratedCv | null;
+  cvId?: string | null;
+  atsResult?: AtsScoreResult | null;
+  onAtsResult?: (result: AtsScoreResult) => void;
 };
+
+type DownloadKind = "pdf" | "word" | "ats" | null;
 
 function StarIcon({ size = 20 }: { size?: number }) {
   return (
@@ -171,31 +182,105 @@ function PreviewPriceCard() {
 
 function TestModePanel({
   cv,
+  cvId,
+  atsResult,
+  onAtsResult,
   editHref,
 }: {
   cv: GeneratedCv | null | undefined;
+  cvId?: string | null;
+  atsResult?: AtsScoreResult | null;
+  onAtsResult?: (result: AtsScoreResult) => void;
   editHref: string;
 }) {
-  const handleDownload = () => {
+  const [downloading, setDownloading] = useState<DownloadKind>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleCvPdf = async () => {
     if (!cv) return;
-    downloadCvAsPdf(cv);
-    downloadCvAsWord(cv);
+    setDownloading("pdf");
+    setError(null);
+    try {
+      await downloadCvAsPdf(cv);
+    } catch {
+      setError("تعذر تحميل ملف PDF للسيرة.");
+    } finally {
+      setDownloading(null);
+    }
   };
 
+  const handleCvWord = () => {
+    if (!cv) return;
+    setError(null);
+    try {
+      downloadCvAsWord(cv);
+    } catch {
+      setError("تعذر تحميل ملف Word للسيرة.");
+    }
+  };
+
+  const handleAtsPdf = async () => {
+    if (!cv) return;
+    setDownloading("ats");
+    setError(null);
+    try {
+      let result = atsResult;
+      if (!result) {
+        result = await fetchAtsResult(cv);
+        onAtsResult?.(result);
+        if (cvId) {
+          void saveAtsResult(cvId, result);
+        }
+      }
+      await downloadAtsReportPdf(cv, result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "تعذر تحميل تقرير ATS.");
+    } finally {
+      setDownloading(null);
+    }
+  };
+
+  const buttonClass =
+    "flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#378ADD] px-4 py-3 text-sm font-extrabold text-white transition-colors hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-60";
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       <div className="rounded-[20px] border border-[#C0DD97] bg-[#EAF3DE] p-4 text-center">
         <p className="text-sm font-bold text-[#27500A]">وضع تجريبي — تجاوز الدفع مفعّل</p>
       </div>
 
       <button
         type="button"
-        onClick={handleDownload}
-        disabled={!cv}
-        className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#378ADD] px-4 py-[15px] text-[15px] font-extrabold text-white transition-colors hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-60"
+        onClick={() => void handleCvPdf()}
+        disabled={!cv || downloading !== null}
+        className={buttonClass}
       >
-        تحميل (وضع تجريبي)
+        {downloading === "pdf" ? "جاري التحميل..." : "تحميل السيرة PDF"}
       </button>
+
+      <button
+        type="button"
+        onClick={handleCvWord}
+        disabled={!cv || downloading !== null}
+        className={buttonClass}
+      >
+        تحميل السيرة Word
+      </button>
+
+      <button
+        type="button"
+        onClick={() => void handleAtsPdf()}
+        disabled={!cv || downloading !== null}
+        className={buttonClass}
+      >
+        {downloading === "ats" ? "جاري إنشاء التقرير..." : "تحميل تقرير ATS"}
+      </button>
+
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-xs text-red-700">
+          {error}
+        </div>
+      )}
 
       <Link href={editHref} className="text-center text-xs text-[#378ADD] underline">
         تعديل البيانات
@@ -212,6 +297,9 @@ export default function PaymentSection({
   editHref = "/create",
   isTestUser = false,
   cv = null,
+  cvId = null,
+  atsResult = null,
+  onAtsResult,
 }: PaymentSectionProps) {
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
@@ -242,7 +330,15 @@ export default function PaymentSection({
   };
 
   if (isTestUser && variant === "preview") {
-    return <TestModePanel cv={cv} editHref={editHref} />;
+    return (
+      <TestModePanel
+        cv={cv}
+        cvId={cvId}
+        atsResult={atsResult}
+        onAtsResult={onAtsResult}
+        editHref={editHref}
+      />
+    );
   }
 
   if (isPaid || paymentSuccess) {

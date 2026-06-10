@@ -1,6 +1,11 @@
-import type { GeneratedCv } from "@/lib/cv-types";
+import type { AtsScoreResult, GeneratedCv } from "@/lib/cv-types";
 
 const CV_FONT = '"Times New Roman", Times, serif';
+const PDF_UI_FONT = '"Segoe UI", Tahoma, Arial, sans-serif';
+
+function sanitizeFilename(name: string): string {
+  return name.replace(/\s+/g, "_").replace(/[^\w\u0600-\u06FF._-]/g, "") || "CVfy";
+}
 
 function escapeHtml(text: string): string {
   return text
@@ -10,8 +15,48 @@ function escapeHtml(text: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function buildCvHtml(cv: GeneratedCv): string {
-  const { content } = cv;
+function triggerBlobDownload(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function downloadHtmlAsPdf(html: string, filename: string): Promise<void> {
+  const html2pdf = (await import("html2pdf.js")).default;
+
+  const container = document.createElement("div");
+  container.style.position = "fixed";
+  container.style.left = "-10000px";
+  container.style.top = "0";
+  container.style.width = "794px";
+  container.innerHTML = html;
+  document.body.appendChild(container);
+
+  try {
+    const worker = html2pdf()
+      .set({
+        margin: [12, 12, 12, 12],
+        filename,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      })
+      .from(container);
+
+    const pdfBlob: Blob = await worker.outputPdf("blob");
+    triggerBlobDownload(pdfBlob, filename);
+  } finally {
+    document.body.removeChild(container);
+  }
+}
+
+export function buildCvHtml(cv: GeneratedCv): string {
+  const content = cv.contentEn ?? cv.content;
 
   const section = (title: string, body: string) =>
     body
@@ -80,33 +125,107 @@ function buildCvHtml(cv: GeneratedCv): string {
 </html>`;
 }
 
+export function buildAtsReportHtml(cv: GeneratedCv, result: AtsScoreResult): string {
+  const keywordsCategory = result.categories.find((c) => c.name.includes("الكلمات"));
+  const keywordsFromCv = (cv.contentEn ?? cv.content).skills.slice(0, 12);
+  const keywordsText =
+    keywordsCategory?.note ||
+    (keywordsFromCv.length > 0 ? keywordsFromCv.join("، ") : "—");
+
+  const passedList = result.passed
+    .map((item) => `<li style="margin-bottom:6px;">${escapeHtml(item)}</li>`)
+    .join("");
+
+  const improvementsList = result.improvements
+    .map((item) => `<li style="margin-bottom:6px;">${escapeHtml(item)}</li>`)
+    .join("");
+
+  const categories = result.categories
+    .map(
+      (cat) => `
+      <div style="margin-bottom:10px;padding:10px;border:1px solid #E6F1FB;border-radius:8px;">
+        <p style="margin:0 0 4px;font-weight:700;color:#0C447C;">${escapeHtml(cat.name)} — ${cat.score}/${cat.maxScore}</p>
+        <p style="margin:0;color:#555;font-size:13px;">${escapeHtml(cat.note)}</p>
+      </div>`
+    )
+    .join("");
+
+  return `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>تقرير ATS - ${escapeHtml(cv.name)}</title>
+  <style>
+    body { font-family: ${PDF_UI_FONT}; color: #111; background: #fff; padding: 28px; }
+    h1 { color: #0C447C; margin: 0 0 8px; font-size: 24px; }
+    h2 { color: #378ADD; margin: 20px 0 10px; font-size: 16px; border-bottom: 1px solid #E6F1FB; padding-bottom: 6px; }
+    .score { font-size: 42px; font-weight: 800; color: #378ADD; margin: 12px 0; }
+  </style>
+</head>
+<body>
+  <h1>تقرير فحص ATS — CVfy</h1>
+  <p style="margin:0;color:#555;">الاسم: <strong>${escapeHtml(cv.name)}</strong></p>
+  <div class="score">${result.score}%</div>
+  <p style="line-height:1.7;color:#333;">${escapeHtml(result.summary)}</p>
+
+  <h2>الكلمات المفتاحية المكتشفة</h2>
+  <p style="line-height:1.7;color:#333;">${escapeHtml(keywordsText)}</p>
+
+  <h2>نقاط القوة</h2>
+  <ul style="padding-right:20px;color:#333;">${passedList}</ul>
+
+  <h2>التوصيات</h2>
+  <ul style="padding-right:20px;color:#333;">${improvementsList}</ul>
+
+  <h2>تفاصيل التقييم</h2>
+  ${categories}
+</body>
+</html>`;
+}
+
+export async function downloadCvAsPdf(cv: GeneratedCv): Promise<void> {
+  const html = buildCvHtml(cv);
+  await downloadHtmlAsPdf(html, `${sanitizeFilename(cv.name)}_CV.pdf`);
+}
+
 export function downloadCvAsWord(cv: GeneratedCv): void {
   const html = buildCvHtml(cv);
   const blob = new Blob([`\ufeff${html}`], {
     type: "application/msword;charset=utf-8",
   });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `${cv.name.replace(/\s+/g, "_")}_CV.doc`;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
+  triggerBlobDownload(blob, `${sanitizeFilename(cv.name)}_CV.doc`);
 }
 
-export function downloadCvAsPdf(cv: GeneratedCv): void {
-  const printWindow = window.open("", "_blank", "noopener,noreferrer");
-  if (!printWindow) {
-    window.print();
-    return;
+export async function downloadAtsReportPdf(
+  cv: GeneratedCv,
+  result: AtsScoreResult
+): Promise<void> {
+  const html = buildAtsReportHtml(cv, result);
+  await downloadHtmlAsPdf(html, `${sanitizeFilename(cv.name)}_ATS_Report.pdf`);
+}
+
+export async function fetchAtsResult(cv: GeneratedCv): Promise<AtsScoreResult> {
+  const response = await fetch("/api/ats-check", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(cv),
+  });
+
+  const text = await response.text();
+  let data: AtsScoreResult & { error?: string };
+
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error("استجابة غير صالحة من الخادم.");
   }
 
-  printWindow.document.write(buildCvHtml(cv));
-  printWindow.document.close();
-  printWindow.focus();
-  printWindow.onload = () => {
-    printWindow.print();
-    printWindow.close();
-  };
+  if (!response.ok) {
+    throw new Error(data.error || "تعذر إنشاء تقرير ATS.");
+  }
+
+  return data;
 }
