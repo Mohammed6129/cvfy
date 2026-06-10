@@ -5,36 +5,22 @@ type BrandLogoProps = {
   asLink?: boolean;
 };
 
-export function PaperIcon({ className = "" }: { className?: string }) {
+export function LogoIcon({ className = "" }: { className?: string }) {
   return (
     <svg
       className={`shrink-0 ${className}`}
-      width="36"
-      height="44"
-      viewBox="0 0 36 44"
+      width="32"
+      height="38"
+      viewBox="0 0 32 38"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden
     >
-      <path
-        d="M3 3H22L32 13V41H3V3Z"
-        fill="white"
-        stroke="#378ADD"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M22 3H32V13L22 13V3Z"
-        fill="white"
-        stroke="#378ADD"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-      <path d="M22 3V13H32" stroke="#378ADD" strokeWidth="1.5" strokeLinejoin="round" />
-      <line x1="7" y1="18" x2="27" y2="18" stroke="#378ADD" strokeWidth="1.2" strokeOpacity="0.4" />
-      <line x1="7" y1="23" x2="24" y2="23" stroke="#378ADD" strokeWidth="1.2" strokeOpacity="0.4" />
-      <line x1="7" y1="28" x2="27" y2="28" stroke="#378ADD" strokeWidth="1.2" strokeOpacity="0.4" />
-      <line x1="7" y1="33" x2="20" y2="33" stroke="#378ADD" strokeWidth="1.2" strokeOpacity="0.4" />
+      <rect x="1" y="1" width="30" height="36" rx="4" fill="#378ADD" />
+      <line x1="6" y1="10" x2="26" y2="10" stroke="white" strokeWidth="1.5" strokeOpacity="0.9" />
+      <line x1="6" y1="15" x2="22" y2="15" stroke="white" strokeWidth="1.5" strokeOpacity="0.75" />
+      <line x1="6" y1="20" x2="26" y2="20" stroke="white" strokeWidth="1.5" strokeOpacity="0.75" />
+      <line x1="6" y1="25" x2="18" y2="25" stroke="white" strokeWidth="1.5" strokeOpacity="0.6" />
     </svg>
   );
 }
@@ -42,34 +28,27 @@ export function PaperIcon({ className = "" }: { className?: string }) {
 export default function BrandLogo({ className = "", asLink = true }: BrandLogoProps) {
   const content = (
     <>
-      <PaperIcon />
+      <LogoIcon />
       <div className="flex flex-col gap-0.5">
-        <span
-          className="text-2xl font-bold leading-none tracking-tight text-[#378ADD]"
-          style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
-        >
-          CVfy
+        <span className="text-xl font-bold leading-none tracking-tight">
+          <span className="text-[#0C447C]">CV</span>
+          <span className="text-[#378ADD]">fy</span>
         </span>
-        <span className="text-xs font-medium text-slate-500 transition-colors group-hover:text-[#378ADD]">
-          هويتك المهنية
-        </span>
+        <span className="text-[11px] font-medium text-slate-500">هويتك المهنية</span>
       </div>
     </>
   );
 
   if (!asLink) {
     return (
-      <span className={`inline-flex shrink-0 items-center gap-2.5 ${className}`}>
+      <span className={`inline-flex shrink-0 items-center gap-2 ${className}`}>
         {content}
       </span>
     );
   }
 
   return (
-    <Link
-      href="/"
-      className={`group inline-flex shrink-0 items-center gap-2.5 ${className}`}
-    >
+    <Link href="/" className={`group inline-flex shrink-0 items-center gap-2 ${className}`}>
       {content}
     </Link>
   );

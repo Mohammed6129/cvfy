@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
+import HeroLiveBar from "./components/hero-live-bar";
 import CustomerJourney from "./components/CustomerJourney";
 import Footer from "./components/Footer";
 
@@ -22,6 +23,7 @@ export default function Home() {
       <Navbar />
       <main className="bg-white">
         <Hero />
+        <HeroLiveBar />
         <div id="journey">
           <CustomerJourney />
         </div>
