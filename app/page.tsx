@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
+import HomeStatsBar from "./components/home-stats-bar";
 import CustomerJourney from "./components/CustomerJourney";
 import HomeFeatures from "./components/home-features";
-import HomeReviews from "./components/home-reviews";
+import HomeTrustSection from "./components/home-trust-section";
 import HomeCta from "./components/home-cta";
 import HeroLiveBar from "./components/hero-live-bar";
 
@@ -25,9 +26,12 @@ export default function Home() {
       <Navbar />
       <main className="bg-white">
         <Hero />
+        <div className="py-8 md:py-10">
+          <HomeStatsBar />
+        </div>
         <CustomerJourney />
         <HomeFeatures />
-        <HomeReviews />
+        <HomeTrustSection />
         <HomeCta />
         <HeroLiveBar />
       </main>

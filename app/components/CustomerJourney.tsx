@@ -2,7 +2,7 @@ const STEPS = [
   {
     num: "01",
     title: "تعبئة الفورم",
-    desc: "أدخل بياناتك بأسلوبك العادي — بدون تعقيد أو تنسيق مسبق",
+    desc: "أدخل بياناتك بأسلوبك العادي — بدون تعقيد",
     iconBg: "#EAF3DE",
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden>
@@ -17,7 +17,7 @@ const STEPS = [
   {
     num: "02",
     title: "تحسين AI",
-    desc: "الذكاء الاصطناعي يصيغ خبراتك بلغة احترافية تناسب سوق العمل",
+    desc: "الذكاء الاصطناعي يصيغ خبراتك بلغة احترافية",
     iconBg: "#E6F1FB",
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden>
@@ -30,7 +30,7 @@ const STEPS = [
   {
     num: "03",
     title: "فحص ATS",
-    desc: "نتحقق إن سيرتك تجتاز أنظمة الفرز الآلي وتوصل للمسؤولين",
+    desc: "نتحقق إن سيرتك تجتاز أنظمة الفرز الآلي",
     iconBg: "#EEEDFE",
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden>
@@ -42,7 +42,7 @@ const STEPS = [
   {
     num: "04",
     title: "التحميل",
-    desc: "نسختان جاهزتان — عربي وإنجليزي بصيغة PDF و Word فوراً",
+    desc: "نسختان جاهزتان — عربي وإنجليزي بصيغة PDF و Word",
     iconBg: "#FAEEDA",
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden>
@@ -55,8 +55,8 @@ const STEPS = [
 
 export default function CustomerJourney() {
   return (
-    <section id="journey" className="bg-white" dir="rtl">
-      <div className="mx-auto max-w-[1100px] px-6 py-16 md:px-12">
+    <section id="journey" className="bg-[#F8FBFF] px-6 py-12 md:px-12" dir="rtl">
+      <div className="mx-auto max-w-[1100px]">
         <div className="mb-10 text-center">
           <span className="mb-3 inline-block rounded-full bg-[#E6F1FB] px-3 py-1 text-xs font-semibold text-[#378ADD]">
             كيف يعمل CVfy؟
@@ -65,7 +65,7 @@ export default function CustomerJourney() {
             رحلتك مع <span className="text-[#378ADD]">CVfy</span>
           </h2>
           <p className="text-sm text-[#555]">
-            من الفورم إلى السيرة الجاهزة في خطوات بسيطة — بدون تعقيد
+            من الفورم إلى السيرة الجاهزة في خطوات بسيطة
           </p>
         </div>
 
@@ -73,7 +73,7 @@ export default function CustomerJourney() {
           {STEPS.map((step) => (
             <div
               key={step.num}
-              className="relative overflow-hidden rounded-2xl border border-[#EEF3FA] bg-[#F8FAFE] p-5"
+              className="relative overflow-hidden rounded-2xl border border-[#EEF3FA] bg-white p-5"
             >
               <span
                 className="pointer-events-none absolute -top-1 right-2 select-none text-[52px] font-extrabold leading-none text-[#EEF3FA]"
