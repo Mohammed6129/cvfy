@@ -2,6 +2,12 @@ import Image from "next/image";
 import { SINGLE_PLAN } from "@/lib/payment";
 import StartNowLink from "./start-now-link";
 
+const PAYMENT_ICONS = [
+  { src: "/payment-icons/visa.svg", alt: "Visa" },
+  { src: "/payment-icons/apple-pay.svg", alt: "Apple Pay" },
+  { src: "/payment-icons/mada.svg", alt: "mada" },
+];
+
 function PriceIllustration() {
   return (
     <svg width="50" height="50" viewBox="0 0 50 50" fill="none" aria-hidden className="shrink-0">
@@ -80,9 +86,7 @@ export default function Hero() {
       />
 
       <div className="relative z-10 mx-auto max-w-[460px] text-center">
-        <div
-          className="glass-surface mx-auto rounded-[28px] px-7 py-9 shadow-[0_8px_32px_rgba(0,0,0,0.1)]"
-        >
+        <div className="glass-surface mx-auto rounded-[28px] px-7 py-9 shadow-[0_8px_32px_rgba(0,0,0,0.1)]">
           <div className="glass-surface-sm mb-5 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold text-white">
             <Image
               src="/icons/saudi-flag.png"
@@ -99,8 +103,7 @@ export default function Hero() {
             className="mb-4 text-[28px] font-extrabold leading-tight text-white md:text-[34px]"
             style={{ textShadow: "0 2px 12px rgba(0,0,0,0.15)" }}
           >
-            سيرة تليق بطموحك —
-            <span className="mt-1 block text-[#FAC775]">نبنيها لك في دقائق</span>
+            سيرة تليق بطموحك
           </h1>
 
           <p className="mb-6 text-sm leading-relaxed text-white/85">
@@ -124,6 +127,23 @@ export default function Hero() {
           <StartNowLink className="inline-flex items-center rounded-full bg-white px-[34px] py-3.5 text-sm font-extrabold text-[#0C447C] shadow-[0_4px_20px_rgba(255,255,255,0.3)] transition-opacity hover:opacity-95">
             ابدأ الآن ←
           </StartNowLink>
+
+          <div className="mt-4 flex items-center justify-center gap-2.5">
+            {PAYMENT_ICONS.map((icon) => (
+              <div
+                key={icon.alt}
+                className="flex h-9 w-14 items-center justify-center rounded-lg bg-white p-1.5 shadow-[0_1px_4px_rgba(0,0,0,0.08)]"
+              >
+                <Image
+                  src={icon.src}
+                  alt={icon.alt}
+                  width={44}
+                  height={24}
+                  className="h-full w-full object-contain"
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

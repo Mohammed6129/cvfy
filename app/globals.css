@@ -523,6 +523,13 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.35);
 }
 
+.glass-feature-card {
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
 .glass-surface-nav {
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
@@ -543,7 +550,8 @@ body {
   .glass-surface-md,
   .glass-surface-lg,
   .glass-surface-nav,
-  .glass-surface-cta {
+  .glass-surface-cta,
+  .glass-feature-card {
     background: rgba(255, 255, 255, 0.25) !important;
   }
 }
