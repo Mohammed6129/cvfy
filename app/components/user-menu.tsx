@@ -9,6 +9,7 @@ import { CURRENT_CV_ID_KEY, STORAGE_KEY } from "@/lib/cv-storage";
 type UserMenuProps = {
   name: string;
   avatarUrl: string | null;
+  variant?: "default" | "glass";
 };
 
 function normalizeGoogleAvatarUrl(url: string): string {
@@ -18,7 +19,11 @@ function normalizeGoogleAvatarUrl(url: string): string {
   return url;
 }
 
-function UserAvatar({ name, avatarUrl }: UserMenuProps) {
+function UserAvatar({
+  name,
+  avatarUrl,
+  glass = false,
+}: UserMenuProps & { glass?: boolean }) {
   if (avatarUrl) {
     const src = normalizeGoogleAvatarUrl(avatarUrl);
     return (
@@ -27,20 +32,27 @@ function UserAvatar({ name, avatarUrl }: UserMenuProps) {
         alt={name}
         width={36}
         height={36}
-        className="h-9 w-9 rounded-full border-2 border-[#378ADD]/20 object-cover"
+        className={`h-9 w-9 rounded-full object-cover ${glass ? "border-2 border-white/35" : "border-2 border-[#378ADD]/20"}`}
         referrerPolicy="no-referrer"
       />
     );
   }
 
   return (
-    <span className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#378ADD]/20 bg-[#e8f2fc] text-sm font-bold text-[#378ADD]">
+    <span
+      className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold ${
+        glass
+          ? "border-2 border-white/35 bg-white/15 text-white"
+          : "border-2 border-[#378ADD]/20 bg-[#e8f2fc] text-[#378ADD]"
+      }`}
+    >
       {name.charAt(0).toUpperCase()}
     </span>
   );
 }
 
-export default function UserMenu({ name, avatarUrl }: UserMenuProps) {
+export default function UserMenu({ name, avatarUrl, variant = "default" }: UserMenuProps) {
+  const isGlass = variant === "glass";
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -72,16 +84,24 @@ export default function UserMenu({ name, avatarUrl }: UserMenuProps) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1.5 transition-colors hover:border-[#378ADD]/40 sm:px-3"
+        className={
+          isGlass
+            ? "glass-surface-cta flex items-center gap-2 rounded-full px-2 py-1.5 transition-opacity hover:opacity-90 sm:px-3"
+            : "flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1.5 transition-colors hover:border-[#378ADD]/40 sm:px-3"
+        }
         aria-expanded={open}
         aria-haspopup="menu"
       >
-        <UserAvatar name={name} avatarUrl={avatarUrl} />
-        <span className="hidden max-w-[100px] truncate text-sm font-semibold text-slate-700 md:inline">
+        <UserAvatar name={name} avatarUrl={avatarUrl} glass={isGlass} />
+        <span
+          className={`hidden max-w-[100px] truncate text-sm font-semibold md:inline ${
+            isGlass ? "text-white" : "text-slate-700"
+          }`}
+        >
           {name}
         </span>
         <svg
-          className={`h-4 w-4 text-slate-500 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""} ${isGlass ? "text-white/80" : "text-slate-500"}`}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"

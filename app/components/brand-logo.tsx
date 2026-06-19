@@ -3,6 +3,7 @@ import Link from "next/link";
 type BrandLogoProps = {
   className?: string;
   asLink?: boolean;
+  variant?: "default" | "glass";
 };
 
 export function LogoIcon({ className = "" }: { className?: string }) {
@@ -25,30 +26,44 @@ export function LogoIcon({ className = "" }: { className?: string }) {
   );
 }
 
-export default function BrandLogo({ className = "", asLink = true }: BrandLogoProps) {
+export default function BrandLogo({
+  className = "",
+  asLink = true,
+  variant = "default",
+}: BrandLogoProps) {
+  const isGlass = variant === "glass";
+
   const content = (
     <>
       <LogoIcon />
       <div className="flex flex-col gap-0.5">
         <span className="text-xl font-bold leading-none tracking-tight">
-          <span className="text-[#0C447C]">CV</span>
-          <span className="text-[#378ADD]">fy</span>
+          {isGlass ? (
+            <span className="text-white">CVfy</span>
+          ) : (
+            <>
+              <span className="text-[#0C447C]">CV</span>
+              <span className="text-[#378ADD]">fy</span>
+            </>
+          )}
         </span>
-        <span className="text-[11px] font-medium text-slate-500">هويتك المهنية</span>
+        <span className={`text-[11px] font-medium ${isGlass ? "text-white/70" : "text-slate-500"}`}>
+          هويتك المهنية
+        </span>
       </div>
     </>
   );
 
+  const wrapperClass = isGlass
+    ? `glass-surface-sm inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-2 ${className}`
+    : `inline-flex shrink-0 items-center gap-2 ${className}`;
+
   if (!asLink) {
-    return (
-      <span className={`inline-flex shrink-0 items-center gap-2 ${className}`}>
-        {content}
-      </span>
-    );
+    return <span className={wrapperClass}>{content}</span>;
   }
 
   return (
-    <Link href="/" className={`group inline-flex shrink-0 items-center gap-2 ${className}`}>
+    <Link href="/" className={`group ${wrapperClass}`}>
       {content}
     </Link>
   );

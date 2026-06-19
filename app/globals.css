@@ -489,6 +489,85 @@ body {
   pointer-events: auto;
 }
 
+/* Homepage glassmorphism */
+.home-glass-page {
+  background: linear-gradient(160deg, #08335e 0%, #0c447c 35%, #185fa5 70%, #2d7bcc 100%);
+  min-height: 100%;
+}
+
+.glass-surface {
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.glass-surface-sm {
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-surface-md {
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.glass-surface-lg {
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.glass-surface-nav {
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-surface-cta {
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .glass-surface,
+  .glass-surface-sm,
+  .glass-surface-md,
+  .glass-surface-lg,
+  .glass-surface-nav,
+  .glass-surface-cta {
+    background: rgba(255, 255, 255, 0.25) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .glass-surface {
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+
+  .glass-surface-lg {
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+}
+
+.hero-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(50px);
+  pointer-events: none;
+  z-index: 0;
+}
+
 /* Hide Moyasar branding */
 .mysr-form a[href*="moyasar.com"],
 #mysr a[href*="moyasar.com"] {

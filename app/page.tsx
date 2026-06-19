@@ -22,11 +22,11 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <div className="flex flex-1 flex-col bg-white pb-16 md:pb-0">
-      <Navbar />
-      <main className="bg-white">
+    <div className="home-glass-page flex flex-1 flex-col pb-16 md:pb-0">
+      <Navbar variant="glass" />
+      <main>
         <Hero />
-        <div className="py-8 md:py-10">
+        <div className="px-6 py-8 md:px-12 md:py-10">
           <HomeStatsBar />
         </div>
         <CustomerJourney />
