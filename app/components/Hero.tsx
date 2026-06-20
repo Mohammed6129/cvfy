@@ -2,6 +2,8 @@ import Image from "next/image";
 import { SINGLE_PLAN } from "@/lib/payment";
 import StartNowLink from "./start-now-link";
 
+const HERO_CONTAINER_MAX_WIDTH = "680px";
+
 function PriceIllustration() {
   return (
     <svg width="50" height="50" viewBox="0 0 50 50" fill="none" aria-hidden className="shrink-0">
@@ -79,8 +81,11 @@ export default function Hero() {
         }}
       />
 
-      <div className="relative z-10 mx-auto max-w-[460px] text-center">
-        <div className="glass-surface mx-auto rounded-[28px] px-7 py-9 shadow-[0_8px_32px_rgba(0,0,0,0.1)]">
+      <div
+        className="relative z-10 mx-auto w-full text-center"
+        style={{ maxWidth: HERO_CONTAINER_MAX_WIDTH }}
+      >
+        <div className="glass-surface w-full rounded-[28px] px-7 py-9 shadow-[0_8px_32px_rgba(0,0,0,0.1)]">
           <div className="glass-surface-sm mb-5 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold text-white">
             <Image
               src="/icons/saudi-flag.png"
@@ -124,7 +129,9 @@ export default function Hero() {
 
           <div
             style={{
-              background: "white",
+              background: "rgba(255,255,255,0.85)",
+              backdropFilter: "blur(10px)",
+              WebkitBackdropFilter: "blur(10px)",
               borderRadius: "14px",
               padding: "10px 14px",
               display: "flex",

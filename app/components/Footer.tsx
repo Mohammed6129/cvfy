@@ -14,8 +14,18 @@ function ContactRow({
   children: ReactNode;
 }) {
   return (
-    <div className="mb-3 flex items-center justify-start gap-2 last:mb-0">
-      <span className="text-xs text-white/85">{label}</span>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        marginBottom: "12px",
+        justifyContent: "flex-start",
+      }}
+    >
+      <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.85)" }}>
+        {label}
+      </span>
       {children}
     </div>
   );
@@ -36,45 +46,58 @@ function GlassFooterTop() {
             نسعد بتواصلك معنا، وفريقنا جاهز لتقديم الدعم في أي وقت.
           </p>
 
-          <ContactRow label="support@cvfy.sa">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-              <rect
-                x="1"
-                y="3"
-                width="14"
-                height="10"
-                rx="1.5"
-                stroke="#85B7EB"
-                strokeWidth="1.2"
-              />
-              <path d="M1.5 4l6 5 6-5" stroke="#85B7EB" strokeWidth="1.2" />
-            </svg>
-          </ContactRow>
+          <div>
+            <ContactRow label="support@cvfy.sa">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                <rect
+                  x="1"
+                  y="3"
+                  width="14"
+                  height="10"
+                  rx="1.5"
+                  stroke="#85B7EB"
+                  strokeWidth="1.2"
+                />
+                <path d="M1.5 4l6 5 6-5" stroke="#85B7EB" strokeWidth="1.2" />
+              </svg>
+            </ContactRow>
 
-          <ContactRow label="+966 50 000 0000">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-              <path
-                d="M2.5 2h2l1 2.5-1.2 1c.7 1.4 1.8 2.5 3.2 3.2l1-1.2L11 8.5v2c0 1-.8 1.5-1.7 1.3C5.5 11 2.5 8 1.7 4.2 1.5 3.3 2 2.5 2.5 2z"
-                stroke="#85B7EB"
-                strokeWidth="1.2"
-              />
-            </svg>
-          </ContactRow>
+            <ContactRow label="+966 50 000 0000">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                <path
+                  d="M2.5 2h2l1 2.5-1.2 1c.7 1.4 1.8 2.5 3.2 3.2l1-1.2L11 8.5v2c0 1-.8 1.5-1.7 1.3C5.5 11 2.5 8 1.7 4.2 1.5 3.3 2 2.5 2.5 2z"
+                  stroke="#85B7EB"
+                  strokeWidth="1.2"
+                />
+              </svg>
+            </ContactRow>
 
-          <ContactRow label="cvfy.sa">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-              <rect
-                x="2"
-                y="2"
-                width="12"
-                height="12"
-                rx="3"
-                stroke="#85B7EB"
-                strokeWidth="1.2"
-              />
-              <circle cx="8" cy="8" r="2" stroke="#85B7EB" strokeWidth="1.2" />
-            </svg>
-          </ContactRow>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                marginBottom: "0",
+                justifyContent: "flex-start",
+              }}
+            >
+              <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.85)" }}>
+                cvfy.sa
+              </span>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                <rect
+                  x="2"
+                  y="2"
+                  width="12"
+                  height="12"
+                  rx="3"
+                  stroke="#85B7EB"
+                  strokeWidth="1.2"
+                />
+                <circle cx="8" cy="8" r="2" stroke="#85B7EB" strokeWidth="1.2" />
+              </svg>
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-col items-center gap-3 text-center md:max-w-[260px] md:justify-self-center">
