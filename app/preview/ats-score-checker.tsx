@@ -84,14 +84,14 @@ function CircularProgress({ score }: { score: number }) {
 
 function AtsLockedPreview() {
   return (
-    <div className="rounded-xl border border-[#378ADD]/25 bg-gradient-to-b from-[#378ADD]/8 to-white p-6 text-center shadow-sm">
-      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#378ADD]/10 text-2xl">
+    <div className="glass-page-card p-6 text-center">
+      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-2xl">
         🔒
       </div>
-      <h3 className="mb-2 text-lg font-extrabold text-slate-900">
+      <h3 className="mb-2 text-lg font-extrabold text-white">
         سيرتك جاهزة!
       </h3>
-      <p className="text-sm leading-relaxed text-slate-700">
+      <p className="text-sm leading-relaxed text-white/75">
         ادفع 99 ر.س لتحصل على: تقرير ATS كامل + نسختين PDF بالعربي والإنجليزي
       </p>
     </div>
@@ -171,7 +171,7 @@ export default function AtsScoreChecker({
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-slate-100 bg-white px-5 py-4 shadow-sm">
+      <div className="glass-page-card px-5 py-4">
         <LoadingSpinner label="جاري تحليل توافق السيرة مع ATS..." />
       </div>
     );
@@ -198,12 +198,12 @@ export default function AtsScoreChecker({
   const colors = getScoreColor(result.score);
 
   return (
-    <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
-      <h3 className="mb-1 text-center text-sm font-bold text-slate-800">
+    <div className="glass-page-card p-5">
+      <h3 className="mb-1 text-center text-sm font-bold text-white">
         فحص ATS — توافق السيرة الذاتية
       </h3>
       {result.summary && (
-        <p className="mb-4 text-center text-sm text-slate-600">{result.summary}</p>
+        <p className="mb-4 text-center text-sm text-white/70">{result.summary}</p>
       )}
 
       <div className="mb-6 flex justify-center">

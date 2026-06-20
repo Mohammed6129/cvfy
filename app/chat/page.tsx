@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import AppHeader from "@/app/components/app-header";
+import GlassPageLayout from "@/app/components/glass-page-layout";
 import ChatBuilder from "./chat-builder";
 import { createClient } from "@/lib/supabase/server";
 import { getUserProfile } from "@/lib/user";
@@ -29,12 +29,10 @@ export default async function ChatPage() {
   }
 
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-gradient-to-b from-[#378ADD]/5 to-white">
-      <AppHeader maxWidth="2xl" className="bg-white/80 backdrop-blur" />
-
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
+    <GlassPageLayout mainClassName="px-4 py-6 sm:px-6 sm:py-8">
+      <div className="mx-auto w-full max-w-2xl">
         <ChatBuilder userEmail={userEmail} />
-      </main>
-    </div>
+      </div>
+    </GlassPageLayout>
   );
 }

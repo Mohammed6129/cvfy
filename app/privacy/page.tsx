@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import AppHeader from "@/app/components/app-header";
+import GlassPageLayout from "@/app/components/glass-page-layout";
 
 export const metadata: Metadata = {
   title: "سياسة الخصوصية — CVfy",
@@ -8,13 +8,12 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-full bg-white">
-      <AppHeader maxWidth="3xl" />
-      <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
-        <h1 className="mb-6 text-3xl font-extrabold text-slate-900">
+    <GlassPageLayout mainClassName="px-4 py-10 sm:px-6 sm:py-14">
+      <div className="glass-page-card mx-auto max-w-3xl px-6 py-10 sm:px-8">
+        <h1 className="mb-6 text-3xl font-extrabold text-white">
           سياسة الخصوصية
         </h1>
-        <div className="space-y-4 text-slate-700">
+        <div className="space-y-4 text-white/80">
           <p>
             نحن في CVfy نحترم خصوصيتك ونلتزم بحماية بياناتك الشخصية وفقاً
             لأنظمة المملكة العربية السعودية.
@@ -32,11 +31,9 @@ export default function PrivacyPage() {
             يمكنك حذف سيرك الذاتية من صفحة سيرتي الذاتية أو طلب حذف حسابك
             بالتواصل معنا عبر البريد الإلكتروني.
           </p>
-          <p className="text-sm text-slate-500">
-            آخر تحديث: يونيو 2026
-          </p>
+          <p className="text-sm text-white/55">آخر تحديث: يونيو 2026</p>
         </div>
-      </main>
-    </div>
+      </div>
+    </GlassPageLayout>
   );
 }

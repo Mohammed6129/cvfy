@@ -133,7 +133,7 @@ function PreviewPriceCard() {
   const plan = SINGLE_PLAN;
 
   return (
-    <div className="relative w-full overflow-hidden rounded-[20px] border border-[#E0EDF8] bg-white p-5">
+    <div className="relative w-full overflow-hidden glass-page-card p-5">
       <div
         className="pointer-events-none absolute -left-6 -top-6 h-[90px] w-[90px] rounded-full bg-[#E6F1FB] opacity-50"
         aria-hidden
@@ -555,14 +555,14 @@ export default function PaymentSection({
   }
 
   return (
-    <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
-      <h3 className="mb-1 text-center text-sm font-bold text-slate-800">
+    <div className="glass-page-card p-5">
+      <h3 className="mb-1 text-center text-sm font-bold text-white">
         {plan.title}
       </h3>
-      <p className="mb-2 text-center text-2xl font-extrabold text-[#378ADD]">
-        {plan.price} <span className="text-sm text-slate-600">ر.س</span>
+      <p className="mb-2 text-center text-2xl font-extrabold text-[#FAC775]">
+        {plan.price} <span className="text-sm text-white/70">ر.س</span>
       </p>
-      <p className="mb-4 text-center text-xs text-slate-500">{plan.description}</p>
+      <p className="mb-4 text-center text-xs text-white/60">{plan.description}</p>
       {payButton}
       {paymentError && (
         <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-700">

@@ -16,12 +16,12 @@ export default function LoadingSpinner({
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-8">
       <div
-        className={`animate-spin rounded-full border-[#e8f2fc] border-t-[#378ADD] ${sizes[size]}`}
+        className={`animate-spin rounded-full border-white/20 border-t-white ${sizes[size]}`}
         role="status"
         aria-label={label ?? "جاري التحميل"}
       />
       {label && (
-        <p className="animate-pulse text-sm font-semibold text-slate-600">
+        <p className="animate-pulse text-sm font-semibold text-white/75">
           {label}
         </p>
       )}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import AppHeader from "@/app/components/app-header";
+import GlassPageLayout from "@/app/components/glass-page-layout";
 import LoadingSpinner from "@/app/components/loading-spinner";
 import CreateForm from "./create-form";
 import { createClient } from "@/lib/supabase/server";
@@ -22,14 +22,12 @@ export default async function CreatePage() {
   }
 
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-white">
-      <AppHeader maxWidth="3xl" />
-
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
+    <GlassPageLayout mainClassName="px-4 py-8 sm:px-6 sm:py-12">
+      <div className="mx-auto w-full max-w-3xl">
         <Suspense fallback={<LoadingSpinner label="جاري التحميل..." />}>
           <CreateForm />
         </Suspense>
-      </main>
-    </div>
+      </div>
+    </GlassPageLayout>
   );
 }

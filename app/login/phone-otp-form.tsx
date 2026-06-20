@@ -5,8 +5,9 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatSaudiPhone, mapPhoneAuthError } from "@/lib/phone";
 
-const inputClass =
-  "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#378ADD] focus:ring-2 focus:ring-[#378ADD]/20 disabled:opacity-60";
+import { GLASS_INPUT_CLASS } from "@/app/components/home-glass-shell";
+
+const inputClass = GLASS_INPUT_CLASS;
 
 type PhoneOtpFormProps = {
   nextPath: string;
@@ -107,7 +108,7 @@ export default function PhoneOtpForm({
         <div>
           <label
             htmlFor="phone"
-            className="mb-2 block text-sm font-semibold text-slate-700"
+            className="mb-2 block text-sm font-semibold text-white/85"
           >
             رقم الجوال
           </label>

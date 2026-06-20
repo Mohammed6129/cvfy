@@ -28,6 +28,10 @@ import {
 import { isValidLinkedInUrl } from "@/lib/linkedin";
 import { prepareCvPayload } from "@/lib/prepare-cv-payload";
 import type { CvFormData, GeneratedCv } from "@/lib/cv-types";
+import {
+  GLASS_INPUT_CLASS,
+  GLASS_LABEL_CLASS,
+} from "@/app/components/home-glass-shell";
 
 const BRAND = "#378ADD";
 const TOTAL_STEPS = 6;
@@ -47,13 +51,12 @@ const STEP_TITLES = [
 const START_NOTICE =
   "بعد تعبئة الفورم ستحصل على نسختين: عربي وإنجليزي. ملاحظة: السيرة الإنجليزية دائماً أفضل وتُفضّلها الشركات والجهات أكثر من العربية";
 
-const inputClass =
-  "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#378ADD] focus:ring-2 focus:ring-[#378ADD]/20";
+const inputClass = GLASS_INPUT_CLASS;
 
 const selectClass =
-  "w-full appearance-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition-colors focus:border-[#378ADD] focus:ring-2 focus:ring-[#378ADD]/20";
+  "w-full appearance-none rounded-xl border border-white/25 bg-white/90 px-4 py-3 text-slate-900 outline-none transition-colors focus:border-[#378ADD] focus:ring-2 focus:ring-[#378ADD]/20";
 
-const labelClass = "mb-2 block text-sm font-semibold text-slate-700";
+const labelClass = GLASS_LABEL_CLASS;
 
 type FormData = CvFormData;
 
@@ -107,7 +110,7 @@ function normalizePhone(phone: string) {
 
 function FieldTip({ children }: { children: React.ReactNode }) {
   return (
-    <p className="mt-1.5 text-xs leading-relaxed text-slate-500">{children}</p>
+    <p className="mt-1.5 text-xs leading-relaxed text-white/55">{children}</p>
   );
 }
 
@@ -393,21 +396,21 @@ export default function CreateForm() {
 
   return (
     <div className="animate-fade-in">
-      <div className="mb-6 rounded-2xl border border-[#378ADD]/20 bg-[#378ADD]/5 px-4 py-4 text-sm leading-relaxed text-slate-700 sm:px-5">
+      <div className="glass-page-card-sm mb-6 px-4 py-4 text-sm leading-relaxed text-white/80 sm:px-5">
         {START_NOTICE}
       </div>
 
       <div className="mb-8">
         <div className="mb-3 flex justify-between text-sm">
-          <span className="font-semibold text-[#378ADD]">الخطوة {step} من {TOTAL_STEPS}</span>
-          <span className="text-slate-500">{STEP_TITLES[step - 1]}</span>
+          <span className="font-semibold text-[#FAC775]">الخطوة {step} من {TOTAL_STEPS}</span>
+          <span className="text-white/60">{STEP_TITLES[step - 1]}</span>
         </div>
-        <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
+        <div className="h-2.5 overflow-hidden rounded-full bg-white/15">
           <div className="h-full rounded-full transition-all duration-300" style={{ width: `${progress}%`, backgroundColor: BRAND }} />
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-lg sm:p-8">
+      <div className="glass-page-card p-5 sm:p-8">
         {error && (
           <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
         )}
@@ -416,7 +419,7 @@ export default function CreateForm() {
           <div className="space-y-5">
             <CvUpload onParsed={handleParsedUpload} onError={setError} />
 
-            <h2 className="text-xl font-extrabold sm:text-2xl">المعلومات الشخصية</h2>
+            <h2 className="text-xl font-extrabold text-white sm:text-2xl">المعلومات الشخصية</h2>
             <FormField
               label="اسمك الكامل"
               required
@@ -523,7 +526,7 @@ export default function CreateForm() {
 
         {step === 2 && (
           <div>
-            <h2 className="mb-2 text-xl font-extrabold sm:text-2xl">سولف لنا عن خبراتك المهنية</h2>
+            <h2 className="mb-2 text-xl font-extrabold text-white sm:text-2xl">سولف لنا عن خبراتك المهنية</h2>
             <p className="mb-2 text-sm font-semibold text-amber-700">التواريخ إلزامية لمطابقة نظام ATS</p>
             <div className="space-y-8">
               {data.workExperience.map((job, i) => (
@@ -616,7 +619,7 @@ export default function CreateForm() {
 
         {step === 3 && (
           <div className="space-y-5">
-            <h2 className="text-xl font-extrabold sm:text-2xl">التعليم</h2>
+            <h2 className="text-xl font-extrabold text-white sm:text-2xl">التعليم</h2>
             <FormField label="اسم الجامعة" required invalid={isInvalid("institution")}>
               <input
                 value={edu.institution}
@@ -670,7 +673,7 @@ export default function CreateForm() {
 
         {step === 4 && (
           <div className="space-y-5">
-            <h2 className="text-xl font-extrabold sm:text-2xl">المهارات</h2>
+            <h2 className="text-xl font-extrabold text-white sm:text-2xl">المهارات</h2>
             {isInvalid("skills") && <RequiredMarker />}
             <input
               value={skillInput}
@@ -714,7 +717,7 @@ export default function CreateForm() {
 
         {step === 5 && (
           <div>
-            <h2 className="mb-2 text-xl font-extrabold sm:text-2xl">الدورات والشهادات</h2>
+            <h2 className="mb-2 text-xl font-extrabold text-white sm:text-2xl">الدورات والشهادات</h2>
             <p className="mb-6 text-sm text-slate-500">(اختياري — يمكنك تخطي هذه الخطوة)</p>
             <div className="space-y-6">
               {data.courses.map((course, i) => (
@@ -761,7 +764,7 @@ export default function CreateForm() {
         {step === 6 && (
           <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
             <div>
-              <h2 className="mb-4 text-xl font-extrabold sm:text-2xl">نبذة عنك</h2>
+              <h2 className="mb-4 text-xl font-extrabold text-white sm:text-2xl">نبذة عنك</h2>
               <FormField
                 label="اكتب نبذة عنك بأسلوبك"
                 required
@@ -788,11 +791,11 @@ export default function CreateForm() {
         )}
 
         <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-          <button type="button" onClick={goBack} disabled={step === 1} className="rounded-full border-2 border-slate-200 px-6 py-3 text-sm font-semibold text-slate-600 disabled:opacity-40">السابق</button>
+          <button type="button" onClick={goBack} disabled={step === 1} className="glass-btn-secondary px-6 py-3 text-sm disabled:opacity-40">السابق</button>
           {step < TOTAL_STEPS ? (
-            <button type="button" onClick={goNext} className="rounded-full bg-[#378ADD] px-8 py-3 text-sm font-semibold text-white shadow-md">التالي</button>
+            <button type="button" onClick={goNext} className="glass-btn-primary px-8 py-3 text-sm">التالي</button>
           ) : (
-            <button type="button" onClick={handleSubmit} className="rounded-full bg-[#378ADD] px-8 py-3 text-sm font-semibold text-white shadow-md">إنشاء السيرة الذاتية ✨</button>
+            <button type="button" onClick={handleSubmit} className="glass-btn-primary px-8 py-3 text-sm">إنشاء السيرة الذاتية ✨</button>
           )}
         </div>
       </div>

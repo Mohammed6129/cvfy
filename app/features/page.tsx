@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import Navbar from "@/app/components/Navbar";
 import Features from "@/app/components/Features";
-import Footer from "@/app/components/Footer";
+import GlassPageLayout from "@/app/components/glass-page-layout";
 
 export const metadata: Metadata = {
   title: "لماذا CVfy؟",
@@ -11,12 +10,8 @@ export const metadata: Metadata = {
 
 export default function FeaturesPage() {
   return (
-    <div className="flex flex-1 flex-col bg-white">
-      <Navbar />
-      <main className="bg-white">
-        <Features />
-      </main>
-      <Footer />
-    </div>
+    <GlassPageLayout>
+      <Features />
+    </GlassPageLayout>
   );
 }

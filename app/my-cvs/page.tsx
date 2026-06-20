@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import AppHeader from "@/app/components/app-header";
+import GlassPageLayout from "@/app/components/glass-page-layout";
 import LoadingSpinner from "@/app/components/loading-spinner";
 import DashboardContent from "@/app/dashboard/dashboard-content";
 import { createClient } from "@/lib/supabase/server";
@@ -22,14 +22,12 @@ export default async function MyCvsPage() {
   }
 
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-white">
-      <AppHeader maxWidth="4xl" />
-
-      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
+    <GlassPageLayout mainClassName="px-4 py-8 sm:px-6 sm:py-12">
+      <div className="mx-auto w-full max-w-4xl">
         <Suspense fallback={<LoadingSpinner label="جاري التحميل..." />}>
           <DashboardContent />
         </Suspense>
-      </main>
-    </div>
+      </div>
+    </GlassPageLayout>
   );
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import PhoneOtpForm from "@/app/login/phone-otp-form";
+import { GLASS_INPUT_CLASS } from "@/app/components/home-glass-shell";
 import { DEFAULT_POST_AUTH_PATH, getAuthCallbackUrl, mapAuthError } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/client";
 
@@ -168,17 +169,17 @@ export default function LoginForm({
   return (
     <div className="w-full max-w-md">
       <div className="mb-8 text-center">
-        <h1 className="mb-2 text-3xl font-extrabold text-slate-900">
+        <h1 className="mb-2 text-3xl font-extrabold text-white">
           {mode === "login" ? "تسجيل الدخول" : "إنشاء حساب جديد"}
         </h1>
-        <p className="text-slate-600">
+        <p className="text-white/70">
           {mode === "login"
             ? "مرحباً بعودتك! سجّل دخولك لمتابعة بناء سيرتك الذاتية."
             : "أنشئ حسابك وابدأ في بناء هويتك المهنية اليوم."}
         </p>
       </div>
 
-      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-lg shadow-slate-200/60 sm:p-8">
+      <div className="glass-page-card p-6 sm:p-8">
         {error && (
           <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}
@@ -191,7 +192,7 @@ export default function LoginForm({
           </div>
         )}
 
-        <div className="mb-6 flex rounded-xl bg-slate-100 p-1">
+        <div className="mb-6 flex rounded-xl bg-white/10 p-1">
           <button
             type="button"
             onClick={() => {
@@ -201,8 +202,8 @@ export default function LoginForm({
             }}
             className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition-all ${
               loginMethod === "email"
-                ? "bg-white text-[#378ADD] shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-white text-[#0C447C] shadow-sm"
+                : "text-white/70 hover:text-white"
             }`}
           >
             البريد الإلكتروني
@@ -216,8 +217,8 @@ export default function LoginForm({
             }}
             className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition-all ${
               loginMethod === "phone"
-                ? "bg-white text-[#378ADD] shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-white text-[#0C447C] shadow-sm"
+                : "text-white/70 hover:text-white"
             }`}
           >
             رقم الجوال
@@ -237,7 +238,7 @@ export default function LoginForm({
           <div>
             <label
               htmlFor="email"
-              className="mb-2 block text-sm font-semibold text-slate-700"
+              className="mb-2 block text-sm font-semibold text-white/85"
             >
               البريد الإلكتروني
             </label>
@@ -252,14 +253,14 @@ export default function LoginForm({
               placeholder="example@email.com"
               dir="ltr"
               disabled={loading}
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#378ADD] focus:ring-2 focus:ring-[#378ADD]/20 disabled:opacity-60"
+              className={GLASS_INPUT_CLASS + " text-left disabled:opacity-60"}
             />
           </div>
 
           <div>
             <label
               htmlFor="password"
-              className="mb-2 block text-sm font-semibold text-slate-700"
+              className="mb-2 block text-sm font-semibold text-white/85"
             >
               كلمة المرور
             </label>
@@ -277,14 +278,14 @@ export default function LoginForm({
               placeholder="••••••••"
               dir="ltr"
               disabled={loading}
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#378ADD] focus:ring-2 focus:ring-[#378ADD]/20 disabled:opacity-60"
+              className={GLASS_INPUT_CLASS + " text-left disabled:opacity-60"}
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-full bg-[#378ADD] py-3.5 text-base font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-60"
+            className="glass-btn-primary w-full py-3.5 text-base disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading
               ? "جاري التحميل..."
@@ -297,10 +298,10 @@ export default function LoginForm({
 
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200" />
+            <div className="w-full border-t border-white/20" />
           </div>
           <div className="relative flex justify-center">
-            <span className="bg-white px-4 text-sm text-slate-500">أو</span>
+            <span className="bg-transparent px-4 text-sm text-white/55">أو</span>
           </div>
         </div>
 
@@ -309,7 +310,7 @@ export default function LoginForm({
             type="button"
             onClick={handleGoogleLogin}
             disabled={loading}
-            className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/25 bg-white/10 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <GoogleIcon />
             تسجيل الدخول بواسطة Google
@@ -327,7 +328,7 @@ export default function LoginForm({
       </div>
 
       {loginMethod === "email" && (
-      <p className="mt-8 text-center text-sm text-slate-600">
+      <p className="mt-8 text-center text-sm text-white/70">
         {mode === "login" ? (
           <>
             ليس لديك حساب؟{" "}
@@ -338,7 +339,7 @@ export default function LoginForm({
                 setError(null);
                 setMessage(null);
               }}
-              className="font-semibold text-[#378ADD] transition-colors hover:text-[#2a6bb8]"
+              className="font-semibold text-[#FAC775] transition-colors hover:text-white"
             >
               إنشاء حساب جديد
             </button>
@@ -353,7 +354,7 @@ export default function LoginForm({
                 setError(null);
                 setMessage(null);
               }}
-              className="font-semibold text-[#378ADD] transition-colors hover:text-[#2a6bb8]"
+              className="font-semibold text-[#FAC775] transition-colors hover:text-white"
             >
               تسجيل الدخول
             </button>
@@ -365,7 +366,7 @@ export default function LoginForm({
       <p className="mt-4 text-center">
         <Link
           href="/"
-          className="text-sm text-slate-500 transition-colors hover:text-[#378ADD]"
+          className="text-sm text-white/55 transition-colors hover:text-[#FAC775]"
         >
           العودة إلى الصفحة الرئيسية
         </Link>

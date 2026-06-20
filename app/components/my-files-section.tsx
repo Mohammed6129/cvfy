@@ -40,12 +40,12 @@ export default function MyFilesSection() {
   }, [load]);
 
   const buttonClass =
-    "inline-flex w-full items-center justify-center rounded-xl bg-[#378ADD] px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto";
+    "glass-btn-primary inline-flex w-full items-center justify-center px-4 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto";
 
   return (
-    <section className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-      <h2 className="mb-1 text-lg font-extrabold text-slate-900">ملفاتي</h2>
-      <p className="mb-5 text-sm text-slate-600">
+    <section className="glass-page-card p-6">
+      <h2 className="mb-1 text-lg font-extrabold text-white">ملفاتي</h2>
+      <p className="mb-5 text-sm text-white/70">
         السيرة الذاتية وتقرير ATS المحفوظة في حسابك
       </p>
 
@@ -58,7 +58,7 @@ export default function MyFilesSection() {
       )}
 
       {!loading && !error && !files && (
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-white/70">
           لا توجد ملفات محفوظة بعد. أكمل الدفع أو استخدم الوضع التجريبي لتوليد الملفات.
         </p>
       )}
@@ -66,7 +66,7 @@ export default function MyFilesSection() {
       {!loading && files && (
         <div className="space-y-4">
           {files.cv_generated_at && (
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-white/55">
               تاريخ التوليد: {formatDate(files.cv_generated_at)}
             </p>
           )}

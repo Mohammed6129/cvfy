@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import AppHeader from "@/app/components/app-header";
+import GlassPageLayout from "@/app/components/glass-page-layout";
 import LoginForm from "./login-form";
 import { DEFAULT_POST_AUTH_PATH } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -40,15 +40,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   }
 
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-white">
-      <AppHeader maxWidth="2xl" />
-
-      <main className="flex flex-1 items-center justify-center px-4 py-12 sm:px-6">
-        <LoginForm
-          initialMode={initialMode}
-          nextPath={getPostLoginPath(params.next)}
-        />
-      </main>
-    </div>
+    <GlassPageLayout mainClassName="flex items-center justify-center px-4 py-12 sm:px-6">
+      <LoginForm
+        initialMode={initialMode}
+        nextPath={getPostLoginPath(params.next)}
+      />
+    </GlassPageLayout>
   );
 }

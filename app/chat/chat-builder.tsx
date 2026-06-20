@@ -10,6 +10,7 @@ import {
 } from "@/lib/cv-storage";
 import type { GeneratedCv, Language } from "@/lib/cv-types";
 import { prepareCvPayload } from "@/lib/prepare-cv-payload";
+import { GLASS_INPUT_CLASS } from "@/app/components/home-glass-shell";
 
 const BRAND = "#378ADD";
 const TOTAL_QUESTIONS = 7;
@@ -282,12 +283,12 @@ export default function ChatBuilder({ userEmail }: ChatBuilderProps) {
 
   if (screen === "generating" || generating) {
     return (
-      <div className="animate-fade-in rounded-2xl border border-slate-100 bg-white p-8 text-center shadow-lg shadow-slate-200/60 sm:p-12">
-        <div className="mx-auto mb-6 h-14 w-14 animate-spin rounded-full border-4 border-[#e8f2fc] border-t-[#378ADD]" />
-        <h2 className="mb-2 text-xl font-extrabold text-slate-900 sm:text-2xl">
+      <div className="glass-page-card animate-fade-in p-8 text-center sm:p-12">
+        <div className="mx-auto mb-6 h-14 w-14 animate-spin rounded-full border-4 border-white/20 border-t-white" />
+        <h2 className="mb-2 text-xl font-extrabold text-white sm:text-2xl">
           جاري بناء سيرتك الذاتية ✨
         </h2>
-        <p className="text-sm text-slate-600 sm:text-base">
+        <p className="text-sm text-white/70 sm:text-base">
           الذكاء الاصطناعي يصيغ سيرة احترافية من إجاباتك
         </p>
       </div>
@@ -296,14 +297,14 @@ export default function ChatBuilder({ userEmail }: ChatBuilderProps) {
 
   if (screen === "welcome") {
     return (
-      <div className="animate-fade-in rounded-2xl border border-slate-100 bg-white p-6 shadow-lg shadow-slate-200/60 sm:p-10">
-        <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#378ADD]/10 text-2xl">
+      <div className="glass-page-card animate-fade-in p-6 sm:p-10">
+        <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 text-2xl">
           👋
         </div>
-        <h1 className="mb-4 text-2xl font-extrabold leading-snug text-slate-900 sm:text-3xl">
+        <h1 className="mb-4 text-2xl font-extrabold leading-snug text-white sm:text-3xl">
           أهلاً!
         </h1>
-        <p className="mb-8 text-base leading-8 text-slate-600 sm:text-lg">
+        <p className="mb-8 text-base leading-8 text-white/75 sm:text-lg">
           أنا هنا أبني لك سيرة ذاتية احترافية في دقائق. نصيحة مهمة: كلما كانت
           إجاباتك أكثر تفصيلاً وتحتوي على أرقام وإنجازات، كلما كانت سيرتك أقوى.
           مثلاً بدل &quot;أدرت فريق&quot; قل &quot;أدرت فريق من 8 أشخاص وحققنا
@@ -312,8 +313,7 @@ export default function ChatBuilder({ userEmail }: ChatBuilderProps) {
         <button
           type="button"
           onClick={startChat}
-          className="w-full rounded-xl px-6 py-4 text-base font-bold text-white shadow-lg shadow-[#378ADD]/30 transition-transform hover:scale-[1.02] active:scale-[0.98] sm:w-auto"
-          style={{ backgroundColor: BRAND }}
+          className="glass-btn-primary w-full px-6 py-4 text-base transition-transform hover:scale-[1.02] active:scale-[0.98] sm:w-auto"
         >
           نبدأ 🚀
         </button>
@@ -327,12 +327,12 @@ export default function ChatBuilder({ userEmail }: ChatBuilderProps) {
     <div className="animate-fade-in">
       <div className="mb-6">
         <div className="mb-2 flex items-center justify-between text-sm">
-          <span className="font-semibold" style={{ color: BRAND }}>
+          <span className="font-semibold text-[#FAC775]">
             السؤال {questionIndex + 1} من {TOTAL_QUESTIONS}
           </span>
-          <span className="text-slate-500">محادثة بناء السيرة</span>
+          <span className="text-white/60">محادثة بناء السيرة</span>
         </div>
-        <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
+        <div className="h-2.5 w-full overflow-hidden rounded-full bg-white/15">
           <div
             className="h-full rounded-full transition-all duration-500 ease-out"
             style={{ width: `${progress}%`, backgroundColor: BRAND }}
@@ -340,16 +340,16 @@ export default function ChatBuilder({ userEmail }: ChatBuilderProps) {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-lg shadow-slate-200/60 sm:p-8">
+      <div className="glass-page-card p-6 sm:p-8">
         {error && (
-          <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="mb-5 rounded-xl border border-red-300/40 bg-red-500/15 px-4 py-3 text-sm text-red-100">
             {error}
           </div>
         )}
 
         {currentQuestion && (
           <div>
-            <h2 className="mb-4 text-xl font-extrabold leading-snug text-slate-900 sm:text-2xl">
+            <h2 className="mb-4 text-xl font-extrabold leading-snug text-white sm:text-2xl">
               {currentQuestion.label}
             </h2>
 
@@ -359,7 +359,7 @@ export default function ChatBuilder({ userEmail }: ChatBuilderProps) {
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder={currentQuestion.placeholder}
                 rows={5}
-                className="w-full resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#378ADD] focus:ring-2 focus:ring-[#378ADD]/20"
+                className={GLASS_INPUT_CLASS + " resize-y"}
               />
             ) : (
               <input
@@ -367,16 +367,16 @@ export default function ChatBuilder({ userEmail }: ChatBuilderProps) {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder={currentQuestion.placeholder}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#378ADD] focus:ring-2 focus:ring-[#378ADD]/20"
+                className={GLASS_INPUT_CLASS}
               />
             )}
 
-            <p className="mt-3 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
-              <span className="font-semibold text-slate-700">💡 </span>
+            <p className="mt-3 rounded-xl bg-white/10 px-4 py-3 text-sm text-white/75">
+              <span className="font-semibold text-[#FAC775]">💡 </span>
               {currentQuestion.tip}
             </p>
 
-            <p className="mt-3 text-center text-xs font-medium text-slate-500 sm:text-sm">
+            <p className="mt-3 text-center text-xs font-medium text-white/55 sm:text-sm">
               {REMINDER}
             </p>
           </div>
@@ -386,7 +386,7 @@ export default function ChatBuilder({ userEmail }: ChatBuilderProps) {
           <button
             type="button"
             onClick={goBack}
-            className="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-50"
+            className="glass-btn-secondary rounded-xl px-5 py-3 text-sm"
           >
             رجوع
           </button>
@@ -397,8 +397,7 @@ export default function ChatBuilder({ userEmail }: ChatBuilderProps) {
                 ? handleNextOnLastTextQuestion
                 : goNext
             }
-            className="rounded-xl px-6 py-3 text-sm font-bold text-white shadow-md transition-transform hover:scale-[1.02] active:scale-[0.98]"
-            style={{ backgroundColor: BRAND }}
+            className="glass-btn-primary rounded-xl px-6 py-3 text-sm transition-transform hover:scale-[1.02] active:scale-[0.98]"
           >
             {questionIndex === QUESTIONS.length - 1 ? "إنشاء السيرة ✨" : "التالي ←"}
           </button>

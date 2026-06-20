@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { SINGLE_PLAN } from "@/lib/payment";
+import GlassBackgroundBlobs from "./glass-background-blobs";
 import StartNowLink from "./start-now-link";
 
 const HERO_CONTAINER_MAX_WIDTH = "680px";
@@ -23,50 +24,7 @@ const PAYMENT_ICONS = [
 export default function Hero() {
   return (
     <section dir="rtl" className="relative overflow-hidden px-6 pb-16 pt-8 md:px-12 md:pb-20 md:pt-12">
-      <div
-        className="hero-blob"
-        style={{
-          width: 240,
-          height: 240,
-          background: "#85B7EB",
-          top: -80,
-          right: -60,
-          opacity: 0.45,
-        }}
-      />
-      <div
-        className="hero-blob"
-        style={{
-          width: 200,
-          height: 200,
-          background: "#FAC775",
-          bottom: 60,
-          left: -70,
-          opacity: 0.25,
-        }}
-      />
-      <div
-        className="hero-blob"
-        style={{
-          width: 160,
-          height: 160,
-          background: "#C0DD97",
-          top: 280,
-          right: 40,
-          opacity: 0.2,
-        }}
-      />
-      <div
-        className="hero-blob"
-        style={{
-          width: 140,
-          height: 140,
-          background: "#7F77DD",
-          top: 50,
-          left: 30,
-          opacity: 0.2,
-        }}
-      />
+      <GlassBackgroundBlobs />
 
       <div
         className="relative z-10 mx-auto w-full text-center"

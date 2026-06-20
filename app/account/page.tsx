@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import AppHeader from "@/app/components/app-header";
+import GlassPageLayout from "@/app/components/glass-page-layout";
 import MyFilesSection from "@/app/components/my-files-section";
 import { createClient } from "@/lib/supabase/server";
 import { getUserProfile } from "@/lib/user";
@@ -23,25 +23,23 @@ export default async function AccountPage() {
   const profile = getUserProfile(user);
 
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-white">
-      <AppHeader maxWidth="2xl" />
-
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
-        <h1 className="mb-6 text-2xl font-extrabold text-slate-900">
+    <GlassPageLayout mainClassName="px-4 py-8 sm:px-6 sm:py-12">
+      <div className="mx-auto w-full max-w-2xl">
+        <h1 className="mb-6 text-2xl font-extrabold text-white">
           معلومات الحساب
         </h1>
 
         <div className="space-y-6">
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+          <div className="glass-page-card p-6">
             <div>
-              <p className="mb-1 text-sm font-semibold text-slate-500">الاسم</p>
-              <p className="text-base font-bold text-slate-900">{profile.name}</p>
+              <p className="mb-1 text-sm font-semibold text-white/60">الاسم</p>
+              <p className="text-base font-bold text-white">{profile.name}</p>
             </div>
             <div className="mt-6">
-              <p className="mb-1 text-sm font-semibold text-slate-500">
+              <p className="mb-1 text-sm font-semibold text-white/60">
                 البريد الإلكتروني
               </p>
-              <p className="text-base text-slate-900" dir="ltr">
+              <p className="text-base text-white" dir="ltr">
                 {profile.email ?? "—"}
               </p>
             </div>
@@ -49,7 +47,7 @@ export default async function AccountPage() {
 
           <MyFilesSection />
         </div>
-      </main>
-    </div>
+      </div>
+    </GlassPageLayout>
   );
 }

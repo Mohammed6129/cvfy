@@ -83,13 +83,13 @@ const features = [
 
 export default function Features() {
   return (
-    <section id="features" className="bg-white px-6 py-20 md:py-28">
+    <section id="features" className="px-6 py-20 md:py-28">
       <div className="mx-auto max-w-6xl">
         <div className="mb-14 text-center">
-          <h2 className="mb-4 text-3xl font-extrabold text-slate-900 md:text-4xl">
+          <h2 className="mb-4 text-3xl font-extrabold text-white md:text-4xl">
             لماذا <span className="text-[#378ADD]">CVfy</span>؟
           </h2>
-          <p className="mx-auto max-w-2xl text-lg text-slate-600">
+          <p className="mx-auto max-w-2xl text-lg text-white/75">
             كل ما تحتاجه لبناء سيرة ذاتية تبرز مهاراتك وتفتح لك أبواب الفرص
             الوظيفية.
           </p>
@@ -99,15 +99,15 @@ export default function Features() {
           {features.map((feature) => (
             <div
               key={feature.title}
-              className="group rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all hover:border-[#378ADD]/20 hover:shadow-lg hover:shadow-[#378ADD]/10"
+              className="glass-page-card group p-6 transition-all hover:border-white/30"
             >
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#e8f2fc] text-[#378ADD] transition-colors group-hover:bg-[#378ADD] group-hover:text-white">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-white/15 text-[#FAC775] transition-colors group-hover:bg-[#FAC775] group-hover:text-[#0C447C]">
                 {feature.icon}
               </div>
-              <h3 className="mb-2 text-lg font-bold text-slate-900">
+              <h3 className="mb-2 text-lg font-bold text-white">
                 {feature.title}
               </h3>
-              <p className="text-sm leading-relaxed text-slate-600">
+              <p className="text-sm leading-relaxed text-white/70">
                 {feature.description}
               </p>
             </div>

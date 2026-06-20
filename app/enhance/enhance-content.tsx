@@ -169,7 +169,7 @@ export default function EnhanceContent({ userName }: EnhanceContentProps) {
         )}
         <Link
           href="/create"
-          className="inline-block rounded-full bg-[#378ADD] px-8 py-3 text-sm font-semibold text-white"
+          className="glass-btn-primary inline-block px-8 py-3 text-sm"
         >
           العودة لإنشاء السيرة
         </Link>
@@ -183,14 +183,14 @@ export default function EnhanceContent({ userName }: EnhanceContentProps) {
 
   return (
     <div className="animate-fade-in mx-auto max-w-lg text-center">
-      <h1 className="text-2xl font-extrabold text-slate-900 sm:text-3xl">
+      <h1 className="text-2xl font-extrabold text-white sm:text-3xl">
         أهلاً {userName}! 👋
       </h1>
-      <p className="mt-2 text-base text-slate-600 sm:text-lg">
+      <p className="mt-2 text-base text-white/75 sm:text-lg">
         سيرتك جاهزة للتحسين
       </p>
 
-      <div className="my-8 rounded-2xl border border-[#378ADD]/15 bg-[#378ADD]/5 px-4 py-5 sm:px-6">
+      <div className="glass-page-card-sm my-8 px-4 py-5 sm:px-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
           {PROGRESS_STEPS.map((step, index) => (
             <div key={step.label} className="flex flex-1 items-center gap-2 text-sm">
@@ -198,23 +198,23 @@ export default function EnhanceContent({ userName }: EnhanceContentProps) {
               <span
                 className={`font-semibold ${
                   step.status === "active"
-                    ? "text-[#378ADD]"
+                    ? "text-[#FAC775]"
                     : step.status === "done"
-                      ? "text-emerald-700"
-                      : "text-slate-400"
+                      ? "text-emerald-300"
+                      : "text-white/45"
                 }`}
               >
                 {step.label}
               </span>
               {index < PROGRESS_STEPS.length - 1 && (
-                <span className="mx-1 hidden text-slate-300 sm:inline" aria-hidden>
+                <span className="mx-1 hidden text-white/30 sm:inline" aria-hidden>
                   →
                 </span>
               )}
             </div>
           ))}
         </div>
-        <div className="mt-4 h-2 overflow-hidden rounded-full bg-white">
+        <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/15">
           <div
             className="h-full rounded-full transition-all duration-500"
             style={{ width: "66%", backgroundColor: BRAND }}
@@ -231,18 +231,17 @@ export default function EnhanceContent({ userName }: EnhanceContentProps) {
       <button
         type="button"
         onClick={handleEnhance}
-        className="mx-auto rounded-full px-8 py-3.5 text-base font-extrabold text-white shadow-lg shadow-[#378ADD]/30 transition-transform hover:scale-[1.02] active:scale-[0.98]"
-        style={{ backgroundColor: BRAND }}
+        className="glass-btn-primary mx-auto px-8 py-3.5 text-base shadow-[0_4px_20px_rgba(255,255,255,0.2)] transition-transform hover:scale-[1.02] active:scale-[0.98]"
       >
         حسّن السيرة الذاتية ✨
       </button>
 
-      <p className="mt-3 text-xs text-slate-500">عادةً يستغرق 30 ثانية</p>
+      <p className="mt-3 text-xs text-white/55">عادةً يستغرق 30 ثانية</p>
 
-      <p className="mt-6 text-sm text-slate-500">
+      <p className="mt-6 text-sm text-white/55">
         <Link
           href={cvId ? `/create?edit=${cvId}` : "/create"}
-          className="font-semibold text-[#378ADD] hover:underline"
+          className="font-semibold text-[#FAC775] hover:underline"
         >
           تعديل البيانات
         </Link>

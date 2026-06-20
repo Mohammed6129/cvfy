@@ -52,7 +52,7 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       className={`${balooBhaijaan.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-white font-sans text-slate-900">
+      <body className="min-h-full flex flex-col font-sans text-white antialiased">
         {children}
       </body>
     </html>
