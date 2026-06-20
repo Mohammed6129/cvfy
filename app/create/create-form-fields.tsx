@@ -2,6 +2,11 @@
 
 import type { ReactNode } from "react";
 import {
+  FORM_DATE_SELECT_CLASS,
+  FORM_LABEL_CLASS,
+  FORM_SELECT_CLASS,
+} from "@/app/components/home-glass-shell";
+import {
   GRADUATION_YEARS,
   MONTHS,
   WORK_YEARS,
@@ -10,7 +15,7 @@ import type { CvFormData } from "@/lib/cv-types";
 
 export const REQUIRED_ORANGE = "#F97316";
 
-const labelClass = "mb-2 block text-sm font-semibold text-slate-700";
+const labelClass = FORM_LABEL_CLASS;
 
 export function parseYearMonth(value: string) {
   const [year = "", month = ""] = value.split("-");
@@ -107,8 +112,7 @@ export function FormField({
   );
 }
 
-const dateSelectBase =
-  "min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none transition-colors focus:border-[#378ADD] focus:ring-2 focus:ring-[#378ADD]/20";
+const dateSelectBase = FORM_DATE_SELECT_CLASS;
 
 type WorkExperienceDateRangeProps = {
   startDate: string;
@@ -220,7 +224,7 @@ export function WorkExperienceDateRange({
         )}
       </div>
 
-      <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-700">
+      <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm font-medium text-white/85">
         <input
           type="checkbox"
           checked={isCurrent}
@@ -245,8 +249,7 @@ export function MonthYearSelect({
   invalid?: boolean;
 }) {
   const { month, year } = parseYearMonth(value);
-  const selectBase =
-    "w-full appearance-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition-colors focus:border-[#378ADD] focus:ring-2 focus:ring-[#378ADD]/20";
+  const selectBase = FORM_SELECT_CLASS;
 
   return (
     <FormField label={label} required invalid={invalid}>

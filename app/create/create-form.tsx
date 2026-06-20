@@ -29,8 +29,16 @@ import { isValidLinkedInUrl } from "@/lib/linkedin";
 import { prepareCvPayload } from "@/lib/prepare-cv-payload";
 import type { CvFormData, GeneratedCv } from "@/lib/cv-types";
 import {
-  GLASS_INPUT_CLASS,
-  GLASS_LABEL_CLASS,
+  FORM_BTN_BACK_CLASS,
+  FORM_BTN_NEXT_CLASS,
+  FORM_INPUT_CLASS,
+  FORM_LABEL_CLASS,
+  FORM_NESTED_SECTION_CLASS,
+  FORM_PHONE_INPUT_CLASS,
+  FORM_PHONE_PREFIX_CLASS,
+  FORM_PHONE_WRAPPER_CLASS,
+  FORM_SELECT_CLASS,
+  FORM_TIP_CLASS,
 } from "@/app/components/home-glass-shell";
 
 const BRAND = "#378ADD";
@@ -51,12 +59,11 @@ const STEP_TITLES = [
 const START_NOTICE =
   "بعد تعبئة الفورم ستحصل على نسختين: عربي وإنجليزي. ملاحظة: السيرة الإنجليزية دائماً أفضل وتُفضّلها الشركات والجهات أكثر من العربية";
 
-const inputClass = GLASS_INPUT_CLASS;
+const inputClass = FORM_INPUT_CLASS;
 
-const selectClass =
-  "w-full appearance-none rounded-xl border border-white/25 bg-white/90 px-4 py-3 text-slate-900 outline-none transition-colors focus:border-[#378ADD] focus:ring-2 focus:ring-[#378ADD]/20";
+const selectClass = FORM_SELECT_CLASS;
 
-const labelClass = GLASS_LABEL_CLASS;
+const labelClass = FORM_LABEL_CLASS;
 
 type FormData = CvFormData;
 
@@ -110,7 +117,7 @@ function normalizePhone(phone: string) {
 
 function FieldTip({ children }: { children: React.ReactNode }) {
   return (
-    <p className="mt-1.5 text-xs leading-relaxed text-white/55">{children}</p>
+    <p className={FORM_TIP_CLASS}>{children}</p>
   );
 }
 
@@ -469,18 +476,18 @@ export default function CreateForm() {
             >
               <div
                 className={invalidFieldClass(
-                  "flex overflow-hidden rounded-xl border border-slate-200 focus-within:border-[#378ADD] focus-within:ring-2 focus-within:ring-[#378ADD]/20",
+                  FORM_PHONE_WRAPPER_CLASS,
                   isInvalid("phone")
                 )}
               >
-                <span dir="ltr" className="flex shrink-0 items-center bg-slate-50 px-4 text-sm font-semibold text-slate-600">+966</span>
+                <span dir="ltr" className={FORM_PHONE_PREFIX_CLASS}>+966</span>
                 <input
                   type="tel"
                   dir="ltr"
                   value={data.phone.replace(/^\+966/, "")}
                   onChange={(e) => update("phone", e.target.value)}
                   placeholder="5xxxxxxxx"
-                  className="w-full border-0 px-4 py-3 text-left outline-none"
+                  className={FORM_PHONE_INPUT_CLASS}
                 />
               </div>
             </FormField>
@@ -506,7 +513,7 @@ export default function CreateForm() {
             <FormField
               label={
                 <>
-                  رابط LinkedIn <span className="font-normal text-slate-500">(اختياري)</span>
+                  رابط LinkedIn <span className="font-normal text-white/55">(اختياري)</span>
                 </>
               }
               invalid={isInvalid("linkedIn")}
@@ -527,14 +534,14 @@ export default function CreateForm() {
         {step === 2 && (
           <div>
             <h2 className="mb-2 text-xl font-extrabold text-white sm:text-2xl">سولف لنا عن خبراتك المهنية</h2>
-            <p className="mb-2 text-sm font-semibold text-amber-700">التواريخ إلزامية لمطابقة نظام ATS</p>
+            <p className="mb-2 text-sm font-semibold text-[#FAC775]/90">التواريخ إلزامية لمطابقة نظام ATS</p>
             <div className="space-y-8">
               {data.workExperience.map((job, i) => (
-                <div key={job.id} className="rounded-2xl border border-slate-100 bg-slate-50/60 p-4 sm:p-6">
+                <div key={job.id} className={FORM_NESTED_SECTION_CLASS}>
                   <div className="mb-4 flex justify-between">
-                    <span className="text-sm font-bold text-[#378ADD]">الخبرة {i + 1}</span>
+                    <span className="text-sm font-bold text-[#FAC775]">الخبرة {i + 1}</span>
                     {data.workExperience.length > 1 && (
-                      <button type="button" onClick={() => update("workExperience", data.workExperience.filter((w) => w.id !== job.id))} className="text-sm text-red-500">حذف</button>
+                      <button type="button" onClick={() => update("workExperience", data.workExperience.filter((w) => w.id !== job.id))} className="text-sm text-red-300">حذف</button>
                     )}
                   </div>
                   <div className="mb-3 grid gap-4 sm:grid-cols-2">
@@ -569,7 +576,7 @@ export default function CreateForm() {
                       className={invalidFieldClass(inputClass, isInvalid(`work-${job.id}-department`))}
                     />
                   </FormField>
-                  <p className="mb-4 text-xs text-amber-700 sm:text-sm">⚠️ سنحافظ على اسم الشركة والمسمى كما هو</p>
+                  <p className="mb-4 text-xs text-white/70 sm:text-sm">⚠️ سنحافظ على اسم الشركة والمسمى كما هو</p>
                   <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
                     <FormField label="وصف الخبرة" required invalid={isInvalid(`work-${job.id}-description`)}>
                       <textarea
@@ -582,7 +589,7 @@ export default function CreateForm() {
                         className={invalidFieldClass(inputClass, isInvalid(`work-${job.id}-description`))}
                       />
                     </FormField>
-                    <div className="rounded-xl border border-[#378ADD]/15 bg-[#378ADD]/5 p-4 text-sm text-slate-600">
+                    <div className="rounded-[11px] border border-[#E0EDF8] bg-white p-4 text-sm text-[#333]">
                       ✅ مثال: كنت مسؤول عن إدارة 5 حسابات كبيرة، نظمت اجتماعات أسبوعية مع العملاء، وطورت استراتيجية تسويقية زادت المبيعات 30%
                     </div>
                   </div>
@@ -610,7 +617,7 @@ export default function CreateForm() {
               ))}
             </div>
             {data.workExperience.length < MAX_EXPERIENCES && (
-              <button type="button" onClick={() => update("workExperience", [...data.workExperience, emptyWork()])} className="mt-6 w-full rounded-xl border-2 border-dashed border-[#378ADD]/40 py-3 text-sm font-semibold text-[#378ADD]">
+              <button type="button" onClick={() => update("workExperience", [...data.workExperience, emptyWork()])} className="mt-6 w-full rounded-[11px] border-2 border-dashed border-white/30 py-3 text-sm font-semibold text-white/85 hover:border-white/50 hover:bg-white/5">
                 + إضافة خبرة أخرى
               </button>
             )}
@@ -691,7 +698,7 @@ export default function CreateForm() {
             {data.skills.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {data.skills.map((s) => (
-                  <span key={s.id} className="inline-flex items-center gap-2 rounded-full bg-[#e8f2fc] px-3 py-1.5 text-sm font-semibold text-[#378ADD]">
+                  <span key={s.id} className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-[#378ADD]">
                     {s.name}
                     <button type="button" onClick={() => update("skills", data.skills.filter((x) => x.id !== s.id))}>×</button>
                   </span>
@@ -705,7 +712,7 @@ export default function CreateForm() {
                     key={skill}
                     type="button"
                     onClick={() => addSkill(skill)}
-                    className="rounded-full border border-slate-200 px-3 py-1.5 text-sm hover:border-[#378ADD]"
+                    className="rounded-full border border-[#E0EDF8] bg-white px-3 py-1.5 text-sm text-[#333] hover:border-[#378ADD] hover:text-[#378ADD]"
                   >
                     + {skill}
                   </button>
@@ -718,14 +725,14 @@ export default function CreateForm() {
         {step === 5 && (
           <div>
             <h2 className="mb-2 text-xl font-extrabold text-white sm:text-2xl">الدورات والشهادات</h2>
-            <p className="mb-6 text-sm text-slate-500">(اختياري — يمكنك تخطي هذه الخطوة)</p>
+            <p className="mb-6 text-sm text-white/65">(اختياري — يمكنك تخطي هذه الخطوة)</p>
             <div className="space-y-6">
               {data.courses.map((course, i) => (
-                <div key={course.id} className="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
+                <div key={course.id} className={FORM_NESTED_SECTION_CLASS}>
                   <div className="mb-3 flex justify-between">
-                    <span className="text-sm font-bold text-[#378ADD]">الدورة {i + 1}</span>
+                    <span className="text-sm font-bold text-[#FAC775]">الدورة {i + 1}</span>
                     {data.courses.length > 1 && (
-                      <button type="button" onClick={() => update("courses", data.courses.filter((c) => c.id !== course.id))} className="text-sm text-red-500">حذف</button>
+                      <button type="button" onClick={() => update("courses", data.courses.filter((c) => c.id !== course.id))} className="text-sm text-red-300">حذف</button>
                     )}
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -755,7 +762,7 @@ export default function CreateForm() {
                 </div>
               ))}
             </div>
-            <button type="button" onClick={() => update("courses", [...data.courses, emptyCourse()])} className="mt-6 w-full rounded-xl border-2 border-dashed border-[#378ADD]/40 py-3 text-sm font-semibold text-[#378ADD]">
+            <button type="button" onClick={() => update("courses", [...data.courses, emptyCourse()])} className="mt-6 w-full rounded-[11px] border-2 border-dashed border-white/30 py-3 text-sm font-semibold text-white/85 hover:border-white/50 hover:bg-white/5">
               + إضافة دورة أخرى
             </button>
           </div>
@@ -784,18 +791,18 @@ export default function CreateForm() {
                 />
               </FormField>
             </div>
-            <div className="rounded-xl border border-[#378ADD]/15 bg-[#378ADD]/5 p-4 text-sm text-slate-600">
+            <div className="rounded-[11px] border border-[#E0EDF8] bg-white p-4 text-sm text-[#333]">
               ✅ مثال: أنا شخص طموح عندي 5 سنوات خبرة في التسويق الرقمي، أحب أشتغل بفريق وأحقق أهداف واضحة
             </div>
           </div>
         )}
 
         <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-          <button type="button" onClick={goBack} disabled={step === 1} className="glass-btn-secondary px-6 py-3 text-sm disabled:opacity-40">السابق</button>
+          <button type="button" onClick={goBack} disabled={step === 1} className={`${FORM_BTN_BACK_CLASS} disabled:opacity-40`}>السابق</button>
           {step < TOTAL_STEPS ? (
-            <button type="button" onClick={goNext} className="glass-btn-primary px-8 py-3 text-sm">التالي</button>
+            <button type="button" onClick={goNext} className={FORM_BTN_NEXT_CLASS}>التالي</button>
           ) : (
-            <button type="button" onClick={handleSubmit} className="glass-btn-primary px-8 py-3 text-sm">إنشاء السيرة الذاتية ✨</button>
+            <button type="button" onClick={handleSubmit} className={FORM_BTN_NEXT_CLASS}>إنشاء السيرة الذاتية ✨</button>
           )}
         </div>
       </div>

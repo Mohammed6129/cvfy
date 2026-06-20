@@ -102,8 +102,8 @@ export default function CvUpload({ onParsed, onError }: CvUploadProps) {
   };
 
   return (
-    <div className="mb-8 rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 p-4 sm:p-5">
-      <p className="mb-3 text-sm font-bold text-slate-800">
+    <div className="mb-8 rounded-2xl border border-dashed border-white/25 bg-white/10 p-4 sm:p-5">
+      <p className="mb-3 text-sm font-bold text-white">
         عندك سيرة قديمة؟ ارفعها هنا
       </p>
       <input
@@ -120,7 +120,7 @@ export default function CvUpload({ onParsed, onError }: CvUploadProps) {
         type="button"
         disabled={uploading}
         onClick={() => fileRef.current?.click()}
-        className="rounded-xl border-2 border-[#378ADD]/30 bg-white px-5 py-2.5 text-sm font-semibold text-[#378ADD] hover:bg-[#e8f2fc] disabled:opacity-60"
+        className="rounded-[11px] border border-[#E0EDF8] bg-white px-5 py-2.5 text-sm font-semibold text-[#378ADD] transition-colors hover:bg-[#f4f8ff] disabled:opacity-60"
       >
         {uploading ? "جاري الاستخراج..." : "رفع سيرة (PDF أو Word)"}
       </button>
