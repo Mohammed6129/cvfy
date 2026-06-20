@@ -1,3 +1,8 @@
+import {
+  HOME_GLASS_CONTAINER_CLASS,
+  HOME_GLASS_SECTION_CLASS,
+} from "./home-glass-shell";
+
 const BADGE_STYLE = {
   background: "rgba(255,255,255,0.07)",
   border: "1px solid rgba(255,255,255,0.14)",
@@ -40,17 +45,9 @@ const BADGES = [
 
 export default function HomeTrustBadges() {
   return (
-    <section dir="rtl">
+    <section className={HOME_GLASS_SECTION_CLASS} dir="rtl">
       <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "16px",
-          flexWrap: "wrap",
-          maxWidth: "680px",
-          margin: "0 auto",
-          padding: "48px 24px",
-        }}
+        className={`${HOME_GLASS_CONTAINER_CLASS} flex flex-wrap justify-center gap-4`}
       >
         {BADGES.map((badge) => (
           <div key={badge.title} style={BADGE_STYLE}>

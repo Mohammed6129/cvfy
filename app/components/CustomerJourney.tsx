@@ -1,4 +1,8 @@
 import type { ReactNode } from "react";
+import {
+  HOME_GLASS_CONTAINER_CLASS,
+  HOME_GLASS_SECTION_CLASS,
+} from "./home-glass-shell";
 
 const WRAPPER_STYLE = {
   backdropFilter: "blur(16px)",
@@ -7,8 +11,6 @@ const WRAPPER_STYLE = {
   border: "1px solid rgba(255,255,255,0.18)",
   borderRadius: "24px",
   padding: "36px 28px",
-  maxWidth: "960px",
-  margin: "0 auto",
 } as const;
 
 const BADGE_STYLE = {
@@ -146,8 +148,8 @@ const STEPS = [
 
 export default function CustomerJourney() {
   return (
-    <section id="journey" className="px-6 py-12 md:px-12" dir="rtl">
-      <div style={WRAPPER_STYLE}>
+    <section id="journey" className={HOME_GLASS_SECTION_CLASS} dir="rtl">
+      <div className={HOME_GLASS_CONTAINER_CLASS} style={WRAPPER_STYLE}>
         <h2
           style={{
             textAlign: "center",
