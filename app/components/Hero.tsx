@@ -5,7 +5,7 @@ import StartNowLink from "./start-now-link";
 const PAYMENT_ICONS = [
   { src: "/payment-icons/visa.svg", alt: "Visa" },
   { src: "/payment-icons/apple-pay.svg", alt: "Apple Pay" },
-  { src: "/payment-icons/mada.svg", alt: "mada" },
+  { src: "/payment-icons/rasaat.svg", alt: "Rasaat" },
 ];
 
 function PriceIllustration() {
@@ -128,17 +128,17 @@ export default function Hero() {
             ابدأ الآن ←
           </StartNowLink>
 
-          <div className="mt-4 flex items-center justify-center gap-2.5">
+          <div className="mx-auto mt-3.5 flex w-fit items-center justify-center gap-2.5 rounded-[14px] bg-white px-3.5 py-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.1)]">
             {PAYMENT_ICONS.map((icon) => (
               <div
                 key={icon.alt}
-                className="flex h-9 w-14 items-center justify-center rounded-lg bg-white p-1.5 shadow-[0_1px_4px_rgba(0,0,0,0.08)]"
+                className="flex h-9 w-14 items-center justify-center"
               >
                 <Image
                   src={icon.src}
                   alt={icon.alt}
-                  width={44}
-                  height={24}
+                  width={56}
+                  height={36}
                   className="h-full w-full object-contain"
                 />
               </div>
