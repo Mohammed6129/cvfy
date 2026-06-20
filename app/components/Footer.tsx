@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import BrandLogo, { LOGO_SRC } from "./brand-logo";
+import BrandLogo, { FOOTER_LOGO_HEIGHT, LogoIcon } from "./brand-logo";
 
 type FooterProps = {
   variant?: "default" | "glass";
@@ -101,13 +101,7 @@ function GlassFooterTop() {
         </div>
 
         <div className="flex flex-col items-center gap-3 text-center md:max-w-[260px] md:justify-self-center">
-          <img
-            src={LOGO_SRC}
-            alt="CVfy"
-            width={128}
-            height={128}
-            style={{ objectFit: "contain", display: "block" }}
-          />
+          <LogoIcon height={FOOTER_LOGO_HEIGHT} />
           <p className="max-w-[220px] text-[11px] leading-relaxed text-white/55">
             منشئ سيرة ذاتية احترافية بالذكاء الاصطناعي، مصمم لسوق العمل السعودي.
           </p>

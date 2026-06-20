@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LOGO_SRC } from "./brand-logo";
+import { LogoIcon, NAVBAR_LOGO_HEIGHT } from "./brand-logo";
 import NavbarAuth from "./navbar-auth";
 
 const navLinks = [
@@ -24,13 +24,7 @@ export default function Navbar({ variant = "default" }: NavbarProps) {
     >
       <nav className="mx-auto flex max-w-[1100px] items-center justify-between gap-4 px-6 py-4 md:px-12">
         <Link href="/" className="inline-flex shrink-0 items-center">
-          <img
-            src={LOGO_SRC}
-            alt="CVfy"
-            width={88}
-            height={88}
-            style={{ objectFit: "contain", display: "block" }}
-          />
+          <LogoIcon height={NAVBAR_LOGO_HEIGHT} />
         </Link>
 
         <div className="hidden items-center gap-8 md:flex">
