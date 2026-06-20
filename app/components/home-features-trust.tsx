@@ -1,4 +1,16 @@
+import Image from "next/image";
 import StartNowLink from "./start-now-link";
+
+const UNIFIED_CARD_STYLE = {
+  backdropFilter: "blur(16px)",
+  background: "rgba(255,255,255,0.1)",
+  border: "1px solid rgba(255,255,255,0.2)",
+  borderRadius: "24px",
+  padding: "32px",
+  display: "flex",
+  flexDirection: "column" as const,
+  gap: "0",
+};
 
 function CvSheet({
   background,
@@ -45,30 +57,47 @@ function StackedCvIllustration() {
       <CvSheet background="#85B7EB" left={30} top={40} zIndex={1} />
       <CvSheet background="#FAC775" left={15} top={20} zIndex={2} />
       <CvSheet background="#ffffff" left={0} top={0} zIndex={3} />
-
-      <div
-        className="absolute flex h-11 w-11 items-center justify-center rounded-full bg-[#639922] shadow-[0_4px_14px_rgba(0,0,0,0.2)]"
-        style={{ right: "-6px", bottom: "8px", zIndex: 4 }}
-      >
-        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-          <path
-            d="M6 11.5l3.2 3.2 6.8-7.4"
-            stroke="white"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </div>
     </div>
   );
 }
 
-export default function HomeTrustSection() {
+export default function HomeFeaturesTrust() {
   return (
     <section className="px-6 py-12 md:px-12" dir="rtl">
-      <div className="glass-feature-card mx-auto max-w-[1100px] rounded-3xl p-8">
-        <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2">
+      <div className="mx-auto max-w-[1100px]" style={UNIFIED_CARD_STYLE}>
+        <div
+          className="grid grid-cols-1 items-center gap-6 md:grid-cols-2 md:gap-6"
+          style={{
+            paddingBottom: "32px",
+            borderBottom: "1px solid rgba(255,255,255,0.12)",
+            marginBottom: "32px",
+          }}
+        >
+          <div className="flex justify-center md:justify-start">
+            <Image
+              src="/illustrations/resume.svg"
+              alt="سيرة ذاتية احترافية منظمة"
+              width={320}
+              height={218}
+              className="h-auto w-full max-w-[320px] opacity-90"
+            />
+          </div>
+
+          <div className="text-right">
+            <span className="glass-surface-sm mb-3 inline-block rounded-full px-3 py-1 text-xs font-semibold text-white">
+              تحسين بالذكاء الاصطناعي
+            </span>
+            <h2 className="mb-3 text-xl font-extrabold text-white md:text-2xl">
+              AI يصيغ خبراتك باحترافية تلقائياً
+            </h2>
+            <p className="text-sm leading-relaxed text-white/80">
+              مو لازم تعرف تكتب بالإنجليزي باحتراف — الذكاء الاصطناعي يأخذ كلامك
+              العادي ويحوّله لجمل قوية تلفت انتباه أصحاب العمل.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 items-center gap-6 md:grid-cols-2 md:gap-6">
           <div className="flex items-center justify-center">
             <StackedCvIllustration />
           </div>
