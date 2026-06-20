@@ -4,7 +4,7 @@ import Hero from "./components/Hero";
 import HomeTrustBadges from "./components/home-trust-badges";
 import CustomerJourney from "./components/CustomerJourney";
 import HomeFeaturesTrust from "./components/home-features-trust";
-import HomeCta from "./components/home-cta";
+import HomeProblemSolution from "./components/home-problem-solution";
 import HeroLiveBar from "./components/hero-live-bar";
 import Footer from "./components/Footer";
 
@@ -29,7 +29,7 @@ export default function Home() {
         <HomeTrustBadges />
         <CustomerJourney />
         <HomeFeaturesTrust />
-        <HomeCta />
+        <HomeProblemSolution />
         <Footer variant="glass" />
         <HeroLiveBar />
       </main>
