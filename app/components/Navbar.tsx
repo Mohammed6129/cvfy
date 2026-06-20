@@ -1,5 +1,4 @@
 import Link from "next/link";
-import BrandLogo from "./brand-logo";
 import NavbarAuth from "./navbar-auth";
 
 const navLinks = [
@@ -23,7 +22,14 @@ export default function Navbar({ variant = "default" }: NavbarProps) {
       }
     >
       <nav className="mx-auto flex max-w-[1100px] items-center justify-between gap-4 px-6 py-4 md:px-12">
-        <BrandLogo variant={isGlass ? "glass" : "default"} />
+        <Link href="/" className="shrink-0">
+          <img
+            src="/logo/cvfy-badge-logo.svg"
+            alt="CVfy"
+            width={52}
+            height={52}
+          />
+        </Link>
 
         <div className="hidden items-center gap-8 md:flex">
           {navLinks.map((link) => (
