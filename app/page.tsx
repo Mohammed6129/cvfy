@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
-import HomeStatsBar from "./components/home-stats-bar";
+import HomeTrustBadges from "./components/home-trust-badges";
 import CustomerJourney from "./components/CustomerJourney";
 import HomeFeatures from "./components/home-features";
 import HomeTrustSection from "./components/home-trust-section";
@@ -26,9 +26,7 @@ export default function Home() {
       <Navbar variant="glass" />
       <main>
         <Hero />
-        <div className="px-6 py-8 md:px-12 md:py-10">
-          <HomeStatsBar />
-        </div>
+        <HomeTrustBadges />
         <CustomerJourney />
         <HomeFeatures />
         <HomeTrustSection />
