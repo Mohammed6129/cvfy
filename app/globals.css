@@ -576,6 +576,26 @@ body {
   z-index: 0;
 }
 
+/* Scrolling stats marquee */
+@keyframes scrollLeft {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-33.333%);
+  }
+}
+
+.scroll-track {
+  display: flex;
+  width: max-content;
+  gap: 16px;
+}
+
+.animate-scroll-left {
+  animation: scrollLeft 36s linear infinite;
+}
+
 /* Hide Moyasar branding */
 .mysr-form a[href*="moyasar.com"],
 #mysr a[href*="moyasar.com"] {

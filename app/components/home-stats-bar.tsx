@@ -50,20 +50,25 @@ const STATS = [
   },
 ];
 
+const BASE_CARDS = [...STATS, ...STATS];
+const SCROLL_CARDS = [...BASE_CARDS, ...BASE_CARDS, ...BASE_CARDS];
+
 export default function HomeStatsBar() {
   return (
-    <section dir="rtl">
-      <div className="glass-surface mx-auto flex max-w-[1100px] flex-wrap justify-around gap-6 rounded-3xl px-5 py-7 text-center text-white">
-        {STATS.map((stat) => (
-          <div
-            key={stat.label}
-            className="flex min-w-[120px] flex-1 flex-col items-center gap-2"
-          >
-            <span className="mb-2.5">{stat.icon}</span>
-            <p className="text-2xl font-extrabold md:text-3xl">{stat.value}</p>
-            <p className="text-xs text-white/75 md:text-sm">{stat.label}</p>
-          </div>
-        ))}
+    <section dir="rtl" className="overflow-hidden">
+      <div className="glass-surface overflow-hidden rounded-3xl py-7 text-center text-white">
+        <div className="scroll-track animate-scroll-left">
+          {SCROLL_CARDS.map((stat, index) => (
+            <div
+              key={`${stat.label}-${index}`}
+              className="glass-surface-sm flex w-[220px] shrink-0 flex-col items-center gap-2 rounded-2xl px-4 py-5"
+            >
+              <span className="mb-2.5">{stat.icon}</span>
+              <p className="text-2xl font-extrabold md:text-3xl">{stat.value}</p>
+              <p className="text-xs text-white/75 md:text-sm">{stat.label}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
