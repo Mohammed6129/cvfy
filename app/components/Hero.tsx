@@ -4,34 +4,21 @@ import StartNowLink from "./start-now-link";
 
 const HERO_CONTAINER_MAX_WIDTH = "680px";
 
-function PriceIllustration() {
-  return (
-    <svg width="50" height="50" viewBox="0 0 50 50" fill="none" aria-hidden className="shrink-0">
-      <circle cx="25" cy="25" r="25" fill="rgba(255,255,255,0.12)" />
-      <rect
-        x="14"
-        y="11"
-        width="22"
-        height="28"
-        rx="3"
-        fill="rgba(255,255,255,0.22)"
-        stroke="rgba(255,255,255,0.5)"
-        strokeWidth="1.2"
-      />
-      <rect x="18" y="16" width="14" height="3" rx="1.5" fill="rgba(255,255,255,0.75)" />
-      <rect x="18" y="21" width="14" height="2" rx="1" fill="rgba(255,255,255,0.35)" />
-      <rect x="18" y="25" width="9" height="2" rx="1" fill="rgba(255,255,255,0.35)" />
-      <circle cx="36" cy="33" r="8" fill="#639922" />
-      <path
-        d="M32 33l2.5 2.5 5-5"
-        stroke="#fff"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
+const PAYMENT_ICON_WRAP = {
+  background: "rgba(255,255,255,0.85)",
+  backdropFilter: "blur(10px)",
+  WebkitBackdropFilter: "blur(10px)",
+  borderRadius: "8px",
+  padding: "5px 9px",
+  display: "flex",
+  alignItems: "center",
+} as const;
+
+const PAYMENT_ICONS = [
+  { src: "/payment-icons/visa.png", alt: "Visa" },
+  { src: "/payment-icons/apple-pay.png", alt: "Apple Pay" },
+  { src: "/payment-icons/rasaat.png", alt: "Rasaat" },
+];
 
 export default function Hero() {
   return (
@@ -110,63 +97,68 @@ export default function Hero() {
             العمل السعودي.
           </p>
 
-          <div className="glass-surface-lg mx-auto mb-6 flex w-fit items-center gap-4 rounded-[18px] px-5 py-4 text-right">
-            <PriceIllustration />
-            <div className="text-right">
-              <div className="mb-0.5 flex items-baseline justify-start gap-1">
-                <span className="text-[32px] font-extrabold leading-none text-white">
-                  {SINGLE_PLAN.price}
-                </span>
-                <span className="text-sm font-semibold text-white/90">ر.س</span>
-              </div>
-              <p className="text-[10px] text-white/75">دفعة واحدة — نسختان + ATS</p>
+          <div
+            style={{
+              background: "rgba(255,255,255,0.12)",
+              borderRadius: "18px",
+              padding: "18px",
+              marginBottom: "16px",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "baseline",
+                justifyContent: "center",
+                gap: "6px",
+                marginBottom: "4px",
+              }}
+            >
+              <span style={{ fontSize: "32px", fontWeight: 800, color: "#fff" }}>
+                {SINGLE_PLAN.price}
+              </span>
+              <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)" }}>
+                ر.س
+              </span>
+            </div>
+
+            <div
+              style={{
+                fontSize: "10px",
+                color: "rgba(255,255,255,0.6)",
+                textAlign: "center",
+                marginBottom: "14px",
+              }}
+            >
+              دفعة واحدة — نسختان + ATS
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: "10px",
+                borderTop: "1px solid rgba(255,255,255,0.15)",
+                paddingTop: "14px",
+              }}
+            >
+              {PAYMENT_ICONS.map((icon) => (
+                <div key={icon.alt} style={PAYMENT_ICON_WRAP}>
+                  <img
+                    src={icon.src}
+                    alt={icon.alt}
+                    width={32}
+                    height={20}
+                    style={{ objectFit: "contain", display: "block" }}
+                  />
+                </div>
+              ))}
             </div>
           </div>
 
-          <StartNowLink className="inline-flex items-center rounded-full bg-white px-[34px] py-3.5 text-sm font-extrabold text-[#0C447C] shadow-[0_4px_20px_rgba(255,255,255,0.3)] transition-opacity hover:opacity-95">
+          <StartNowLink className="flex w-full items-center justify-center rounded-full bg-white py-[13px] text-sm font-extrabold text-[#0C447C] shadow-[0_4px_20px_rgba(255,255,255,0.3)] transition-opacity hover:opacity-95">
             ابدأ الآن ←
           </StartNowLink>
-
-          <div
-            style={{
-              background: "rgba(255,255,255,0.85)",
-              backdropFilter: "blur(10px)",
-              WebkitBackdropFilter: "blur(10px)",
-              borderRadius: "14px",
-              padding: "10px 14px",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: "14px",
-              marginTop: "14px",
-              width: "fit-content",
-              marginLeft: "auto",
-              marginRight: "auto",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-            }}
-          >
-            <img
-              src="/payment-icons/visa.png"
-              alt="Visa"
-              width={56}
-              height={36}
-              style={{ width: "56px", height: "36px", objectFit: "contain", display: "block" }}
-            />
-            <img
-              src="/payment-icons/apple-pay.png"
-              alt="Apple Pay"
-              width={56}
-              height={36}
-              style={{ width: "56px", height: "36px", objectFit: "contain", display: "block" }}
-            />
-            <img
-              src="/payment-icons/rasaat.png"
-              alt="Rasaat"
-              width={56}
-              height={36}
-              style={{ width: "56px", height: "36px", objectFit: "contain", display: "block" }}
-            />
-          </div>
         </div>
       </div>
     </section>
