@@ -100,10 +100,21 @@ function PointItem({
   );
 }
 
+const GLASS_WRAPPER_STYLE = {
+  backdropFilter: "blur(16px)",
+  WebkitBackdropFilter: "blur(16px)",
+  background: "rgba(255,255,255,0.06)",
+  border: "1px solid rgba(255,255,255,0.15)",
+  borderRadius: "28px",
+  padding: "40px 32px",
+  maxWidth: "960px",
+  margin: "0 auto",
+} as const;
+
 export default function HomeProblemSolution() {
   return (
     <section className="px-6 py-14 md:px-12 md:py-16" dir="rtl">
-      <div className="mx-auto max-w-[1100px] text-center">
+      <div className="text-center" style={GLASS_WRAPPER_STYLE}>
         <div
           className="mx-auto mb-5 inline-flex items-center gap-2"
           style={{
