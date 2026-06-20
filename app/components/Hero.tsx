@@ -138,26 +138,26 @@ export default function Hero() {
               boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
             }}
           >
-            <Image
+            <img
               src="/payment-icons/visa.png"
               alt="Visa"
               width={56}
               height={36}
-              style={{ objectFit: "contain", width: "56px", height: "36px" }}
+              style={{ width: "56px", height: "36px", objectFit: "contain", display: "block" }}
             />
-            <Image
+            <img
               src="/payment-icons/apple-pay.png"
               alt="Apple Pay"
               width={56}
               height={36}
-              style={{ objectFit: "contain", width: "56px", height: "36px" }}
+              style={{ width: "56px", height: "36px", objectFit: "contain", display: "block" }}
             />
-            <Image
+            <img
               src="/payment-icons/rasaat.png"
               alt="Rasaat"
               width={56}
               height={36}
-              style={{ objectFit: "contain", width: "56px", height: "36px" }}
+              style={{ width: "56px", height: "36px", objectFit: "contain", display: "block" }}
             />
           </div>
         </div>
