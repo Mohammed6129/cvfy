@@ -27,8 +27,8 @@ export default function Navbar({ variant = "default" }: NavbarProps) {
           <img
             src={LOGO_SRC}
             alt="CVfy"
-            width={52}
-            height={52}
+            width={88}
+            height={88}
             style={{ objectFit: "contain", display: "block" }}
           />
         </Link>

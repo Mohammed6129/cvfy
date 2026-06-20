@@ -77,12 +77,12 @@ function GlassFooterTop() {
           </ContactRow>
         </div>
 
-        <div className="flex flex-col items-center gap-2.5 text-center md:max-w-[220px] md:justify-self-center">
+        <div className="flex flex-col items-center gap-3 text-center md:max-w-[260px] md:justify-self-center">
           <img
             src={LOGO_SRC}
             alt="CVfy"
-            width={76}
-            height={76}
+            width={128}
+            height={128}
             style={{ objectFit: "contain", display: "block" }}
           />
           <p className="max-w-[220px] text-[11px] leading-relaxed text-white/55">
