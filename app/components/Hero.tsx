@@ -2,12 +2,6 @@ import Image from "next/image";
 import { SINGLE_PLAN } from "@/lib/payment";
 import StartNowLink from "./start-now-link";
 
-const PAYMENT_ICONS = [
-  { src: "/payment-icons/visa.png", alt: "Visa" },
-  { src: "/payment-icons/apple-pay.png", alt: "Apple Pay" },
-  { src: "/payment-icons/rasaat.png", alt: "Rasaat" },
-];
-
 function PriceIllustration() {
   return (
     <svg width="50" height="50" viewBox="0 0 50 50" fill="none" aria-hidden className="shrink-0">
@@ -128,21 +122,43 @@ export default function Hero() {
             ابدأ الآن ←
           </StartNowLink>
 
-          <div className="mx-auto mt-3.5 flex w-fit items-center justify-center gap-2.5 rounded-[14px] bg-white px-3.5 py-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.1)]">
-            {PAYMENT_ICONS.map((icon) => (
-              <div
-                key={icon.alt}
-                className="flex h-9 w-14 items-center justify-center"
-              >
-                <Image
-                  src={icon.src}
-                  alt={icon.alt}
-                  width={56}
-                  height={36}
-                  className="h-full w-full object-contain"
-                />
-              </div>
-            ))}
+          <div
+            style={{
+              background: "white",
+              borderRadius: "14px",
+              padding: "10px 14px",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "14px",
+              marginTop: "14px",
+              width: "fit-content",
+              marginLeft: "auto",
+              marginRight: "auto",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            }}
+          >
+            <Image
+              src="/payment-icons/visa.png"
+              alt="Visa"
+              width={56}
+              height={36}
+              style={{ objectFit: "contain", width: "56px", height: "36px" }}
+            />
+            <Image
+              src="/payment-icons/apple-pay.png"
+              alt="Apple Pay"
+              width={56}
+              height={36}
+              style={{ objectFit: "contain", width: "56px", height: "36px" }}
+            />
+            <Image
+              src="/payment-icons/rasaat.png"
+              alt="Rasaat"
+              width={56}
+              height={36}
+              style={{ objectFit: "contain", width: "56px", height: "36px" }}
+            />
           </div>
         </div>
       </div>
