@@ -1,4 +1,8 @@
 import type { ReactNode } from "react";
+import {
+  HOME_GLASS_CONTAINER_CLASS,
+  HOME_GLASS_SECTION_CLASS,
+} from "./home-glass-shell";
 
 function WarningBadgeIcon() {
   return (
@@ -107,14 +111,12 @@ const GLASS_WRAPPER_STYLE = {
   border: "1px solid rgba(255,255,255,0.15)",
   borderRadius: "28px",
   padding: "40px 32px",
-  maxWidth: "960px",
-  margin: "0 auto",
 } as const;
 
 export default function HomeProblemSolution() {
   return (
-    <section className="px-6 py-14 md:px-12 md:py-16" dir="rtl">
-      <div className="text-center" style={GLASS_WRAPPER_STYLE}>
+    <section className={HOME_GLASS_SECTION_CLASS} dir="rtl">
+      <div className={`${HOME_GLASS_CONTAINER_CLASS} text-center`} style={GLASS_WRAPPER_STYLE}>
         <div
           className="mx-auto mb-5 inline-flex items-center gap-2"
           style={{
@@ -158,10 +160,7 @@ export default function HomeProblemSolution() {
           كانت سيرتك الذاتية بصيغة لا يفهمها النظام.
         </p>
 
-        <div
-          className="mx-auto grid grid-cols-1 gap-6 md:grid-cols-2"
-          style={{ maxWidth: "900px", gap: "24px" }}
-        >
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2" style={{ gap: "24px" }}>
           <div
             className="text-right"
             style={{

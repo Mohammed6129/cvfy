@@ -1,4 +1,8 @@
 import Image from "next/image";
+import {
+  HOME_GLASS_CONTAINER_CLASS,
+  HOME_GLASS_SECTION_CLASS,
+} from "./home-glass-shell";
 import StartNowLink from "./start-now-link";
 
 const UNIFIED_CARD_STYLE = {
@@ -18,8 +22,8 @@ const TEXT_COLUMN_STYLE = {
 
 export default function HomeFeaturesTrust() {
   return (
-    <section className="px-6 py-12 md:px-12" dir="rtl">
-      <div className="mx-auto max-w-[1100px]" style={UNIFIED_CARD_STYLE}>
+    <section className={HOME_GLASS_SECTION_CLASS} dir="rtl">
+      <div className={HOME_GLASS_CONTAINER_CLASS} style={UNIFIED_CARD_STYLE}>
         <div
           className="grid grid-cols-1 md:grid-cols-2"
           style={{ gap: "24px", alignItems: "stretch" }}
