@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-const LOGO_SRC = "/logo/cvfy-badge-logo.svg";
+export const LOGO_SRC = "/logo/cvfy-badge-logo.png";
 const DEFAULT_SIZE = 38;
 
 type BrandLogoProps = {
@@ -23,6 +23,7 @@ export function LogoIcon({
       width={size}
       height={size}
       className={`shrink-0 ${className}`}
+      style={{ objectFit: "contain", display: "block" }}
     />
   );
 }
