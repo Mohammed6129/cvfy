@@ -3,9 +3,9 @@ import { SINGLE_PLAN } from "@/lib/payment";
 import StartNowLink from "./start-now-link";
 
 const PAYMENT_ICONS = [
-  { src: "/payment-icons/visa.svg", alt: "Visa" },
-  { src: "/payment-icons/apple-pay.svg", alt: "Apple Pay" },
-  { src: "/payment-icons/rasaat.svg", alt: "Rasaat" },
+  { src: "/payment-icons/visa.png", alt: "Visa" },
+  { src: "/payment-icons/apple-pay.png", alt: "Apple Pay" },
+  { src: "/payment-icons/rasaat.png", alt: "Rasaat" },
 ];
 
 function PriceIllustration() {
