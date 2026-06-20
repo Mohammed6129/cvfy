@@ -7,6 +7,7 @@ import HomeFeatures from "./components/home-features";
 import HomeTrustSection from "./components/home-trust-section";
 import HomeCta from "./components/home-cta";
 import HeroLiveBar from "./components/hero-live-bar";
+import Footer from "./components/Footer";
 
 export const metadata: Metadata = {
   title: "CVfy — منصة السيرة الذاتية الاحترافية بالعربية",
@@ -31,6 +32,7 @@ export default function Home() {
         <HomeFeatures />
         <HomeTrustSection />
         <HomeCta />
+        <Footer variant="glass" />
         <HeroLiveBar />
       </main>
     </div>
