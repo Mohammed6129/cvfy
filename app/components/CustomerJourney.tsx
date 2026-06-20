@@ -1,46 +1,123 @@
+import type { ReactNode } from "react";
+
+const WRAPPER_STYLE = {
+  backdropFilter: "blur(16px)",
+  WebkitBackdropFilter: "blur(16px)",
+  background: "rgba(255,255,255,0.08)",
+  border: "1px solid rgba(255,255,255,0.18)",
+  borderRadius: "24px",
+  padding: "36px 28px",
+  maxWidth: "960px",
+  margin: "0 auto",
+} as const;
+
+const BADGE_STYLE = {
+  position: "absolute" as const,
+  top: "-10px",
+  right: "-10px",
+  width: "26px",
+  height: "26px",
+  borderRadius: "50%",
+  background: "#fff",
+  color: "#0C447C",
+  fontSize: "12px",
+  fontWeight: 800,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+};
+
+function JourneyArrow() {
+  return (
+    <div className="flex h-7 w-full shrink-0 items-center justify-center md:h-auto md:w-[26px]">
+      <svg
+        width="20"
+        height="14"
+        viewBox="0 0 20 14"
+        fill="none"
+        aria-hidden
+        className="rotate-90 md:rotate-0"
+      >
+        <path
+          d="M18 7H2M8 1L2 7l6 6"
+          stroke="rgba(255,255,255,0.55)"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </div>
+  );
+}
+
+function StepBadge({ number }: { number: number }) {
+  return <div style={BADGE_STYLE}>{number}</div>;
+}
+
+function StepIcon({ bg, children }: { bg: string; children: ReactNode }) {
+  return (
+    <div
+      style={{
+        width: "38px",
+        height: "38px",
+        borderRadius: "11px",
+        background: bg,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        margin: "0 auto 8px",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 const STEPS = [
   {
+    number: 1,
     title: "تعبئة الفورم",
-    desc: "بياناتك بأسلوبك العادي",
-    iconBg: "rgba(192,221,151,0.25)",
-    iconColor: "#C0DD97",
+    desc: "بياناتك العادية",
+    iconBg: "rgba(192,221,151,0.2)",
     icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-        <rect x="5" y="3" width="14" height="18" rx="2" stroke="currentColor" strokeWidth="1.6" />
-        <line x1="8" y1="8" x2="16" y2="8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-        <line x1="8" y1="12" x2="14" y2="12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-        <line x1="8" y1="16" x2="12" y2="16" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+        <rect x="3" y="2" width="14" height="16" rx="2" stroke="#C0DD97" strokeWidth="1.3" />
+        <path
+          d="M6.5 7h8M6.5 10.5h8M6.5 13.5h4.5"
+          stroke="#C0DD97"
+          strokeWidth="1.2"
+          strokeLinecap="round"
+        />
       </svg>
     ),
   },
   {
+    number: 2,
     title: "تحسين AI",
-    desc: "صياغة احترافية تلقائية",
-    iconBg: "rgba(250,199,117,0.25)",
-    iconColor: "#FAC775",
+    desc: "صياغة احترافية",
+    iconBg: "rgba(250,199,117,0.2)",
     icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
         <path
-          d="M12 4L13.4 9.2L18.5 10.5L13.4 11.8L12 17L10.6 11.8L5.5 10.5L10.6 9.2L12 4Z"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinejoin="round"
+          d="M10 2l1.5 4.3H16l-3.5 2.5 1.5 4.3L10 10.5l-4 2.6 1.5-4.3L4 6.3h4.5z"
+          fill="#FAC775"
         />
       </svg>
     ),
   },
   {
+    number: 3,
     title: "فحص ATS",
-    desc: "توافق مع أنظمة التوظيف",
-    iconBg: "rgba(127,119,221,0.25)",
-    iconColor: "#7F77DD",
+    desc: "توافق مضمون",
+    iconBg: "rgba(175,169,236,0.2)",
     icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-        <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.6" />
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+        <circle cx="10" cy="10" r="6.5" stroke="#AFA9EC" strokeWidth="1.3" />
         <path
-          d="M8.5 12L10.8 14.3L15.5 9.5"
-          stroke="currentColor"
-          strokeWidth="1.6"
+          d="M7 10l1.8 1.8 3.7-4"
+          stroke="#AFA9EC"
+          strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -48,53 +125,82 @@ const STEPS = [
     ),
   },
   {
+    number: 4,
     title: "التحميل",
-    desc: "نسختان جاهزتان فوراً",
-    iconBg: "rgba(133,183,235,0.25)",
-    iconColor: "#85B7EB",
+    desc: "فوري ومباشر",
+    iconBg: "rgba(133,183,235,0.2)",
     icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-        <path d="M12 4V14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+        <rect x="4" y="2" width="12" height="13" rx="2" stroke="#85B7EB" strokeWidth="1.3" />
         <path
-          d="M8.5 10.5L12 14L15.5 10.5"
-          stroke="currentColor"
-          strokeWidth="1.6"
+          d="M10 17v3M7.5 18.5l2.5 2.5 2.5-2.5"
+          stroke="#85B7EB"
+          strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        <path d="M6 18H18" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
       </svg>
     ),
   },
-];
+] as const;
 
 export default function CustomerJourney() {
   return (
     <section id="journey" className="px-6 py-12 md:px-12" dir="rtl">
-      <div className="mx-auto max-w-[1100px]">
-        <div className="mb-10 text-center">
-          <h2 className="mb-2 text-[26px] font-extrabold text-white">
-            رحلتك مع <span className="text-[#FAC770]">CVfy</span>
-          </h2>
-          <p className="text-sm text-white/70">
-            من الفورم إلى السيرة الجاهزة في خطوات بسيطة
-          </p>
-        </div>
+      <div style={WRAPPER_STYLE}>
+        <h2
+          style={{
+            textAlign: "center",
+            fontSize: "20px",
+            fontWeight: 800,
+            color: "#fff",
+            marginBottom: "6px",
+          }}
+        >
+          رحلتك مع <span style={{ color: "#FAC775" }}>CVfy</span>
+        </h2>
+        <p
+          style={{
+            textAlign: "center",
+            fontSize: "12px",
+            color: "rgba(255,255,255,0.65)",
+            marginBottom: "32px",
+          }}
+        >
+          من الفورم إلى السيرة الجاهزة في خطوات بسيطة
+        </p>
 
-        <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
-          {STEPS.map((step) => (
+        <div className="flex flex-col items-stretch md:flex-row md:items-center md:justify-between">
+          {STEPS.map((step, index) => (
             <div
-              key={step.title}
-              className="glass-surface-md rounded-2xl px-2 py-4 text-center"
+              key={step.number}
+              className="flex flex-col items-stretch md:contents"
             >
               <div
-                className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl"
-                style={{ backgroundColor: step.iconBg, color: step.iconColor }}
+                className="relative w-full text-center md:flex-1"
+                style={{
+                  background: "rgba(255,255,255,0.06)",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  borderRadius: "16px",
+                  padding: "16px 12px",
+                }}
               >
-                {step.icon}
+                <StepBadge number={step.number} />
+                <StepIcon bg={step.iconBg}>{step.icon}</StepIcon>
+                <div style={{ fontSize: "11.5px", fontWeight: 700, color: "#fff" }}>
+                  {step.title}
+                </div>
+                <div
+                  style={{
+                    fontSize: "9px",
+                    color: "rgba(255,255,255,0.6)",
+                    marginTop: "3px",
+                  }}
+                >
+                  {step.desc}
+                </div>
               </div>
-              <h3 className="mb-1 text-[13px] font-bold text-white">{step.title}</h3>
-              <p className="text-[11px] leading-relaxed text-white/75">{step.desc}</p>
+              {index < STEPS.length - 1 && <JourneyArrow />}
             </div>
           ))}
         </div>
