@@ -3,7 +3,6 @@ import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import HomeHeroBanner from "./components/home-hero-banner";
 import HomeTrustBadges from "./components/home-trust-badges";
-import CustomerJourney from "./components/CustomerJourney";
 import HomeFeaturesTrust from "./components/home-features-trust";
 import HomeProblemSolution from "./components/home-problem-solution";
 import HowItWorks from "./components/how-it-works";
@@ -31,10 +30,9 @@ export default function Home() {
         <HomeHeroBanner />
         <Hero />
         <HomeTrustBadges />
-        <CustomerJourney />
+        <HowItWorks />
         <HomeFeaturesTrust />
         <HomeProblemSolution />
-        <HowItWorks />
         <HomeReviews />
         <Footer variant="glass" />
         <HeroLiveBar />
