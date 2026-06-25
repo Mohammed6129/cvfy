@@ -128,73 +128,74 @@ export default function Hero() {
               background: "rgba(255,255,255,0.95)",
               backdropFilter: "blur(12px)",
               fontFamily: "Arial, sans-serif",
-              direction: "rtl",
+              direction: "ltr",
             }}
           >
             {/* Name & title */}
-            <div className="mb-3 border-b border-[#0C447C]/20 pb-3 text-right">
-              <div className="text-[15px] font-extrabold text-[#0C447C]">فيصل علي الغامدي</div>
-              <div className="mt-0.5 text-[9px] font-semibold text-[#378ADD]">مهندس برمجيات أول | تطوير الأنظمة والحلول التقنية</div>
-              <div className="mt-1.5 flex flex-wrap justify-end gap-x-3 gap-y-0.5 text-[7.5px] text-gray-500">
-                <span>📍 الرياض، المملكة العربية السعودية</span>
+            <div className="mb-3 border-b border-[#0C447C]/20 pb-3 text-left">
+              <div className="text-[15px] font-extrabold text-[#0C447C]">Faisal Ali Al-Ghamdi</div>
+              <div className="mt-0.5 text-[9px] font-semibold text-[#378ADD]">Senior Software Engineer | Systems & Digital Solutions</div>
+              <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[7.5px] text-gray-500">
+                <span>📍 Riyadh, Saudi Arabia</span>
                 <span>📞 +966 50 123 4567</span>
                 <span>✉ faisal.ali@email.com</span>
               </div>
             </div>
 
-            {/* الملخص المهني */}
+            {/* Summary */}
             <div className="mb-3">
-              <div className="mb-1 border-b border-[#0C447C]/20 pb-0.5 text-[9px] font-extrabold text-[#0C447C]">الملخص المهني</div>
+              <div className="mb-1 border-b border-[#0C447C]/20 pb-0.5 text-[9px] font-extrabold uppercase tracking-wide text-[#0C447C]">Professional Summary</div>
               <p className="text-[7.5px] leading-relaxed text-gray-600">
-                مهندس برمجيات بخبرة تزيد عن ٧ سنوات في تصميم وتطوير الأنظمة البرمجية المتكاملة.
-                أتمتع بكفاءة عالية في تقنيات الويب الحديثة وإدارة قواعد البيانات وتحليل متطلبات الأعمال.
+                Results-driven Software Engineer with 7+ years of experience designing and delivering
+                enterprise-grade systems. Proven ability to lead cross-functional teams and optimize
+                application performance at scale.
               </p>
             </div>
 
-            {/* الخبرة العملية */}
+            {/* Experience */}
             <div className="mb-3">
-              <div className="mb-1 border-b border-[#0C447C]/20 pb-0.5 text-[9px] font-extrabold text-[#0C447C]">الخبرة العملية</div>
+              <div className="mb-1 border-b border-[#0C447C]/20 pb-0.5 text-[9px] font-extrabold uppercase tracking-wide text-[#0C447C]">Experience</div>
               <div className="mb-1.5">
                 <div className="flex items-baseline justify-between">
-                  <span className="text-[8px] font-bold text-gray-700">مهندس برمجيات أول</span>
-                  <span className="text-[7px] text-gray-400">٢٠٢١ — الحاضر</span>
+                  <span className="text-[8px] font-bold text-gray-700">Senior Software Engineer</span>
+                  <span className="text-[7px] text-gray-400">2021 — Present</span>
                 </div>
-                <div className="text-[7.5px] font-semibold text-[#378ADD]">شركة stc للحلول</div>
+                <div className="text-[7.5px] font-semibold text-[#378ADD]">stc Solutions</div>
                 <p className="mt-0.5 text-[7px] leading-relaxed text-gray-500">
-                  قيادة فريق من ٦ مطورين لتطوير منصة خدمات رقمية تخدم أكثر من ٢ مليون مستخدم.
-                  تحسين أداء الأنظمة بنسبة ٤٠٪ وتقليل وقت الاستجابة.
+                  Led a team of 6 engineers building a digital services platform serving 2M+ users.
+                  Improved system performance by 40% and reduced response time by 60%.
                 </p>
               </div>
               <div>
                 <div className="flex items-baseline justify-between">
-                  <span className="text-[8px] font-bold text-gray-700">مطور تطبيقات</span>
-                  <span className="text-[7px] text-gray-400">٢٠١٨ — ٢٠٢١</span>
+                  <span className="text-[8px] font-bold text-gray-700">Application Developer</span>
+                  <span className="text-[7px] text-gray-400">2018 — 2021</span>
                 </div>
-                <div className="text-[7.5px] font-semibold text-[#378ADD]">أرامكو السعودية</div>
+                <div className="text-[7.5px] font-semibold text-[#378ADD]">Saudi Aramco</div>
                 <p className="mt-0.5 text-[7px] leading-relaxed text-gray-500">
-                  تطوير وصيانة تطبيقات إدارة العمليات الداخلية وتكامل الأنظمة.
+                  Developed and maintained internal operations management systems and API integrations.
                 </p>
               </div>
             </div>
 
-            {/* المهارات */}
+            {/* Skills */}
             <div className="mb-3">
-              <div className="mb-1.5 border-b border-[#0C447C]/20 pb-0.5 text-[9px] font-extrabold text-[#0C447C]">المهارات التقنية</div>
-              <div className="flex flex-wrap justify-end gap-1">
+              <div className="mb-1.5 border-b border-[#0C447C]/20 pb-0.5 text-[9px] font-extrabold uppercase tracking-wide text-[#0C447C]">Technical Skills</div>
+              <div className="flex flex-wrap gap-1">
                 {["Python","React","Node.js","SQL","AWS","Docker","TypeScript","Git"].map((s) => (
                   <span key={s} className="rounded px-1.5 py-0.5 text-[7px] font-bold" style={{ background: "#EAF4FE", color: "#0C447C" }}>{s}</span>
                 ))}
               </div>
             </div>
 
-            {/* التعليم */}
+            {/* Education */}
             <div>
-              <div className="mb-1 border-b border-[#0C447C]/20 pb-0.5 text-[9px] font-extrabold text-[#0C447C]">التعليم</div>
+              <div className="mb-1 border-b border-[#0C447C]/20 pb-0.5 text-[9px] font-extrabold uppercase tracking-wide text-[#0C447C]">Education</div>
               <div className="flex items-baseline justify-between">
-                <span className="text-[8px] font-bold text-gray-700">بكالوريوس هندسة الحاسب</span>
-                <span className="text-[7px] text-gray-400">٢٠١٨</span>
+                <span className="text-[8px] font-bold text-gray-700">B.Sc. Computer Engineering</span>
+                <span className="text-[7px] text-gray-400">2018</span>
               </div>
-              <div className="text-[7.5px] text-[#378ADD]">جامعة الملك عبدالله للعلوم والتقنية (كاوست)</div>
+              <div className="text-[7.5px] text-[#378ADD]">King Abdullah University of Science & Technology (KAUST)</div>
             </div>
 
             {/* AI badge */}

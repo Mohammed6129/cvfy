@@ -4,17 +4,11 @@ import {
   HOME_GLASS_SECTION_CLASS,
 } from "./home-glass-shell";
 
-function WarningBadgeIcon() {
+function SearchIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-      <path
-        d="M7 1.5L12.5 11.5H1.5L7 1.5Z"
-        stroke="#ff8080"
-        strokeWidth="1.2"
-        strokeLinejoin="round"
-      />
-      <path d="M7 5.5v3" stroke="#ff8080" strokeWidth="1.2" strokeLinecap="round" />
-      <circle cx="7" cy="10" r="0.75" fill="#ff8080" />
+      <circle cx="6" cy="6" r="4" stroke="#78B9F5" strokeWidth="1.3"/>
+      <path d="M9.5 9.5L12 12" stroke="#78B9F5" strokeWidth="1.3" strokeLinecap="round"/>
     </svg>
   );
 }
@@ -120,16 +114,16 @@ export default function HomeProblemSolution() {
         <div
           className="mx-auto mb-5 inline-flex items-center gap-2"
           style={{
-            background: "rgba(220,60,60,0.12)",
-            border: "1px solid rgba(220,60,60,0.35)",
-            color: "#ff8080",
+            background: "rgba(55,138,221,0.15)",
+            border: "1px solid rgba(55,138,221,0.35)",
+            color: "#78B9F5",
             borderRadius: "50px",
             padding: "6px 16px",
             fontSize: "12px",
             fontWeight: 600,
           }}
         >
-          <WarningBadgeIcon />
+          <SearchIcon />
           <span>وين تروح سيرتك الذاتية بعد التقديم؟</span>
         </div>
 
