@@ -123,7 +123,7 @@ export default function Hero() {
         {/* CV preview mockup — visible on md+ screens */}
         <div className="hidden h-full md:flex md:items-stretch" aria-hidden>
           <div
-            className="relative w-full overflow-hidden rounded-[20px] p-5 shadow-[0_8px_40px_rgba(0,0,0,0.25)]"
+            className="relative w-full rounded-[20px] p-5 shadow-[0_8px_40px_rgba(0,0,0,0.25)]"
             style={{
               background: "rgba(255,255,255,0.95)",
               backdropFilter: "blur(12px)",
@@ -136,9 +136,9 @@ export default function Hero() {
               <div className="text-[15px] font-extrabold text-[#0C447C]">Faisal Ali Al-Ghamdi</div>
               <div className="mt-0.5 text-[9px] font-semibold text-[#378ADD]">Senior Software Engineer | Systems & Digital Solutions</div>
               <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[7.5px] text-gray-500">
-                <span>📍 Riyadh, Saudi Arabia</span>
-                <span>📞 +966 50 123 4567</span>
-                <span>✉ faisal.ali@email.com</span>
+                <span>Riyadh, Saudi Arabia</span>
+                <span>+966 50 123 4567</span>
+                <span>faisal.ali@email.com</span>
               </div>
             </div>
 
