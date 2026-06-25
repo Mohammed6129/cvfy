@@ -98,7 +98,7 @@ export default function HowItWorks() {
         <Connector />
 
         {/* Phases 2×2 grid — RTL: 1 top-right, 2 top-left */}
-        <div className="mx-auto mb-0 grid max-w-[580px] grid-cols-2 gap-3" dir="rtl">
+        <div className="mb-0 grid grid-cols-2 gap-3" dir="rtl">
           {PHASES.map((phase) => (
             <div
               key={phase.num}
@@ -148,7 +148,7 @@ export default function HowItWorks() {
         {/* Output node */}
         <div className="flex justify-center mb-7">
           <div
-            className="flex w-full max-w-[340px] items-center gap-4 rounded-[16px] px-6 py-4"
+            className="flex w-full items-center gap-4 rounded-[16px] px-6 py-4"
             style={{
               background: "linear-gradient(135deg, #378ADD, #185fa5)",
               boxShadow: "0 8px 24px rgba(55,138,221,0.4)",

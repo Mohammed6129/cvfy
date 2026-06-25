@@ -34,31 +34,31 @@ const BADGES = [
 export default function HomeTrustBadges() {
   return (
     <section className={HOME_GLASS_SECTION_CLASS} dir="rtl">
-      <div
-        className={`${HOME_GLASS_CONTAINER_CLASS} flex flex-wrap justify-center gap-4`}
-      >
-        {BADGES.map((badge) => (
-          <div
-            key={badge.title}
-            className="flex w-[140px] flex-col items-center gap-2 rounded-[16px] p-4 text-center"
-            style={{
-              background: "rgba(255,255,255,0.07)",
-              border: "1px solid rgba(255,255,255,0.14)",
-            }}
-          >
-            <Image
-              src={badge.icon}
-              alt={badge.alt}
-              width={48}
-              height={48}
-              className="object-contain"
-            />
-            <span className="text-xs font-bold text-white">{badge.title}</span>
-            <span className="text-[11px] leading-snug text-white/55">
-              {badge.subtitle}
-            </span>
-          </div>
-        ))}
+      <div className={HOME_GLASS_CONTAINER_CLASS}>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {BADGES.map((badge) => (
+            <div
+              key={badge.title}
+              className="flex flex-col items-center gap-3 rounded-[16px] px-4 py-6 text-center"
+              style={{
+                background: "rgba(255,255,255,0.07)",
+                border: "1px solid rgba(255,255,255,0.14)",
+              }}
+            >
+              <Image
+                src={badge.icon}
+                alt={badge.alt}
+                width={72}
+                height={72}
+                className="object-contain"
+              />
+              <span className="text-sm font-bold text-white">{badge.title}</span>
+              <span className="text-xs leading-snug text-white/55">
+                {badge.subtitle}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
