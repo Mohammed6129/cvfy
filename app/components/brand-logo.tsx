@@ -20,9 +20,9 @@ const LOCKUP_RATIO = 1056 / 440; // ~2.4
 // Icon SVG natural dimensions: 800 × 800
 const ICON_RATIO = 1;
 
-export const NAVBAR_LOGO_HEIGHT = 36;
-export const FOOTER_LOGO_HEIGHT = 40;
-const DEFAULT_LOGO_HEIGHT = 36;
+export const NAVBAR_LOGO_HEIGHT = 52;
+export const FOOTER_LOGO_HEIGHT = 58;
+const DEFAULT_LOGO_HEIGHT = 52;
 
 export function logoDimensions(targetHeight: number, icon = false) {
   const ratio = icon ? ICON_RATIO : LOCKUP_RATIO;
