@@ -26,9 +26,9 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <div className="home-glass-page flex flex-1 flex-col pb-16 md:pb-0">
-      <HomeHeroBanner />
       <Navbar variant="glass" />
       <main>
+        <HomeHeroBanner />
         <Hero />
         <HomeTrustBadges />
         <CustomerJourney />
