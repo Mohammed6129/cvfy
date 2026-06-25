@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import Image from "next/image";
 import {
   HOME_GLASS_CONTAINER_CLASS,
   HOME_GLASS_SECTION_CLASS,
@@ -57,21 +57,10 @@ function StepBadge({ number }: { number: number }) {
   return <div style={BADGE_STYLE}>{number}</div>;
 }
 
-function StepIcon({ bg, children }: { bg: string; children: ReactNode }) {
+function StepIcon({ src, alt }: { src: string; alt: string }) {
   return (
-    <div
-      style={{
-        width: "38px",
-        height: "38px",
-        borderRadius: "11px",
-        background: bg,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        margin: "0 auto 8px",
-      }}
-    >
-      {children}
+    <div style={{ width: "56px", height: "56px", margin: "0 auto 10px" }}>
+      <Image src={src} alt={alt} width={56} height={56} style={{ objectFit: "contain" }} />
     </div>
   );
 }
@@ -81,68 +70,25 @@ const STEPS = [
     number: 1,
     title: "تعبئة الفورم",
     desc: "بياناتك العادية",
-    iconBg: "rgba(192,221,151,0.2)",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-        <rect x="3" y="2" width="14" height="16" rx="2" stroke="#C0DD97" strokeWidth="1.3" />
-        <path
-          d="M6.5 7h8M6.5 10.5h8M6.5 13.5h4.5"
-          stroke="#C0DD97"
-          strokeWidth="1.2"
-          strokeLinecap="round"
-        />
-      </svg>
-    ),
+    icon: "/icons/01_Form.png",
   },
   {
     number: 2,
     title: "تحسين AI",
     desc: "صياغة احترافية",
-    iconBg: "rgba(250,199,117,0.2)",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-        <path
-          d="M10 2l1.5 4.3H16l-3.5 2.5 1.5 4.3L10 10.5l-4 2.6 1.5-4.3L4 6.3h4.5z"
-          fill="#FAC775"
-        />
-      </svg>
-    ),
+    icon: "/icons/02_AI.png",
   },
   {
     number: 3,
     title: "فحص ATS",
     desc: "توافق مضمون",
-    iconBg: "rgba(175,169,236,0.2)",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-        <circle cx="10" cy="10" r="6.5" stroke="#AFA9EC" strokeWidth="1.3" />
-        <path
-          d="M7 10l1.8 1.8 3.7-4"
-          stroke="#AFA9EC"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
+    icon: "/icons/03_ATS.png",
   },
   {
     number: 4,
     title: "التحميل",
     desc: "فوري ومباشر",
-    iconBg: "rgba(133,183,235,0.2)",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-        <rect x="4" y="2" width="12" height="13" rx="2" stroke="#85B7EB" strokeWidth="1.3" />
-        <path
-          d="M10 17v3M7.5 18.5l2.5 2.5 2.5-2.5"
-          stroke="#85B7EB"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
+    icon: "/icons/04_Download.png",
   },
 ] as const;
 
@@ -188,7 +134,7 @@ export default function CustomerJourney() {
                 }}
               >
                 <StepBadge number={step.number} />
-                <StepIcon bg={step.iconBg}>{step.icon}</StepIcon>
+                <StepIcon src={step.icon} alt={step.title} />
                 <div style={{ fontSize: "13px", fontWeight: 700, color: "#fff" }}>
                   {step.title}
                 </div>
