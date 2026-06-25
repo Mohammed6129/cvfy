@@ -7,8 +7,8 @@ import {
 function SearchIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-      <circle cx="6" cy="6" r="4" stroke="#78B9F5" strokeWidth="1.3"/>
-      <path d="M9.5 9.5L12 12" stroke="#78B9F5" strokeWidth="1.3" strokeLinecap="round"/>
+      <circle cx="6" cy="6" r="4" stroke="rgba(255,255,255,0.6)" strokeWidth="1.3"/>
+      <path d="M9.5 9.5L12 12" stroke="rgba(255,255,255,0.6)" strokeWidth="1.3" strokeLinecap="round"/>
     </svg>
   );
 }
@@ -111,21 +111,10 @@ export default function HomeProblemSolution() {
   return (
     <section className={HOME_GLASS_SECTION_CLASS} dir="rtl">
       <div className={`${HOME_GLASS_CONTAINER_CLASS} text-center`} style={GLASS_WRAPPER_STYLE}>
-        <div
-          className="mx-auto mb-5 inline-flex items-center gap-2"
-          style={{
-            background: "rgba(55,138,221,0.15)",
-            border: "1px solid rgba(55,138,221,0.35)",
-            color: "#78B9F5",
-            borderRadius: "50px",
-            padding: "6px 16px",
-            fontSize: "12px",
-            fontWeight: 600,
-          }}
-        >
+        <p className="mx-auto mb-5 flex items-center justify-center gap-2 text-[15px] font-bold text-white/60">
           <SearchIcon />
           <span>وين تروح سيرتك الذاتية بعد التقديم؟</span>
-        </div>
+        </p>
 
         <h2
           className="mb-4"
