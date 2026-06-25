@@ -123,46 +123,80 @@ export default function Hero() {
         {/* CV preview mockup — visible on md+ screens */}
         <div className="hidden h-full md:flex md:items-stretch" aria-hidden>
           <div
-            className="relative w-full rounded-[20px] p-6 shadow-[0_8px_40px_rgba(0,0,0,0.25)]"
+            className="relative w-full overflow-hidden rounded-[20px] p-5 shadow-[0_8px_40px_rgba(0,0,0,0.25)]"
             style={{
-              background: "rgba(255,255,255,0.92)",
+              background: "rgba(255,255,255,0.95)",
               backdropFilter: "blur(12px)",
+              fontFamily: "Arial, sans-serif",
+              direction: "rtl",
             }}
           >
-            {/* Header */}
-            <div className="mb-4 border-b border-gray-200 pb-4">
-              <div className="mb-1.5 h-5 w-36 rounded bg-[#0C447C]" />
-              <div className="mb-2 h-3 w-24 rounded bg-gray-300" />
-              <div className="flex gap-2">
-                <div className="h-2.5 w-20 rounded bg-gray-200" />
-                <div className="h-2.5 w-16 rounded bg-gray-200" />
+            {/* Name & title */}
+            <div className="mb-3 border-b border-[#0C447C]/20 pb-3 text-right">
+              <div className="text-[15px] font-extrabold text-[#0C447C]">فيصل علي الغامدي</div>
+              <div className="mt-0.5 text-[9px] font-semibold text-[#378ADD]">مهندس برمجيات أول | تطوير الأنظمة والحلول التقنية</div>
+              <div className="mt-1.5 flex flex-wrap justify-end gap-x-3 gap-y-0.5 text-[7.5px] text-gray-500">
+                <span>📍 الرياض، المملكة العربية السعودية</span>
+                <span>📞 +966 50 123 4567</span>
+                <span>✉ faisal.ali@email.com</span>
               </div>
             </div>
-            {/* Sections */}
-            {[
-              { lines: [85, 70, 60, 75] },
-              { lines: [70, 55] },
-              { lines: [80, 65, 70] },
-              { lines: [60, 75, 50] },
-            ].map((section, si) => (
-              <div key={si} className="mb-4">
-                <div
-                  className="mb-2 h-3 w-24 rounded"
-                  style={{ background: "#0C447C", opacity: 0.85 }}
-                />
-                <div
-                  className="mb-2 h-px w-full"
-                  style={{ background: "#0C447C", opacity: 0.25 }}
-                />
-                {section.lines.map((w, i) => (
-                  <div
-                    key={i}
-                    className="mb-1.5 h-2.5 rounded bg-gray-200"
-                    style={{ width: `${w}%` }}
-                  />
+
+            {/* الملخص المهني */}
+            <div className="mb-3">
+              <div className="mb-1 border-b border-[#0C447C]/20 pb-0.5 text-[9px] font-extrabold text-[#0C447C]">الملخص المهني</div>
+              <p className="text-[7.5px] leading-relaxed text-gray-600">
+                مهندس برمجيات بخبرة تزيد عن ٧ سنوات في تصميم وتطوير الأنظمة البرمجية المتكاملة.
+                أتمتع بكفاءة عالية في تقنيات الويب الحديثة وإدارة قواعد البيانات وتحليل متطلبات الأعمال.
+              </p>
+            </div>
+
+            {/* الخبرة العملية */}
+            <div className="mb-3">
+              <div className="mb-1 border-b border-[#0C447C]/20 pb-0.5 text-[9px] font-extrabold text-[#0C447C]">الخبرة العملية</div>
+              <div className="mb-1.5">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-[8px] font-bold text-gray-700">مهندس برمجيات أول</span>
+                  <span className="text-[7px] text-gray-400">٢٠٢١ — الحاضر</span>
+                </div>
+                <div className="text-[7.5px] font-semibold text-[#378ADD]">شركة stc للحلول</div>
+                <p className="mt-0.5 text-[7px] leading-relaxed text-gray-500">
+                  قيادة فريق من ٦ مطورين لتطوير منصة خدمات رقمية تخدم أكثر من ٢ مليون مستخدم.
+                  تحسين أداء الأنظمة بنسبة ٤٠٪ وتقليل وقت الاستجابة.
+                </p>
+              </div>
+              <div>
+                <div className="flex items-baseline justify-between">
+                  <span className="text-[8px] font-bold text-gray-700">مطور تطبيقات</span>
+                  <span className="text-[7px] text-gray-400">٢٠١٨ — ٢٠٢١</span>
+                </div>
+                <div className="text-[7.5px] font-semibold text-[#378ADD]">أرامكو السعودية</div>
+                <p className="mt-0.5 text-[7px] leading-relaxed text-gray-500">
+                  تطوير وصيانة تطبيقات إدارة العمليات الداخلية وتكامل الأنظمة.
+                </p>
+              </div>
+            </div>
+
+            {/* المهارات */}
+            <div className="mb-3">
+              <div className="mb-1.5 border-b border-[#0C447C]/20 pb-0.5 text-[9px] font-extrabold text-[#0C447C]">المهارات التقنية</div>
+              <div className="flex flex-wrap justify-end gap-1">
+                {["Python","React","Node.js","SQL","AWS","Docker","TypeScript","Git"].map((s) => (
+                  <span key={s} className="rounded px-1.5 py-0.5 text-[7px] font-bold" style={{ background: "#EAF4FE", color: "#0C447C" }}>{s}</span>
                 ))}
               </div>
-            ))}
+            </div>
+
+            {/* التعليم */}
+            <div>
+              <div className="mb-1 border-b border-[#0C447C]/20 pb-0.5 text-[9px] font-extrabold text-[#0C447C]">التعليم</div>
+              <div className="flex items-baseline justify-between">
+                <span className="text-[8px] font-bold text-gray-700">بكالوريوس هندسة الحاسب</span>
+                <span className="text-[7px] text-gray-400">٢٠١٨</span>
+              </div>
+              <div className="text-[7.5px] text-[#378ADD]">جامعة الملك عبدالله للعلوم والتقنية (كاوست)</div>
+            </div>
+
             {/* AI badge */}
             <div
               className="absolute -right-3 -top-3 flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-bold text-white shadow-md"
