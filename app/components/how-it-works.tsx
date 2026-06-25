@@ -73,24 +73,19 @@ export default function HowItWorks() {
           <span className="text-[#FAC775]">ونحولها لسيرة ذاتية احترافية</span>
         </h2>
 
-        {/* Input node */}
+        {/* Input node — full width, mirrors output node */}
         <div className="flex justify-center mb-0">
           <div
-            className="inline-flex items-center gap-3 rounded-full px-5 py-2.5 text-sm font-bold text-white"
+            className="flex w-full items-center justify-center gap-4 rounded-[16px] px-6 py-4"
             style={{
               background: "rgba(255,255,255,0.12)",
-              border: "1.5px solid rgba(255,255,255,0.25)",
+              border: "1.5px solid rgba(255,255,255,0.30)",
             }}
           >
-            <div
-              className="flex h-8 w-8 items-center justify-center rounded-full text-sm"
-              style={{ background: "#FAC775" }}
-            >
-              ✍️
-            </div>
-            <div>
-              <div className="text-[11px] text-white/60">تدخل بياناتك</div>
-              <div>بصياغتك العادية</div>
+            <span className="text-3xl">✍️</span>
+            <div className="text-center">
+              <p className="mb-0.5 text-[13px] font-bold text-white/70">تدخل بياناتك</p>
+              <p className="text-base font-extrabold text-white">بصياغتك العادية</p>
             </div>
           </div>
         </div>
@@ -102,19 +97,19 @@ export default function HowItWorks() {
           {PHASES.map((phase) => (
             <div
               key={phase.num}
-              className="relative rounded-[16px] p-4"
+              className="relative flex flex-col items-center justify-center rounded-[16px] p-5 text-center"
               style={{ background: phase.bg, border: `1.5px solid ${phase.border}` }}
             >
               {/* Step badge */}
               <div
-                className="absolute -top-2.5 right-3.5 rounded-full bg-white px-2 py-0.5 text-[10px] font-extrabold text-[#0C447C]"
+                className="absolute -top-2.5 right-3.5 rounded-full bg-white px-2 py-0.5 text-[11px] font-extrabold text-[#0C447C]"
               >
                 مرحلة {phase.num}
               </div>
 
-              <div className="mb-2.5 flex gap-2">
+              <div className="mb-3 flex gap-2">
                 <div
-                  className="flex h-[34px] w-[34px] items-center justify-center rounded-full text-base"
+                  className="flex h-[38px] w-[38px] items-center justify-center rounded-full text-lg"
                   style={{
                     background: phase.iconBg1,
                     border: "2px solid rgba(255,255,255,0.2)",
@@ -123,7 +118,7 @@ export default function HowItWorks() {
                   {phase.icons[0]}
                 </div>
                 <div
-                  className="flex h-[34px] w-[34px] items-center justify-center rounded-full text-base"
+                  className="flex h-[38px] w-[38px] items-center justify-center rounded-full text-lg"
                   style={{
                     background: phase.iconBg2,
                     border: "2px solid rgba(255,255,255,0.2)",
@@ -133,10 +128,10 @@ export default function HowItWorks() {
                 </div>
               </div>
 
-              <p className="mb-1 text-xs font-extrabold" style={{ color: phase.color }}>
+              <p className="mb-1.5 text-sm font-extrabold" style={{ color: phase.color }}>
                 {phase.title}
               </p>
-              <p className="text-[10.5px] leading-relaxed text-white/60">
+              <p className="text-xs leading-relaxed text-white/60">
                 {phase.desc}
               </p>
             </div>
@@ -148,7 +143,7 @@ export default function HowItWorks() {
         {/* Output node */}
         <div className="flex justify-center mb-7">
           <div
-            className="flex w-full items-center gap-4 rounded-[16px] px-6 py-4"
+            className="flex w-full flex-col items-center justify-center rounded-[16px] px-6 py-5 text-center gap-2"
             style={{
               background: "linear-gradient(135deg, #378ADD, #185fa5)",
               boxShadow: "0 8px 24px rgba(55,138,221,0.4)",
@@ -156,17 +151,17 @@ export default function HowItWorks() {
           >
             <span className="text-3xl">📄</span>
             <div>
-              <p className="mb-0.5 text-[11px] font-bold text-white/70">
+              <p className="mb-0.5 text-[13px] font-bold text-white/70">
                 النتيجة النهائية
               </p>
-              <p className="text-sm font-extrabold text-white">
+              <p className="text-base font-extrabold text-white">
                 سيرتك الذاتية جاهزة للتحميل
               </p>
-              <div className="mt-1.5 flex flex-wrap gap-1.5">
+              <div className="mt-2 flex flex-wrap justify-center gap-1.5">
                 {OUTPUT_BADGES.map((b) => (
                   <span
                     key={b}
-                    className="rounded-full px-2 py-0.5 text-[9px] font-bold text-white"
+                    className="rounded-full px-2.5 py-0.5 text-[11px] font-bold text-white"
                     style={{ background: "rgba(255,255,255,0.15)" }}
                   >
                     {b}
