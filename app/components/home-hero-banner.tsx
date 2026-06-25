@@ -1,56 +1,22 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-
 export default function HomeHeroBanner() {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-
-  useEffect(() => {
-    const iframe = iframeRef.current;
-    if (!iframe) return;
-
-    const resize = () => {
-      try {
-        const doc = iframe.contentDocument;
-        if (!doc) return;
-        const body = doc.body;
-        const html = doc.documentElement;
-        const h = Math.max(
-          body.scrollHeight,
-          body.offsetHeight,
-          html.scrollHeight,
-          html.offsetHeight,
-        );
-        if (h > 0) iframe.style.height = `${h}px`;
-      } catch {
-        // cross-origin guard
-      }
-    };
-
-    iframe.addEventListener("load", () => {
-      resize();
-      // recheck after animations settle
-      window.setTimeout(resize, 500);
-      window.setTimeout(resize, 1500);
-    });
-  }, []);
-
   return (
-    <div className="w-full overflow-hidden">
+    <div className="w-full" style={{ margin: 0, padding: 0, lineHeight: 0 }}>
       <iframe
-        ref={iframeRef}
         src="/banner/hero-banner.html"
         title="CVfy banner"
         scrolling="no"
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore — non-standard but needed for bg transparency in some browsers
-        allowTransparency="true"
         className="block w-full border-0"
         style={{
-          height: "min(56vw, 700px)",
-          minHeight: "460px",
+          height: "480px",
+          display: "block",
+          margin: 0,
+          padding: 0,
           background: "transparent",
         }}
+        // @ts-expect-error – needed for true iframe transparency
+        allowTransparency="true"
         aria-hidden
         tabIndex={-1}
       />
