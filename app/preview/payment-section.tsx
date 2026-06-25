@@ -181,8 +181,11 @@ function PreviewPriceCard() {
   );
 }
 
-const downloadButtonClass =
-  "flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#378ADD] px-4 py-3 text-sm font-extrabold text-white transition-colors hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-60";
+const downloadButtonPrimary =
+  "flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#378ADD] px-4 py-3.5 text-sm font-extrabold text-white transition-colors hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-60";
+const downloadButtonSecondary =
+  "flex w-full items-center justify-center gap-2 rounded-[14px] border border-[#378ADD]/40 bg-white px-4 py-2.5 text-sm font-semibold text-[#378ADD] transition-colors hover:bg-[#E6F1FB] disabled:cursor-not-allowed disabled:opacity-60";
+const downloadButtonClass = downloadButtonPrimary;
 
 function CvDownloadButtons({
   cv,
@@ -257,32 +260,35 @@ function CvDownloadButtons({
 
   return (
     <>
+      {/* Primary: PDF — most important action */}
       <button
         type="button"
         onClick={() => void handleCvPdf()}
         disabled={!cv || downloading !== null}
-        className={downloadButtonClass}
+        className={downloadButtonPrimary}
       >
-        {downloading === "pdf" ? "جاري التحميل..." : "تحميل السيرة PDF"}
+        {downloading === "pdf" ? "جاري التحميل..." : "⬇ تحميل السيرة PDF"}
       </button>
 
-      <button
-        type="button"
-        onClick={handleCvWord}
-        disabled={!cv || downloading !== null}
-        className={downloadButtonClass}
-      >
-        تحميل السيرة Word
-      </button>
-
-      <button
-        type="button"
-        onClick={() => void handleAtsPdf()}
-        disabled={!cv || downloading !== null}
-        className={downloadButtonClass}
-      >
-        {downloading === "ats" ? "جاري إنشاء التقرير..." : "تحميل تقرير ATS"}
-      </button>
+      {/* Secondary actions */}
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={handleCvWord}
+          disabled={!cv || downloading !== null}
+          className={downloadButtonSecondary}
+        >
+          Word
+        </button>
+        <button
+          type="button"
+          onClick={() => void handleAtsPdf()}
+          disabled={!cv || downloading !== null}
+          className={downloadButtonSecondary}
+        >
+          {downloading === "ats" ? "..." : "تقرير ATS"}
+        </button>
+      </div>
 
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-xs text-red-700">
@@ -445,14 +451,19 @@ export default function PaymentSection({
         <PreviewPriceCard />
 
         {!showPaymentForm ? (
-          <button
-            type="button"
-            onClick={handlePay}
-            className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#378ADD] px-4 py-[15px] text-[15px] font-extrabold text-white transition-colors hover:bg-[#2a6bb8]"
-          >
-            <span>ادفع وحمّل الآن</span>
-            <CardIcon />
-          </button>
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={handlePay}
+              className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#378ADD] px-4 py-[15px] text-[15px] font-extrabold text-white transition-colors hover:bg-[#2a6bb8]"
+            >
+              <span>ادفع وحمّل الآن</span>
+              <CardIcon />
+            </button>
+            <p className="text-center text-[10px] text-[#888]">
+              🔒 ضمان استرجاع كامل خلال 24 ساعة إذا لم تكن راضياً
+            </p>
+          </div>
         ) : (
           <div className="space-y-3">
             <div className="flex items-center justify-between rounded-xl bg-[#e8f2fc] px-4 py-3">

@@ -60,8 +60,32 @@ export default function DashboardContent() {
     return <LoadingSpinner label="جاري تحميل سيرك الذاتية..." />;
   }
 
+  const paidCount = cvs.filter((c) => c.isPaid).length;
+  const bestAts = cvs
+    .filter((c) => c.atsResult?.score)
+    .reduce((best, c) => Math.max(best, c.atsResult?.score ?? 0), 0);
+
   return (
     <div className="animate-fade-in">
+      {/* Stats bar */}
+      {cvs.length > 0 && (
+        <div className="mb-6 grid grid-cols-3 gap-3">
+          {[
+            { label: "سيرة ذاتية", value: cvs.length },
+            { label: "مكتملة", value: paidCount },
+            { label: "أفضل ATS", value: bestAts ? `${bestAts}%` : "—" },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className="glass-page-card-sm px-3 py-3 text-center"
+            >
+              <p className="text-xl font-extrabold text-white">{stat.value}</p>
+              <p className="mt-0.5 text-xs text-white/55">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-extrabold text-white sm:text-3xl">

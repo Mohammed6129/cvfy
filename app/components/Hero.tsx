@@ -3,7 +3,7 @@ import { SINGLE_PLAN } from "@/lib/payment";
 import GlassBackgroundBlobs from "./glass-background-blobs";
 import StartNowLink from "./start-now-link";
 
-const HERO_CONTAINER_MAX_WIDTH = "680px";
+const HERO_CONTAINER_MAX_WIDTH = "1100px";
 
 const PAYMENT_ICON_WRAP = {
   background: "rgba(255,255,255,0.85)",
@@ -27,9 +27,10 @@ export default function Hero() {
       <GlassBackgroundBlobs />
 
       <div
-        className="relative z-10 mx-auto w-full text-center"
+        className="relative z-10 mx-auto w-full"
         style={{ maxWidth: HERO_CONTAINER_MAX_WIDTH }}
       >
+        <div className="grid grid-cols-1 items-center gap-6 md:grid-cols-[1fr_320px]">
         <div className="glass-surface w-full rounded-[28px] px-7 py-9 shadow-[0_8px_32px_rgba(0,0,0,0.1)]">
           <div className="glass-surface-sm mb-5 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold text-white">
             <Image
@@ -117,6 +118,66 @@ export default function Hero() {
           <StartNowLink className="flex w-full items-center justify-center rounded-full bg-white py-[13px] text-sm font-extrabold text-[#0C447C] shadow-[0_4px_20px_rgba(255,255,255,0.3)] transition-opacity hover:opacity-95">
             ابدأ الآن ←
           </StartNowLink>
+        </div>
+
+        {/* CV preview mockup — visible on md+ screens */}
+        <div className="hidden md:block" aria-hidden>
+          <div
+            className="relative rounded-[20px] p-4 shadow-[0_8px_40px_rgba(0,0,0,0.25)]"
+            style={{
+              background: "rgba(255,255,255,0.92)",
+              backdropFilter: "blur(12px)",
+            }}
+          >
+            {/* Header */}
+            <div className="mb-3 border-b border-gray-200 pb-3">
+              <div className="mb-1 h-4 w-28 rounded bg-[#0C447C]" />
+              <div className="mb-1.5 h-2.5 w-20 rounded bg-gray-300" />
+              <div className="flex gap-2">
+                <div className="h-2 w-16 rounded bg-gray-200" />
+                <div className="h-2 w-14 rounded bg-gray-200" />
+              </div>
+            </div>
+            {/* Section */}
+            {[
+              { label: "الخبرة المهنية", lines: [24, 20, 18, 22] },
+              { label: "التعليم", lines: [20, 16] },
+              { label: "المهارات", lines: [22, 18, 20] },
+            ].map((section) => (
+              <div key={section.label} className="mb-3">
+                <div
+                  className="mb-1.5 h-2.5 w-20 rounded font-bold"
+                  style={{ background: "#0C447C", opacity: 0.85 }}
+                />
+                <div
+                  className="mb-1 h-px w-full"
+                  style={{ background: "#0C447C", opacity: 0.3 }}
+                />
+                {section.lines.map((w, i) => (
+                  <div
+                    key={i}
+                    className="mb-1 h-2 rounded bg-gray-200"
+                    style={{ width: `${w * 4}px`, maxWidth: "100%" }}
+                  />
+                ))}
+              </div>
+            ))}
+            {/* AI badge */}
+            <div
+              className="absolute -right-3 -top-3 flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold text-white shadow-md"
+              style={{ background: "#378ADD" }}
+            >
+              ✨ AI
+            </div>
+            {/* ATS badge */}
+            <div
+              className="absolute -bottom-3 -left-3 flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold shadow-md"
+              style={{ background: "#22C55E", color: "#fff" }}
+            >
+              ATS ✓ 94%
+            </div>
+          </div>
+        </div>
         </div>
       </div>
     </section>

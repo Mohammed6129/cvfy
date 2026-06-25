@@ -153,7 +153,7 @@ export default function CustomerJourney() {
         <h2
           style={{
             textAlign: "center",
-            fontSize: "20px",
+            fontSize: "22px",
             fontWeight: 800,
             color: "#fff",
             marginBottom: "6px",
@@ -164,7 +164,7 @@ export default function CustomerJourney() {
         <p
           style={{
             textAlign: "center",
-            fontSize: "12px",
+            fontSize: "13px",
             color: "rgba(255,255,255,0.65)",
             marginBottom: "32px",
           }}
@@ -189,12 +189,12 @@ export default function CustomerJourney() {
               >
                 <StepBadge number={step.number} />
                 <StepIcon bg={step.iconBg}>{step.icon}</StepIcon>
-                <div style={{ fontSize: "11.5px", fontWeight: 700, color: "#fff" }}>
+                <div style={{ fontSize: "13px", fontWeight: 700, color: "#fff" }}>
                   {step.title}
                 </div>
                 <div
                   style={{
-                    fontSize: "9px",
+                    fontSize: "11px",
                     color: "rgba(255,255,255,0.6)",
                     marginTop: "3px",
                   }}
