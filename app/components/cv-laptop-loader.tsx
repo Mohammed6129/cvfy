@@ -179,6 +179,48 @@ export default function CvLaptopLoader({ mode }: CvLaptopLoaderProps) {
       </div>
 
       <p className="text-base font-semibold text-slate-700 sm:text-lg">{subtitle}</p>
+
+      {mode === "enhance" && <EnhanceProgressSteps />}
+    </div>
+  );
+}
+
+const ENHANCE_STEPS = [
+  { label: "فهم وتحليل بياناتك", delay: 0 },
+  { label: "صياغة احترافية بالعربي والإنجليزي", delay: 3000 },
+  { label: "تحسين كلمات ATS", delay: 7000 },
+  { label: "مراجعة الجودة النهائية", delay: 11000 },
+];
+
+function EnhanceProgressSteps() {
+  const [activeStep, setActiveStep] = useState(0);
+
+  useEffect(() => {
+    const timers = ENHANCE_STEPS.slice(1).map((step, i) =>
+      window.setTimeout(() => setActiveStep(i + 1), step.delay)
+    );
+    return () => timers.forEach(clearTimeout);
+  }, []);
+
+  return (
+    <div className="mt-5 space-y-2 text-right" dir="rtl">
+      {ENHANCE_STEPS.map((step, i) => (
+        <div
+          key={step.label}
+          className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs transition-all duration-500 ${
+            i < activeStep
+              ? "bg-green-50 text-green-700"
+              : i === activeStep
+              ? "bg-blue-50 text-[#0C447C] font-semibold"
+              : "text-slate-400"
+          }`}
+        >
+          <span className="shrink-0 text-base">
+            {i < activeStep ? "✓" : i === activeStep ? "⏳" : "○"}
+          </span>
+          {step.label}
+        </div>
+      ))}
     </div>
   );
 }

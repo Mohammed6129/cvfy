@@ -35,21 +35,33 @@ function LocationIcon() {
   );
 }
 
+function LockIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden>
+      <rect x="4" y="10" width="14" height="10" rx="2" fill="#378ADD" />
+      <path d="M7 10V7a4 4 0 018 0v3" stroke="#378ADD" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="11" cy="15" r="1.5" fill="white" />
+    </svg>
+  );
+}
+
 function CvBar({ width }: { width: string }) {
   return <div className={`h-1 rounded-full bg-[#CBD5E1] ${width}`} />;
 }
 
 type PreviewCvCardProps = {
   cv: GeneratedCv;
+  isPaid?: boolean;
 };
 
-export default function PreviewCvCard({ cv }: PreviewCvCardProps) {
+export default function PreviewCvCard({ cv, isPaid = false }: PreviewCvCardProps) {
   const content = cv.contentEn ?? cv.content;
   const experiences = content.experiences.slice(0, 2);
   const skills = content.skills.slice(0, 6);
 
   return (
-    <div className="overflow-hidden rounded-[20px] border border-[#E0EDF8] bg-white">
+    <div className="relative overflow-hidden rounded-[20px] border border-[#E0EDF8] bg-white">
+      {/* ── Always visible: header + summary ── */}
       <header className="bg-[#1a2e4a] px-4 py-3.5">
         <h2 className="text-sm font-bold text-white">{cv.name}</h2>
         {content.headline && (
@@ -77,12 +89,13 @@ export default function PreviewCvCard({ cv }: PreviewCvCardProps) {
         </div>
       </header>
 
+      {/* Summary — always visible */}
       <div
-        className="space-y-3 px-4 py-3.5"
+        className="px-4 pt-3.5"
         dir="ltr"
         style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
       >
-        <div>
+        <div className="pb-3">
           <p className="mb-1.5 text-[8px] font-bold tracking-wide text-[#0C447C]">
             PROFESSIONAL SUMMARY
           </p>
@@ -93,43 +106,84 @@ export default function PreviewCvCard({ cv }: PreviewCvCardProps) {
             <CvBar width="w-[70%]" />
           </div>
         </div>
+      </div>
 
-        {experiences.length > 0 && (
-          <div>
-            <p className="mb-1.5 text-[8px] font-bold tracking-wide text-[#0C447C]">
-              WORK EXPERIENCE
-            </p>
-            <div className="space-y-2">
-              {experiences.map((exp, index) => (
-                <div key={`${exp.jobTitle}-${index}`}>
-                  <p className="text-[8px] font-bold text-[#0C447C]">{exp.jobTitle}</p>
-                  <p className="text-[7px] text-[#64748b]">
-                    {exp.company}
-                    {exp.period ? ` · ${exp.period}` : ""}
-                  </p>
-                  <div className="mt-1 space-y-0.5">
-                    <CvBar width="w-full" />
-                    <CvBar width="w-4/5" />
+      {/* ── Rest: blurred if not paid ── */}
+      <div className="relative">
+        <div
+          className={`px-4 pb-3.5 transition-all duration-300 ${isPaid ? "" : "pointer-events-none select-none blur-[3px]"}`}
+          dir="ltr"
+          style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+          aria-hidden={!isPaid}
+        >
+          {experiences.length > 0 && (
+            <div className="mb-3">
+              <p className="mb-1.5 text-[8px] font-bold tracking-wide text-[#0C447C]">
+                WORK EXPERIENCE
+              </p>
+              <div className="space-y-2">
+                {experiences.map((exp, index) => (
+                  <div key={`${exp.jobTitle}-${index}`}>
+                    <p className="text-[8px] font-bold text-[#0C447C]">{exp.jobTitle}</p>
+                    <p className="text-[7px] text-[#64748b]">
+                      {exp.company}
+                      {exp.period ? ` · ${exp.period}` : ""}
+                    </p>
+                    <div className="mt-1 space-y-0.5">
+                      <CvBar width="w-full" />
+                      <CvBar width="w-4/5" />
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {skills.length > 0 && (
-          <div>
-            <p className="mb-1.5 text-[8px] font-bold tracking-wide text-[#0C447C]">SKILLS</p>
-            <div className="flex flex-wrap gap-1">
-              {skills.map((skill) => (
-                <span
-                  key={skill}
-                  className="rounded bg-[#EEF5FC] px-1.5 py-0.5 text-[7px] font-semibold text-[#378ADD]"
-                >
-                  {skill}
-                </span>
-              ))}
+          {skills.length > 0 && (
+            <div className="mb-3">
+              <p className="mb-1.5 text-[8px] font-bold tracking-wide text-[#0C447C]">SKILLS</p>
+              <div className="flex flex-wrap gap-1">
+                {skills.map((skill) => (
+                  <span
+                    key={skill}
+                    className="rounded bg-[#EEF5FC] px-1.5 py-0.5 text-[7px] font-semibold text-[#378ADD]"
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
             </div>
+          )}
+
+          {/* Filler sections to give depth */}
+          <div className="mb-3">
+            <p className="mb-1.5 text-[8px] font-bold tracking-wide text-[#0C447C]">EDUCATION</p>
+            <CvBar width="w-3/4" />
+            <div className="mt-1"><CvBar width="w-1/2" /></div>
+          </div>
+          <div>
+            <p className="mb-1.5 text-[8px] font-bold tracking-wide text-[#0C447C]">CERTIFICATIONS</p>
+            <CvBar width="w-2/3" />
+            <div className="mt-1"><CvBar width="w-1/2" /></div>
+          </div>
+        </div>
+
+        {/* Paywall overlay — shown when not paid */}
+        {!isPaid && (
+          <div
+            className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-b-[20px] text-center"
+            style={{
+              background: "linear-gradient(to bottom, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.95) 40%)",
+              backdropFilter: "blur(2px)",
+            }}
+          >
+            <LockIcon />
+            <p className="text-[13px] font-extrabold text-[#0C447C]">
+              سيرتك جاهزة — ادفع لتحميلها كاملة
+            </p>
+            <p className="max-w-[200px] text-[10px] leading-relaxed text-[#64748b]">
+              الملخص المهني ظاهر. الخبرات والمهارات والتعليم تظهر بعد الدفع.
+            </p>
           </div>
         )}
       </div>

@@ -62,7 +62,7 @@ export function collectStepErrors(step: number, data: CvFormData): string[] {
     errors.push("skills");
   }
 
-  if (step === 6 && !data.selfDescription.trim()) {
+  if (step === 5 && !data.selfDescription.trim()) {
     errors.push("selfDescription");
   }
 

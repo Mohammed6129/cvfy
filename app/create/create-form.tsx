@@ -42,7 +42,7 @@ import {
 } from "@/app/components/home-glass-shell";
 
 const BRAND = "#378ADD";
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 5;
 const MAX_EXPERIENCES = 5;
 const MANDATORY_MSG =
   "يجب تعبئة جميع الحقول لضمان سيرة ذاتية مثالية تطابق نظام ATS";
@@ -51,8 +51,7 @@ const STEP_TITLES = [
   "المعلومات الشخصية",
   "الخبرات العملية",
   "التعليم",
-  "المهارات",
-  "الدورات والشهادات",
+  "المهارات والشهادات",
   "نبذة عنك",
 ];
 
@@ -679,96 +678,101 @@ export default function CreateForm() {
         )}
 
         {step === 4 && (
-          <div className="space-y-5">
-            <h2 className="text-xl font-extrabold text-white sm:text-2xl">المهارات</h2>
-            {isInvalid("skills") && <RequiredMarker />}
-            <input
-              value={skillInput}
-              onChange={(e) => setSkillInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  addSkill(skillInput);
-                }
-              }}
-              placeholder="اكتب مهارة واضغط Enter"
-              className={invalidFieldClass(inputClass, isInvalid("skills"))}
-            />
-            <FieldTip>💡 مثال: Excel، إدارة المشاريع</FieldTip>
-            {data.skills.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {data.skills.map((s) => (
-                  <span key={s.id} className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-[#378ADD]">
-                    {s.name}
-                    <button type="button" onClick={() => update("skills", data.skills.filter((x) => x.id !== s.id))}>×</button>
-                  </span>
+          <div className="space-y-8">
+            {/* المهارات */}
+            <div className="space-y-5">
+              <h2 className="text-xl font-extrabold text-white sm:text-2xl">المهارات</h2>
+              {isInvalid("skills") && <RequiredMarker />}
+              <input
+                value={skillInput}
+                onChange={(e) => setSkillInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addSkill(skillInput);
+                  }
+                }}
+                placeholder="اكتب مهارة واضغط Enter"
+                className={invalidFieldClass(inputClass, isInvalid("skills"))}
+              />
+              <FieldTip>💡 مثال: Excel، إدارة المشاريع</FieldTip>
+              {data.skills.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {data.skills.map((s) => (
+                    <span key={s.id} className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-[#378ADD]">
+                      {s.name}
+                      <button type="button" onClick={() => update("skills", data.skills.filter((x) => x.id !== s.id))}>×</button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              {availableSuggestions.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {availableSuggestions.map((skill) => (
+                    <button
+                      key={skill}
+                      type="button"
+                      onClick={() => addSkill(skill)}
+                      className="rounded-full border border-[#E0EDF8] bg-white px-3 py-1.5 text-sm text-[#333] hover:border-[#378ADD] hover:text-[#378ADD]"
+                    >
+                      + {skill}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* الدورات والشهادات — مدمجة في نفس الخطوة */}
+            <div>
+              <div className="mb-1 flex items-center gap-3">
+                <h3 className="text-lg font-extrabold text-white">الدورات والشهادات</h3>
+                <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-xs text-white/60">اختياري</span>
+              </div>
+              <p className="mb-4 text-sm text-white/65">يمكنك تخطي هذا القسم إذا لم يكن لديك دورات</p>
+              <div className="space-y-6">
+                {data.courses.map((course, i) => (
+                  <div key={course.id} className={FORM_NESTED_SECTION_CLASS}>
+                    <div className="mb-3 flex justify-between">
+                      <span className="text-sm font-bold text-[#FAC775]">الدورة {i + 1}</span>
+                      {data.courses.length > 1 && (
+                        <button type="button" onClick={() => update("courses", data.courses.filter((c) => c.id !== course.id))} className="text-sm text-red-300">حذف</button>
+                      )}
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className={labelClass}>اسم الدورة / الشهادة</label>
+                        <input value={course.name} onChange={(e) => update("courses", data.courses.map((c) => c.id === course.id ? { ...c, name: e.target.value } : c))} placeholder="مثال: PMP" className={inputClass} />
+                      </div>
+                      <div>
+                        <label className={labelClass}>الجهة المانحة</label>
+                        <input value={course.provider} onChange={(e) => update("courses", data.courses.map((c) => c.id === course.id ? { ...c, provider: e.target.value } : c))} placeholder="مثال: PMI" className={inputClass} />
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      <MonthYearSelect
+                        label="تاريخ الحصول على الشهادة / الدورة"
+                        value={course.date}
+                        onChange={(v) =>
+                          update(
+                            "courses",
+                            data.courses.map((c) =>
+                              c.id === course.id ? { ...c, date: v, year: v } : c
+                            )
+                          )
+                        }
+                      />
+                    </div>
+                  </div>
                 ))}
               </div>
-            )}
-            {availableSuggestions.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {availableSuggestions.map((skill) => (
-                  <button
-                    key={skill}
-                    type="button"
-                    onClick={() => addSkill(skill)}
-                    className="rounded-full border border-[#E0EDF8] bg-white px-3 py-1.5 text-sm text-[#333] hover:border-[#378ADD] hover:text-[#378ADD]"
-                  >
-                    + {skill}
-                  </button>
-                ))}
-              </div>
-            )}
+              <button type="button" onClick={() => update("courses", [...data.courses, emptyCourse()])} className="mt-6 w-full rounded-[11px] border-2 border-dashed border-white/30 py-3 text-sm font-semibold text-white/85 hover:border-white/50 hover:bg-white/5">
+                + إضافة دورة أخرى
+              </button>
+            </div>
           </div>
         )}
 
         {step === 5 && (
-          <div>
-            <h2 className="mb-2 text-xl font-extrabold text-white sm:text-2xl">الدورات والشهادات</h2>
-            <p className="mb-6 text-sm text-white/65">(اختياري — يمكنك تخطي هذه الخطوة)</p>
-            <div className="space-y-6">
-              {data.courses.map((course, i) => (
-                <div key={course.id} className={FORM_NESTED_SECTION_CLASS}>
-                  <div className="mb-3 flex justify-between">
-                    <span className="text-sm font-bold text-[#FAC775]">الدورة {i + 1}</span>
-                    {data.courses.length > 1 && (
-                      <button type="button" onClick={() => update("courses", data.courses.filter((c) => c.id !== course.id))} className="text-sm text-red-300">حذف</button>
-                    )}
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <label className={labelClass}>اسم الدورة / الشهادة</label>
-                      <input value={course.name} onChange={(e) => update("courses", data.courses.map((c) => c.id === course.id ? { ...c, name: e.target.value } : c))} placeholder="مثال: PMP" className={inputClass} />
-                    </div>
-                    <div>
-                      <label className={labelClass}>الجهة المانحة</label>
-                      <input value={course.provider} onChange={(e) => update("courses", data.courses.map((c) => c.id === course.id ? { ...c, provider: e.target.value } : c))} placeholder="مثال: PMI" className={inputClass} />
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <MonthYearSelect
-                      label="تاريخ الحصول على الشهادة / الدورة"
-                      value={course.date}
-                      onChange={(v) =>
-                        update(
-                          "courses",
-                          data.courses.map((c) =>
-                            c.id === course.id ? { ...c, date: v, year: v } : c
-                          )
-                        )
-                      }
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-            <button type="button" onClick={() => update("courses", [...data.courses, emptyCourse()])} className="mt-6 w-full rounded-[11px] border-2 border-dashed border-white/30 py-3 text-sm font-semibold text-white/85 hover:border-white/50 hover:bg-white/5">
-              + إضافة دورة أخرى
-            </button>
-          </div>
-        )}
-
-        {step === 6 && (
           <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
             <div>
               <h2 className="mb-4 text-xl font-extrabold text-white sm:text-2xl">نبذة عنك</h2>

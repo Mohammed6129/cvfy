@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
+import HomeHeroBanner from "./components/home-hero-banner";
 import HomeTrustBadges from "./components/home-trust-badges";
 import CustomerJourney from "./components/CustomerJourney";
 import HomeFeaturesTrust from "./components/home-features-trust";
@@ -28,6 +29,7 @@ export default function Home() {
       <Navbar variant="glass" />
       <main>
         <Hero />
+        <HomeHeroBanner />
         <HomeTrustBadges />
         <CustomerJourney />
         <HomeFeaturesTrust />

@@ -202,7 +202,7 @@ export default function CvPreview() {
 
       <div className="mx-auto grid max-w-[1100px] grid-cols-1 items-start gap-5 lg:grid-cols-[1fr_300px]">
         <div>
-          <PreviewCvCard cv={cv} />
+          <PreviewCvCard cv={cv} isPaid={isPaid || isTestUser} />
           {cv.aiEnhanced && <AiStamp />}
         </div>
 
