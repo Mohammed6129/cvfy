@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import GlassPageLayout from "@/app/components/glass-page-layout";
+import ErrorBoundary from "@/app/components/error-boundary";
 import ChatBuilder from "./chat-builder";
 import { createClient } from "@/lib/supabase/server";
 import { getUserProfile } from "@/lib/user";
@@ -31,7 +32,9 @@ export default async function ChatPage() {
   return (
     <GlassPageLayout mainClassName="px-4 py-6 sm:px-6 sm:py-8">
       <div className="mx-auto w-full max-w-2xl">
-        <ChatBuilder userEmail={userEmail} />
+        <ErrorBoundary fallbackHref="/create" fallbackLabel="العودة لإنشاء السيرة">
+          <ChatBuilder userEmail={userEmail} />
+        </ErrorBoundary>
       </div>
     </GlassPageLayout>
   );

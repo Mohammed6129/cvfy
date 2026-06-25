@@ -25,9 +25,9 @@ export default function ClassicCvTemplate({ cv }: ClassicCvTemplateProps) {
 
   return (
     <article
-      className="cv-document mx-auto max-w-[210mm] bg-white font-serif text-[13px] leading-relaxed text-black sm:text-sm"
+      className="cv-document mx-auto max-w-[210mm] bg-white text-[13px] leading-relaxed text-black sm:text-sm"
       dir="rtl"
-      style={{ fontFamily: '"Times New Roman", Times, serif' }}
+      style={{ fontFamily: 'var(--font-noto-serif), "Times New Roman", Times, serif' }}
     >
       <header className="mb-6 border-b border-black pb-5 text-center sm:mb-8 sm:pb-6">
         <h1 className="mb-1 text-2xl font-bold tracking-tight text-black sm:text-3xl md:text-4xl">

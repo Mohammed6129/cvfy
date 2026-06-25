@@ -11,8 +11,7 @@ import {
 import type { GeneratedCv, Language } from "@/lib/cv-types";
 import { prepareCvPayload } from "@/lib/prepare-cv-payload";
 import { GLASS_INPUT_CLASS } from "@/app/components/home-glass-shell";
-
-const BRAND = "#378ADD";
+import { BRAND } from "@/lib/brand";
 const TOTAL_QUESTIONS = 7;
 
 const REMINDER =

@@ -103,12 +103,12 @@ export default function Hero() {
             >
               {PAYMENT_ICONS.map((icon) => (
                 <div key={icon.alt} style={PAYMENT_ICON_WRAP}>
-                  <img
+                  <Image
                     src={icon.src}
                     alt={icon.alt}
-                    width={32}
-                    height={20}
-                    style={{ objectFit: "contain", display: "block" }}
+                    width={40}
+                    height={24}
+                    style={{ objectFit: "contain" }}
                   />
                 </div>
               ))}

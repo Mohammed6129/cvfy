@@ -121,10 +121,21 @@ function GlassFooterBottom() {
       }}
       className="px-6 py-[18px] md:px-14"
     >
-      <div className="mx-auto flex max-w-[1100px] items-center justify-start">
+      <div className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-between gap-3">
         <span className="text-[11px] text-white/40">
           © جميع الحقوق محفوظة 2026 — CVfy
         </span>
+        <nav className="flex flex-wrap gap-4" aria-label="روابط قانونية">
+          <Link href="/terms" className="text-[11px] text-white/40 hover:text-white/70 transition-colors">
+            شروط الاستخدام
+          </Link>
+          <Link href="/privacy" className="text-[11px] text-white/40 hover:text-white/70 transition-colors">
+            سياسة الخصوصية
+          </Link>
+          <Link href="/about-ats" className="text-[11px] text-white/40 hover:text-white/70 transition-colors">
+            ما هو ATS؟
+          </Link>
+        </nav>
       </div>
     </div>
   );
