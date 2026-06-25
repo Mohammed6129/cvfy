@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Baloo_Bhaijaan_2, Noto_Serif } from "next/font/google";
+import { GlobalBackgroundBlobs } from "./components/glass-background-blobs";
 import "./globals.css";
 
 const balooBhaijaan = Baloo_Bhaijaan_2({
@@ -67,7 +68,8 @@ export default function RootLayout({
         >
           انتقل للمحتوى الرئيسي
         </a>
-        <div id="main-content" className="flex flex-1 flex-col">
+        <GlobalBackgroundBlobs />
+        <div id="main-content" className="relative z-[1] flex flex-1 flex-col">
           {children}
         </div>
       </body>
