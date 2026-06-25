@@ -1,0 +1,52 @@
+<svg width="1056" height="440" viewBox="0 0 1056 440" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(40.00,40.00) scale(0.450000)">
+    
+  <defs>
+    <linearGradient id="midGrad" x1="15%" y1="10%" x2="85%" y2="90%">
+      <stop offset="0%" stop-color="#5BA3E8"/>
+      <stop offset="100%" stop-color="#378ADD"/>
+    </linearGradient>
+    <linearGradient id="frontGrad" x1="15%" y1="10%" x2="85%" y2="90%">
+      <stop offset="0%" stop-color="#0C447C"/>
+      <stop offset="100%" stop-color="#082E54"/>
+    </linearGradient>
+    <filter id="midShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#082E54" flood-opacity="0.22"/>
+    </filter>
+    <filter id="frontShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#051A30" flood-opacity="0.30"/>
+    </filter>
+    <filter id="badgeShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="6" stdDeviation="9" flood-color="#051A30" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Back card -->
+  <rect x="275" y="140" width="360" height="460" rx="56" ry="56" fill="#A0C8F0"/>
+
+  <!-- Mid card -->
+  <rect filter="url(#midShadow)" x="242" y="172" width="360" height="460" rx="56" ry="56" fill="url(#midGrad)"/>
+
+  <!-- Front card -->
+  <rect filter="url(#frontShadow)" x="205" y="205" width="360" height="460" rx="56" ry="56" fill="url(#frontGrad)"/>
+
+  <!-- text lines on front card -->
+  <rect x="265" y="275" width="200" height="16" rx="8" ry="8" fill="#EAF4FE" opacity="0.5"/>
+  <rect x="265" y="321" width="170" height="16" rx="8" ry="8" fill="#EAF4FE" opacity="0.5"/>
+  <rect x="265" y="367" width="140" height="16" rx="8" ry="8" fill="#EAF4FE" opacity="0.5"/>
+
+  <!-- checkmark badge -->
+  <circle filter="url(#badgeShadow)" cx="515" cy="615" r="95" fill="#378ADD"/>
+  <circle cx="515" cy="615" r="95" fill="none" stroke="#FFFFFF" stroke-width="7"/>
+  <path d="M 473,619 L 505,649 L 563,585"
+        fill="none" stroke="#FFFFFF" stroke-width="22"
+        stroke-linecap="round" stroke-linejoin="round"/>
+
+  </g>
+  <g transform="translate(470.00,278.88)">
+    <g transform="translate(0.000, 0) scale(0.230000, -0.230000)"><path d="M403 -11Q324 -11 256.5 16.5Q189 44 138.5 94.0Q88 144 60.0 210.5Q32 277 32 354Q32 431 60.0 497.5Q88 564 138.0 613.0Q188 662 255.5 689.5Q323 717 402 717Q486 717 551.5 690.0Q617 663 666 616L561 510Q533 540 493.5 557.0Q454 574 402 574Q356 574 317.5 558.5Q279 543 251.5 514.0Q224 485 208.5 444.0Q193 403 193 354Q193 304 208.5 263.0Q224 222 251.5 193.0Q279 164 317.5 148.0Q356 132 402 132Q456 132 496.0 149.0Q536 166 565 196L671 90Q620 43 554.5 16.0Q489 -11 403 -11Z" fill="#121F30"/></g>
+  <g transform="translate(158.470, 0) scale(0.230000, -0.230000)"><path d="M288 0 16 706H184L391 135H322L532 706H698L423 0Z" fill="#121F30"/></g>
+  <g transform="translate(322.460, 0) scale(0.230000, -0.230000)"><path d="M116 0V528Q116 587 142.5 634.5Q169 682 217.0 709.5Q265 737 331 737Q381 737 418.5 720.5Q456 704 484 675L388 579Q378 589 365.5 594.5Q353 600 336 600Q305 600 287.0 582.0Q269 564 269 533V0ZM9 356V486H409V356Z" fill="#378ADD"/></g>
+  <g transform="translate(422.740, 0) scale(0.230000, -0.230000)"><path d="M204 -2 4 486H169L296 99H235L365 486H530L322 -2ZM79 -205 225 110 322 -2 236 -205Z" fill="#378ADD"/></g>
+  </g>
+</svg>

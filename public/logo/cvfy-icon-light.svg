@@ -1,0 +1,42 @@
+<svg width="800" height="800" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="midGrad" x1="15%" y1="10%" x2="85%" y2="90%">
+      <stop offset="0%" stop-color="#5BA3E8"/>
+      <stop offset="100%" stop-color="#378ADD"/>
+    </linearGradient>
+    <linearGradient id="frontGrad" x1="15%" y1="10%" x2="85%" y2="90%">
+      <stop offset="0%" stop-color="#0C447C"/>
+      <stop offset="100%" stop-color="#082E54"/>
+    </linearGradient>
+    <filter id="midShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#082E54" flood-opacity="0.22"/>
+    </filter>
+    <filter id="frontShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#051A30" flood-opacity="0.30"/>
+    </filter>
+    <filter id="badgeShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="6" stdDeviation="9" flood-color="#051A30" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Back card -->
+  <rect x="275" y="140" width="360" height="460" rx="56" ry="56" fill="#A0C8F0"/>
+
+  <!-- Mid card -->
+  <rect filter="url(#midShadow)" x="242" y="172" width="360" height="460" rx="56" ry="56" fill="url(#midGrad)"/>
+
+  <!-- Front card -->
+  <rect filter="url(#frontShadow)" x="205" y="205" width="360" height="460" rx="56" ry="56" fill="url(#frontGrad)"/>
+
+  <!-- text lines on front card -->
+  <rect x="265" y="275" width="200" height="16" rx="8" ry="8" fill="#EAF4FE" opacity="0.5"/>
+  <rect x="265" y="321" width="170" height="16" rx="8" ry="8" fill="#EAF4FE" opacity="0.5"/>
+  <rect x="265" y="367" width="140" height="16" rx="8" ry="8" fill="#EAF4FE" opacity="0.5"/>
+
+  <!-- checkmark badge -->
+  <circle filter="url(#badgeShadow)" cx="515" cy="615" r="95" fill="#378ADD"/>
+  <circle cx="515" cy="615" r="95" fill="none" stroke="#FFFFFF" stroke-width="7"/>
+  <path d="M 473,619 L 505,649 L 563,585"
+        fill="none" stroke="#FFFFFF" stroke-width="22"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
