@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import GlassPageLayout from "@/app/components/glass-page-layout";
+import HomeProblemSolution from "@/app/components/home-problem-solution";
 
 export const metadata: Metadata = {
   title: "ما هو ATS؟ — CVfy",
@@ -16,8 +17,9 @@ const BW_REASONS = [
 
 export default function AboutAtsPage() {
   return (
-    <GlassPageLayout mainClassName="px-6 py-12 md:px-12 md:py-16">
-      <div className="glass-page-card mx-auto max-w-3xl px-6 py-10 sm:px-8 sm:py-12">
+    <GlassPageLayout mainClassName="py-12 md:py-16">
+      <HomeProblemSolution />
+      <div className="glass-page-card mx-auto mt-8 max-w-3xl px-6 py-10 sm:px-8 sm:py-12">
         <h1 className="mb-6 text-3xl font-extrabold text-white sm:text-4xl">
           ما هو <span className="text-[#378ADD]">ATS</span>؟
         </h1>
