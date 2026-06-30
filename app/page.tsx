@@ -6,6 +6,7 @@ import HomeTrustBadges from "./components/home-trust-badges";
 import HomeFeaturesTrust from "./components/home-features-trust";
 import HowItWorks from "./components/how-it-works";
 import HomeReviews from "./components/home-reviews";
+import HomeProblemSolution from "./components/home-problem-solution";
 import HeroLiveBar from "./components/hero-live-bar";
 import Footer from "./components/Footer";
 
@@ -32,6 +33,7 @@ export default function Home() {
         <HowItWorks />
         <HomeFeaturesTrust />
         <HomeReviews />
+        <HomeProblemSolution />
         <Footer variant="glass" />
         <HeroLiveBar />
       </main>

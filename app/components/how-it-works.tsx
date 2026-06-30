@@ -1,64 +1,60 @@
-import StartNowLink from "./start-now-link";
+import Image from "next/image";
 import {
   HOME_GLASS_CONTAINER_CLASS,
   HOME_GLASS_SECTION_CLASS,
 } from "./home-glass-shell";
 
-const PHASES = [
+const STEPS = [
   {
     num: 1,
-    title: "الفهم والتحليل",
-    desc: "يحلل كلامك ويستخرج التفاصيل المهنية",
-    icons: ["🧠", "📝"],
+    icon: "/icons/01_Form.png",
+    title: "تعبئة الفورم",
+    desc: "بياناتك بأسلوبك العادي",
     color: "#FAC775",
-    bg: "rgba(250,199,117,0.08)",
-    border: "rgba(250,199,117,0.35)",
-    iconBg1: "rgba(250,199,117,0.2)",
-    iconBg2: "rgba(250,199,117,0.1)",
   },
   {
     num: 2,
-    title: "الصياغة الاحترافية",
-    desc: "يحوّل كلامك لجمل قوية بالعربي والإنجليزي",
-    icons: ["✨", "🔤"],
+    icon: "/icons/02_AI.png",
+    title: "تحسين AI",
+    desc: "صياغة احترافية تلقائية",
     color: "#85B7EB",
-    bg: "rgba(55,138,221,0.08)",
-    border: "rgba(55,138,221,0.35)",
-    iconBg1: "rgba(55,138,221,0.2)",
-    iconBg2: "rgba(55,138,221,0.1)",
   },
   {
     num: 3,
-    title: "تحسين ATS",
-    desc: "يضمّن الكلمات المفتاحية التي تبحث عنها الأنظمة",
-    icons: ["🎯", "🔍"],
+    icon: "/icons/03_ATS.png",
+    title: "فحص ATS",
+    desc: "توافق مع أنظمة التوظيف",
     color: "#C0DD97",
-    bg: "rgba(192,221,151,0.08)",
-    border: "rgba(192,221,151,0.35)",
-    iconBg1: "rgba(192,221,151,0.2)",
-    iconBg2: "rgba(192,221,151,0.1)",
   },
   {
     num: 4,
-    title: "مراجعة الجودة",
-    desc: "يتحقق من الاتساق والدقة قبل التسليم النهائي",
-    icons: ["📊", "✅"],
+    icon: "/icons/04_Download.png",
+    title: "التحميل",
+    desc: "نسختان جاهزتان فوراً",
     color: "#AFA9EC",
-    bg: "rgba(175,169,236,0.08)",
-    border: "rgba(175,169,236,0.35)",
-    iconBg1: "rgba(175,169,236,0.2)",
-    iconBg2: "rgba(175,169,236,0.1)",
   },
 ] as const;
 
-const OUTPUT_BADGES = ["PDF عربي", "PDF إنجليزي", "Word", "تقرير ATS"];
-
-function Connector() {
+function ArrowLeft() {
   return (
-    <div className="flex flex-col items-center">
-      <div className="h-5 w-px bg-gradient-to-b from-white/30 to-white/10" />
-      <div className="h-1.5 w-1.5 rounded-full bg-white/40" />
-      <div className="h-5 w-px bg-gradient-to-b from-white/10 to-transparent" />
+    <div
+      className="hidden md:flex shrink-0 items-center justify-center"
+      aria-hidden
+      style={{ color: "rgba(255,255,255,0.35)", fontSize: "22px", userSelect: "none" }}
+    >
+      ←
+    </div>
+  );
+}
+
+function ArrowDown() {
+  return (
+    <div
+      className="flex md:hidden items-center justify-center py-1"
+      aria-hidden
+      style={{ color: "rgba(255,255,255,0.35)", fontSize: "20px", userSelect: "none" }}
+    >
+      ↓
     </div>
   );
 }
@@ -67,116 +63,73 @@ export default function HowItWorks() {
   return (
     <section className={HOME_GLASS_SECTION_CLASS} dir="rtl">
       <div className={HOME_GLASS_CONTAINER_CLASS}>
-        {/* Title */}
-        <h2 className="mb-8 text-center text-[22px] font-extrabold leading-snug text-white md:text-[26px]">
-          تكتب بياناتك{" "}
-          <span className="text-[#FAC775]">ونحولها لسيرة ذاتية احترافية</span>
-        </h2>
-
-        {/* Input node — full width, mirrors output node */}
-        <div className="flex justify-center mb-0">
-          <div
-            className="flex w-full items-center justify-center gap-4 rounded-[16px] px-6 py-4"
-            style={{
-              background: "rgba(255,255,255,0.12)",
-              border: "1.5px solid rgba(255,255,255,0.30)",
-            }}
-          >
-            <span className="text-3xl">✍️</span>
-            <div className="text-center">
-              <p className="mb-0.5 text-[13px] font-bold text-white/70">تدخل بياناتك</p>
-              <p className="text-base font-extrabold text-white">بصياغتك العادية</p>
-            </div>
+        <div
+          style={{
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+            background: "rgba(255,255,255,0.08)",
+            border: "1px solid rgba(255,255,255,0.18)",
+            borderRadius: "28px",
+            padding: "40px 32px",
+          }}
+        >
+          {/* Header */}
+          <div className="mb-10 text-center">
+            <h2 className="mb-2 text-[22px] font-extrabold text-white md:text-[26px]">
+              رحلتك مع{" "}
+              <span style={{ color: "#FAC775" }}>CVfy</span>
+            </h2>
+            <p className="text-sm text-white/60">
+              من الفورم إلى السيرة الجاهزة في خطوات بسيطة
+            </p>
           </div>
-        </div>
 
-        <Connector />
-
-        {/* Phases 2×2 grid — RTL: 1 top-right, 2 top-left */}
-        <div className="mb-0 grid grid-cols-2 gap-3" dir="rtl">
-          {PHASES.map((phase) => (
-            <div
-              key={phase.num}
-              className="relative flex flex-col items-center justify-center rounded-[16px] p-5 text-center"
-              style={{ background: phase.bg, border: `1.5px solid ${phase.border}` }}
-            >
-              {/* Step badge */}
-              <div
-                className="absolute -top-2.5 right-3.5 rounded-full bg-white px-2 py-0.5 text-[11px] font-extrabold text-[#0C447C]"
-              >
-                مرحلة {phase.num}
-              </div>
-
-              <div className="mb-3 flex gap-2">
+          {/* Steps — row on desktop, column on mobile */}
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-0">
+            {STEPS.map((step, i) => (
+              <div key={step.num} className="flex flex-col md:flex-row md:items-start md:flex-1">
+                {/* Step card */}
                 <div
-                  className="flex h-[38px] w-[38px] items-center justify-center rounded-full text-lg"
+                  className="relative flex flex-col items-center text-center px-4 py-6 rounded-[20px] md:flex-1"
                   style={{
-                    background: phase.iconBg1,
-                    border: "2px solid rgba(255,255,255,0.2)",
+                    background: "rgba(255,255,255,0.06)",
+                    border: "1px solid rgba(255,255,255,0.12)",
                   }}
                 >
-                  {phase.icons[0]}
-                </div>
-                <div
-                  className="flex h-[38px] w-[38px] items-center justify-center rounded-full text-lg"
-                  style={{
-                    background: phase.iconBg2,
-                    border: "2px solid rgba(255,255,255,0.2)",
-                  }}
-                >
-                  {phase.icons[1]}
-                </div>
-              </div>
-
-              <p className="mb-1.5 text-sm font-extrabold" style={{ color: phase.color }}>
-                {phase.title}
-              </p>
-              <p className="text-xs leading-relaxed text-white/60">
-                {phase.desc}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        <Connector />
-
-        {/* Output node */}
-        <div className="flex justify-center mb-7">
-          <div
-            className="flex w-full flex-col items-center justify-center rounded-[16px] px-6 py-5 text-center gap-2"
-            style={{
-              background: "linear-gradient(135deg, #378ADD, #185fa5)",
-              boxShadow: "0 8px 24px rgba(55,138,221,0.4)",
-            }}
-          >
-            <span className="text-3xl">📄</span>
-            <div>
-              <p className="mb-0.5 text-[13px] font-bold text-white/70">
-                النتيجة النهائية
-              </p>
-              <p className="text-base font-extrabold text-white">
-                سيرتك الذاتية جاهزة للتحميل
-              </p>
-              <div className="mt-2 flex flex-wrap justify-center gap-1.5">
-                {OUTPUT_BADGES.map((b) => (
-                  <span
-                    key={b}
-                    className="rounded-full px-2.5 py-0.5 text-[11px] font-bold text-white"
-                    style={{ background: "rgba(255,255,255,0.15)" }}
+                  {/* Number badge */}
+                  <div
+                    className="absolute -top-3 right-4 flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-extrabold shadow-md"
+                    style={{ background: "#fff", color: "#0C447C" }}
                   >
-                    {b}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+                    {step.num}
+                  </div>
 
-        {/* CTA */}
-        <div className="flex justify-center">
-          <StartNowLink className="inline-flex items-center rounded-full bg-white px-8 py-3.5 text-sm font-extrabold text-[#0C447C] shadow-[0_4px_20px_rgba(255,255,255,0.25)] transition-opacity hover:opacity-95">
-            ابدأ الآن ←
-          </StartNowLink>
+                  {/* Icon */}
+                  <div className="mb-3 mt-2">
+                    <Image
+                      src={step.icon}
+                      alt={step.title}
+                      width={38}
+                      height={38}
+                      className="object-contain"
+                      style={{ filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.18))" }}
+                    />
+                  </div>
+
+                  <p className="mb-1 text-sm font-extrabold text-white">{step.title}</p>
+                  <p className="text-xs leading-relaxed text-white/60">{step.desc}</p>
+                </div>
+
+                {/* Arrow between steps (not after last) */}
+                {i < STEPS.length - 1 && (
+                  <>
+                    <ArrowLeft />
+                    <ArrowDown />
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

@@ -6,16 +6,10 @@ import {
 
 const BADGES = [
   {
-    icon: "/trust-icons/quality.png",
-    alt: "جودة مضمونة",
-    title: "جودة مضمونة",
-    subtitle: "معايير احترافية",
-  },
-  {
-    icon: "/trust-icons/security.png",
-    alt: "دفع آمن",
-    title: "دفع آمن",
-    subtitle: "محافظة على خصوصية البيانات",
+    icon: "/trust-icons/support.png",
+    alt: "دعم 24/7",
+    title: "دعم 24/7",
+    subtitle: "فريق سعودي يساعدك",
   },
   {
     icon: "/trust-icons/delivery.png",
@@ -24,10 +18,16 @@ const BADGES = [
     subtitle: "بعد الدفع مباشرة",
   },
   {
-    icon: "/trust-icons/support.png",
-    alt: "دعم 24/7",
-    title: "دعم 24/7",
-    subtitle: "فريق سعودي يساعدك",
+    icon: "/trust-icons/security.png",
+    alt: "دفع آمن",
+    title: "دفع آمن",
+    subtitle: "محافظة على خصوصية البيانات",
+  },
+  {
+    icon: "/trust-icons/quality.png",
+    alt: "جودة مضمونة",
+    title: "جودة مضمونة",
+    subtitle: "معايير احترافية",
   },
 ];
 

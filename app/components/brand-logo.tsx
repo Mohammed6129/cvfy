@@ -21,7 +21,7 @@ const LOCKUP_RATIO = 1056 / 440; // ~2.4
 const ICON_RATIO = 1;
 
 export const NAVBAR_LOGO_HEIGHT = 52;
-export const FOOTER_LOGO_HEIGHT = 58;
+export const FOOTER_LOGO_HEIGHT = 76;
 const DEFAULT_LOGO_HEIGHT = 52;
 
 export function logoDimensions(targetHeight: number, icon = false) {
