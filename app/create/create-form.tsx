@@ -116,7 +116,14 @@ function normalizePhone(phone: string) {
 
 function FieldTip({ children }: { children: React.ReactNode }) {
   return (
-    <p className={FORM_TIP_CLASS}>{children}</p>
+    <p className={`${FORM_TIP_CLASS} flex items-start gap-1`}>
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="mt-px shrink-0 opacity-50" aria-hidden>
+        <circle cx="6" cy="6" r="5.5" stroke="currentColor" strokeWidth="1" fill="none"/>
+        <path d="M6 5v3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+        <circle cx="6" cy="3.5" r="0.6" fill="currentColor"/>
+      </svg>
+      <span>{children}</span>
+    </p>
   );
 }
 
@@ -430,7 +437,7 @@ export default function CreateForm() {
               label="اسمك الكامل"
               required
               invalid={isInvalid("name")}
-              tip={<FieldTip>💡 مثال: محمد عبدالله العمري</FieldTip>}
+              tip={<FieldTip>مثال: محمد عبدالله العمري</FieldTip>}
             >
               <input
                 value={data.name}
@@ -443,7 +450,7 @@ export default function CreateForm() {
               label="المسمى المهني الحالي"
               required
               invalid={isInvalid("currentJobTitle")}
-              tip={<FieldTip>💡 هذا المسمى فقط هو الذي يظهر في رأس السيرة الذاتية</FieldTip>}
+              tip={<FieldTip>هذا المسمى فقط هو الذي يظهر في رأس السيرة الذاتية</FieldTip>}
             >
               <input
                 value={data.currentJobTitle}
@@ -456,7 +463,7 @@ export default function CreateForm() {
               label="البريد الإلكتروني"
               required
               invalid={isInvalid("email")}
-              tip={<FieldTip>💡 استخدم إيميل احترافي — الأفضل: اسمك.كنيتك@gmail.com</FieldTip>}
+              tip={<FieldTip>استخدم إيميل احترافي — الأفضل: اسمك.كنيتك@gmail.com</FieldTip>}
             >
               <input
                 type="email"
@@ -471,7 +478,7 @@ export default function CreateForm() {
               label="رقم الجوال"
               required
               invalid={isInvalid("phone")}
-              tip={<FieldTip>💡 مثال: 501234567</FieldTip>}
+              tip={<FieldTip>مثال: 501234567</FieldTip>}
             >
               <div
                 className={invalidFieldClass(
@@ -494,7 +501,7 @@ export default function CreateForm() {
               label="المدينة"
               required
               invalid={isInvalid("city")}
-              tip={<FieldTip>💡 مثال: الرياض</FieldTip>}
+              tip={<FieldTip>مثال: الرياض</FieldTip>}
             >
               <select
                 value={data.city}
@@ -516,7 +523,7 @@ export default function CreateForm() {
                 </>
               }
               invalid={isInvalid("linkedIn")}
-              tip={<FieldTip>💡 الصيغة المفضلة: linkedin.com/in/username</FieldTip>}
+              tip={<FieldTip>الصيغة المفضلة: linkedin.com/in/username</FieldTip>}
             >
               <input
                 type="url"
@@ -575,7 +582,14 @@ export default function CreateForm() {
                       className={invalidFieldClass(inputClass, isInvalid(`work-${job.id}-department`))}
                     />
                   </FormField>
-                  <p className="mb-4 text-xs text-white/70 sm:text-sm">⚠️ سنحافظ على اسم الشركة والمسمى كما هو</p>
+                  <p className="mb-4 flex items-center gap-1 text-xs text-white/45">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0" aria-hidden>
+                      <circle cx="6" cy="6" r="5.5" stroke="currentColor" strokeWidth="1" fill="none"/>
+                      <path d="M6 5v3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                      <circle cx="6" cy="3.5" r="0.6" fill="currentColor"/>
+                    </svg>
+                    سنحافظ على اسم الشركة والمسمى كما هو
+                  </p>
                   <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
                     <FormField label="وصف الخبرة" required invalid={isInvalid(`work-${job.id}-description`)}>
                       <textarea
@@ -695,7 +709,7 @@ export default function CreateForm() {
                 placeholder="اكتب مهارة واضغط Enter"
                 className={invalidFieldClass(inputClass, isInvalid("skills"))}
               />
-              <FieldTip>💡 مثال: Excel، إدارة المشاريع</FieldTip>
+              <FieldTip>مثال: Excel، إدارة المشاريع</FieldTip>
               {data.skills.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {data.skills.map((s) => (

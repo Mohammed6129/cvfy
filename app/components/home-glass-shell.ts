@@ -25,7 +25,7 @@ export const FORM_DATE_SELECT_CLASS = `min-w-0 flex-1 appearance-none px-3 py-3 
 
 export const FORM_LABEL_CLASS = GLASS_LABEL_CLASS;
 
-export const FORM_TIP_CLASS = "mt-1.5 text-xs leading-relaxed text-[#FAC775]/90";
+export const FORM_TIP_CLASS = "mt-1.5 text-xs leading-relaxed text-white/45";
 
 export const FORM_PHONE_WRAPPER_CLASS =
   "flex overflow-hidden rounded-[11px] border border-[#E0EDF8] bg-white focus-within:border-[#378ADD] focus-within:ring-2 focus-within:ring-[#378ADD]/20";

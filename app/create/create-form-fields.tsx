@@ -13,7 +13,7 @@ import {
 } from "@/lib/create-form-constants";
 import type { CvFormData } from "@/lib/cv-types";
 
-export const REQUIRED_ORANGE = "#F97316";
+export const REQUIRED_ORANGE = "#EF4444";
 
 const labelClass = FORM_LABEL_CLASS;
 
@@ -72,18 +72,22 @@ export function collectStepErrors(step: number, data: CvFormData): string[] {
 export function RequiredMarker() {
   return (
     <span
-      className="mb-1.5 block text-base font-bold leading-none"
-      style={{ color: REQUIRED_ORANGE }}
+      className="mb-1.5 flex items-center gap-1 text-[11px] font-semibold leading-none text-red-500"
       aria-hidden
     >
-      *
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0">
+        <circle cx="6" cy="6" r="5.5" fill="#FEE2E2" stroke="#EF4444" strokeWidth="1"/>
+        <path d="M6 3.5v3" stroke="#EF4444" strokeWidth="1.4" strokeLinecap="round"/>
+        <circle cx="6" cy="8.5" r="0.65" fill="#EF4444"/>
+      </svg>
+      هذا الحقل مطلوب
     </span>
   );
 }
 
 export function invalidFieldClass(base: string, invalid: boolean) {
   return invalid
-    ? `${base} !border-[#F97316] focus:!border-[#F97316] focus:ring-2 focus:ring-[#F97316]/25`
+    ? `${base} !border-red-500 !bg-red-50 focus:!border-red-500 focus:!ring-2 focus:!ring-red-500/30`
     : base;
 }
 
