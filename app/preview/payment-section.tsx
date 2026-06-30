@@ -100,7 +100,7 @@ function ShieldIcon() {
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
       <path
         d="M6 1L10 2.5V5.5C10 8 6 11 6 11C6 11 2 8 2 5.5V2.5L6 1Z"
-        stroke="#888"
+        stroke="rgba(255,255,255,0.55)"
         strokeWidth="1"
         strokeLinejoin="round"
       />
@@ -111,8 +111,8 @@ function ShieldIcon() {
 function ClockIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-      <circle cx="6" cy="6" r="4.5" stroke="#888" strokeWidth="1" />
-      <path d="M6 3.5V6L7.8 7.2" stroke="#888" strokeWidth="1" strokeLinecap="round" />
+      <circle cx="6" cy="6" r="4.5" stroke="rgba(255,255,255,0.55)" strokeWidth="1" />
+      <path d="M6 3.5V6L7.8 7.2" stroke="rgba(255,255,255,0.55)" strokeWidth="1" strokeLinecap="round" />
     </svg>
   );
 }
@@ -143,14 +143,14 @@ function PreviewPriceCard() {
         <div className="text-right">
           <div className="flex items-baseline gap-1">
             <span
-              className="leading-none text-[#0C447C]"
+              className="leading-none text-white"
               style={{ fontSize: "40px", fontWeight: 800 }}
             >
               {plan.price}
             </span>
-            <span className="text-sm font-semibold text-[#378ADD]">ر.س</span>
+            <span className="text-sm font-semibold text-white/70">ر.س</span>
           </div>
-          <p className="mt-0.5 text-[10px] text-[#999]">دفعة واحدة — بدون اشتراك</p>
+          <p className="mt-0.5 text-[10px] text-white/55">دفعة واحدة — بدون اشتراك</p>
         </div>
 
         <div className="flex items-center gap-1.5 rounded-[10px] bg-[#E6F1FB] px-2 py-1.5">
@@ -162,11 +162,11 @@ function PreviewPriceCard() {
         </div>
       </div>
 
-      <div className="my-3 h-px bg-[#F0F7FF]" />
+      <div className="my-3 h-px bg-white/15" />
 
       <ul className="relative space-y-2.5">
         {PRICE_FEATURES.map((item) => (
-          <li key={item.label} className="flex items-center gap-2 text-[11px] text-[#333]">
+          <li key={item.label} className="flex items-center gap-2 text-[11px] text-white/85">
             <span
               className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[7px]"
               style={{ backgroundColor: item.bg }}
@@ -460,7 +460,7 @@ export default function PaymentSection({
               <span>ادفع وحمّل الآن</span>
               <CardIcon />
             </button>
-            <p className="text-center text-[10px] text-[#888]">
+            <p className="text-center text-[10px] text-white/55">
               🔒 ضمان استرجاع كامل خلال 24 ساعة إذا لم تكن راضياً
             </p>
           </div>
@@ -499,7 +499,7 @@ export default function PaymentSection({
           {TRUST_SIGNALS.map((signal) => (
             <span
               key={signal.label}
-              className="inline-flex items-center gap-1 text-[10px] text-[#888]"
+              className="inline-flex items-center gap-1 text-[10px] text-white/55"
             >
               {signal.icon}
               {signal.label}
