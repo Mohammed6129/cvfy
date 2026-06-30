@@ -164,6 +164,15 @@ function PreviewPriceCard() {
 
       <div className="my-3 h-px bg-white/15" />
 
+      <p className="mb-2 flex items-center gap-1 text-[10px] text-white/40">
+        <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden>
+          <circle cx="5.5" cy="5.5" r="5" stroke="currentColor" strokeWidth="1" fill="none"/>
+          <path d="M5.5 4.5v3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+          <circle cx="5.5" cy="3.2" r="0.55" fill="currentColor"/>
+        </svg>
+        السيرة الذاتية صفحة واحدة (A4) — محسّنة للطباعة
+      </p>
+
       <ul className="relative space-y-2.5">
         {PRICE_FEATURES.map((item) => (
           <li key={item.label} className="flex items-center gap-2 text-[11px] text-white/85">

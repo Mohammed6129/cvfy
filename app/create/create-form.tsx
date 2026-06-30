@@ -820,7 +820,17 @@ export default function CreateForm() {
           {step < TOTAL_STEPS ? (
             <button type="button" onClick={goNext} className={FORM_BTN_NEXT_CLASS}>التالي</button>
           ) : (
-            <button type="button" onClick={handleSubmit} className={FORM_BTN_NEXT_CLASS}>إنشاء السيرة الذاتية ✨</button>
+            <div className="flex flex-col items-end gap-2">
+              <button type="button" onClick={handleSubmit} className={FORM_BTN_NEXT_CLASS}>إنشاء السيرة الذاتية ✨</button>
+              <p className="flex items-center gap-1 text-[10px] text-white/40">
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden>
+                  <circle cx="5.5" cy="5.5" r="5" stroke="currentColor" strokeWidth="1" fill="none"/>
+                  <path d="M5.5 4.5v3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                  <circle cx="5.5" cy="3.2" r="0.55" fill="currentColor"/>
+                </svg>
+                السيرة الذاتية ستكون صفحة واحدة (A4)
+              </p>
+            </div>
           )}
         </div>
       </div>

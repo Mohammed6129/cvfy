@@ -29,15 +29,7 @@ function triggerBlobDownload(blob: Blob, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
-function ensurePageSpace(doc: jsPDF, y: number, blockHeight: number): number {
-  const pageHeight = doc.internal.pageSize.getHeight();
-  if (y + blockHeight > pageHeight - PAGE_MARGIN) {
-    doc.addPage();
-    return PAGE_MARGIN;
-  }
-  return y;
-}
-
+// Legacy helpers used by buildAtsPdfBlob (multi-page ATS report)
 function addLines(
   doc: jsPDF,
   text: string,
@@ -49,18 +41,24 @@ function addLines(
   doc.setFont("helvetica", fontStyle);
   doc.setFontSize(fontSize);
   const lines = doc.splitTextToSize(text, maxWidth) as string[];
-
+  const pageHeight = doc.internal.pageSize.getHeight();
   for (const line of lines) {
-    y = ensurePageSpace(doc, y, LINE_HEIGHT);
+    if (y + LINE_HEIGHT > pageHeight - PAGE_MARGIN) {
+      doc.addPage();
+      y = PAGE_MARGIN;
+    }
     doc.text(line, PAGE_MARGIN, y);
     y += LINE_HEIGHT;
   }
-
   return y;
 }
 
 function addSectionTitle(doc: jsPDF, title: string, y: number, maxWidth: number): number {
-  y = ensurePageSpace(doc, y, LINE_HEIGHT * 2);
+  const pageHeight = doc.internal.pageSize.getHeight();
+  if (y + LINE_HEIGHT * 2 > pageHeight - PAGE_MARGIN) {
+    doc.addPage();
+    y = PAGE_MARGIN;
+  }
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
   doc.text(title, PAGE_MARGIN, y);
@@ -70,95 +68,181 @@ function addSectionTitle(doc: jsPDF, title: string, y: number, maxWidth: number)
   return y + LINE_HEIGHT;
 }
 
-export function buildCvPdfBlob(cv: GeneratedCv): Blob {
+// Measure total CV content height using a dry-run jsPDF (no actual drawing)
+function measureCvHeight(cv: GeneratedCv): number {
   const content = cv.contentEn ?? cv.content;
   const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const maxWidth = pageWidth - PAGE_MARGIN * 2;
+  const maxWidth = doc.internal.pageSize.getWidth() - PAGE_MARGIN * 2;
+
+  function linesHeight(text: string, fontSize: number, fontStyle: "normal" | "bold" | "italic" = "normal"): number {
+    doc.setFont("helvetica", fontStyle);
+    doc.setFontSize(fontSize);
+    const lines = doc.splitTextToSize(text, maxWidth) as string[];
+    return lines.length * LINE_HEIGHT;
+  }
+
   let y = PAGE_MARGIN;
 
+  // Name
   doc.setFont("helvetica", "bold");
   doc.setFontSize(20);
   const nameLines = doc.splitTextToSize(cv.name, maxWidth) as string[];
-  for (const line of nameLines) {
-    y = ensurePageSpace(doc, y, 8);
-    doc.text(line, PAGE_MARGIN, y);
-    y += 8;
-  }
+  y += nameLines.length * 8;
 
-  if (content.headline) {
-    y = addLines(doc, content.headline, y, maxWidth, 12, "normal");
-  }
+  if (content.headline) y += linesHeight(content.headline, 12);
 
   const contact = [cv.email, cv.phone, cv.city, cv.linkedIn].filter(Boolean).join(" | ");
-  if (contact) {
-    y = addLines(doc, contact, y, maxWidth, 9, "normal");
-  }
+  if (contact) y += linesHeight(contact, 9);
 
   y += 3;
 
   if (content.summary) {
-    y = addSectionTitle(doc, "PROFESSIONAL SUMMARY", y, maxWidth);
-    y = addLines(doc, content.summary, y, maxWidth);
-    y += 2;
+    y += LINE_HEIGHT * 2 + 4; // section title
+    y += linesHeight(content.summary, 10) + 2;
   }
 
   if (content.experiences.length > 0) {
-    y = addSectionTitle(doc, "WORK EXPERIENCE", y, maxWidth);
+    y += LINE_HEIGHT * 2 + 4;
     for (const exp of content.experiences) {
-      y = addLines(
-        doc,
-        `${exp.jobTitle}${exp.company ? ` — ${exp.company}` : ""}`,
-        y,
-        maxWidth,
-        10,
-        "bold"
-      );
-      if (exp.period) {
-        y = addLines(doc, exp.period, y, maxWidth, 9, "italic");
-      }
-      if (exp.description) {
-        y = addLines(doc, exp.description, y, maxWidth);
-      }
+      y += linesHeight(`${exp.jobTitle}${exp.company ? ` — ${exp.company}` : ""}`, 10, "bold");
+      if (exp.period) y += linesHeight(exp.period, 9, "italic");
+      if (exp.description) y += linesHeight(exp.description, 10);
       y += 2;
     }
   }
 
   if (content.education.length > 0) {
-    y = addSectionTitle(doc, "EDUCATION", y, maxWidth);
+    y += LINE_HEIGHT * 2 + 4;
     for (const edu of content.education) {
-      y = addLines(doc, edu.degree, y, maxWidth, 10, "bold");
-      if (edu.institution) {
-        y = addLines(doc, edu.institution, y, maxWidth);
-      }
-      if (edu.period) {
-        y = addLines(doc, edu.period, y, maxWidth, 9, "italic");
-      }
+      y += linesHeight(edu.degree, 10, "bold");
+      if (edu.institution) y += linesHeight(edu.institution, 10);
+      if (edu.period) y += linesHeight(edu.period, 9, "italic");
       y += 1;
     }
   }
 
   if (content.skills.length > 0) {
-    y = addSectionTitle(doc, "SKILLS", y, maxWidth);
-    y = addLines(doc, content.skills.join(" • "), y, maxWidth);
-    y += 2;
+    y += LINE_HEIGHT * 2 + 4;
+    y += linesHeight(content.skills.join(" • "), 10) + 2;
   }
 
   if (content.courses.length > 0) {
-    y = addSectionTitle(doc, "COURSES & CERTIFICATIONS", y, maxWidth);
+    y += LINE_HEIGHT * 2 + 4;
     for (const course of content.courses) {
-      y = addLines(doc, course.name, y, maxWidth, 10, "bold");
-      if (course.provider) {
-        y = addLines(doc, course.provider, y, maxWidth, 9);
-      }
-      if (course.year) {
-        y = addLines(doc, course.year, y, maxWidth, 9, "italic");
-      }
+      y += linesHeight(course.name, 10, "bold");
+      if (course.provider) y += linesHeight(course.provider, 9);
+      if (course.year) y += linesHeight(course.year, 9, "italic");
       y += 1;
     }
   }
 
-  return doc.output("blob");
+  return y;
+}
+
+function renderCvPdfDoc(cv: GeneratedCv, scale: number): jsPDF {
+  const content = cv.contentEn ?? cv.content;
+  const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const maxWidth = pageWidth - PAGE_MARGIN * 2;
+  const lh = LINE_HEIGHT * scale;
+  const bottom = pageHeight - PAGE_MARGIN;
+  let y = PAGE_MARGIN;
+
+  function addScaled(
+    text: string,
+    fontSize: number,
+    fontStyle: "normal" | "bold" | "italic" = "normal"
+  ): void {
+    doc.setFont("helvetica", fontStyle);
+    doc.setFontSize(fontSize * scale);
+    const lines = doc.splitTextToSize(text, maxWidth) as string[];
+    for (const line of lines) {
+      if (y + lh > bottom) return;
+      doc.text(line, PAGE_MARGIN, y);
+      y += lh;
+    }
+  }
+
+  function addSection(title: string): void {
+    if (y + lh * 2 > bottom) return;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11 * scale);
+    doc.text(title, PAGE_MARGIN, y);
+    y += 4 * scale;
+    doc.setLineWidth(0.3);
+    doc.line(PAGE_MARGIN, y, PAGE_MARGIN + maxWidth, y);
+    y += lh;
+  }
+
+  // Name
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(20 * scale);
+  const nameLines = doc.splitTextToSize(cv.name, maxWidth) as string[];
+  for (const line of nameLines) {
+    if (y + 8 * scale > bottom) break;
+    doc.text(line, PAGE_MARGIN, y);
+    y += 8 * scale;
+  }
+
+  if (content.headline) addScaled(content.headline, 12);
+
+  const contact = [cv.email, cv.phone, cv.city, cv.linkedIn].filter(Boolean).join(" | ");
+  if (contact) addScaled(contact, 9);
+
+  y += 3 * scale;
+
+  if (content.summary) {
+    addSection("PROFESSIONAL SUMMARY");
+    addScaled(content.summary, 10);
+    y += 2 * scale;
+  }
+
+  if (content.experiences.length > 0) {
+    addSection("WORK EXPERIENCE");
+    for (const exp of content.experiences) {
+      addScaled(`${exp.jobTitle}${exp.company ? ` — ${exp.company}` : ""}`, 10, "bold");
+      if (exp.period) addScaled(exp.period, 9, "italic");
+      if (exp.description) addScaled(exp.description, 10);
+      y += 2 * scale;
+    }
+  }
+
+  if (content.education.length > 0) {
+    addSection("EDUCATION");
+    for (const edu of content.education) {
+      addScaled(edu.degree, 10, "bold");
+      if (edu.institution) addScaled(edu.institution, 10);
+      if (edu.period) addScaled(edu.period, 9, "italic");
+      y += 1 * scale;
+    }
+  }
+
+  if (content.skills.length > 0) {
+    addSection("SKILLS");
+    addScaled(content.skills.join(" • "), 10);
+    y += 2 * scale;
+  }
+
+  if (content.courses.length > 0) {
+    addSection("COURSES & CERTIFICATIONS");
+    for (const course of content.courses) {
+      addScaled(course.name, 10, "bold");
+      if (course.provider) addScaled(course.provider, 9);
+      if (course.year) addScaled(course.year, 9, "italic");
+      y += 1 * scale;
+    }
+  }
+
+  return doc;
+}
+
+export function buildCvPdfBlob(cv: GeneratedCv): Blob {
+  const PAGE_USABLE = 297 - PAGE_MARGIN * 2 - 4; // A4 usable height (mm)
+  const measured = measureCvHeight(cv);
+  // Apply scale if content overflows; cap at 1.0 so we never upscale
+  const scale = measured > PAGE_USABLE ? (PAGE_USABLE / measured) * 0.97 : 1.0;
+  return renderCvPdfDoc(cv, Math.min(scale, 1.0)).output("blob");
 }
 
 async function waitForIframeDocument(iframe: HTMLIFrameElement): Promise<Document> {
