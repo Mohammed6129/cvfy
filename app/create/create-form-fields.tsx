@@ -13,7 +13,7 @@ import {
 } from "@/lib/create-form-constants";
 import type { CvFormData } from "@/lib/cv-types";
 
-export const REQUIRED_ORANGE = "#EF4444";
+export const REQUIRED_ORANGE = "#FAC775";
 
 const labelClass = FORM_LABEL_CLASS;
 
@@ -72,13 +72,13 @@ export function collectStepErrors(step: number, data: CvFormData): string[] {
 export function RequiredMarker() {
   return (
     <span
-      className="mb-1.5 flex items-center gap-1 text-[11px] font-semibold leading-none text-red-500"
+      className="mb-1.5 flex items-center gap-1 text-[11px] font-semibold leading-none text-[#FAC775]"
       aria-hidden
     >
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0">
-        <circle cx="6" cy="6" r="5.5" fill="#FEE2E2" stroke="#EF4444" strokeWidth="1"/>
-        <path d="M6 3.5v3" stroke="#EF4444" strokeWidth="1.4" strokeLinecap="round"/>
-        <circle cx="6" cy="8.5" r="0.65" fill="#EF4444"/>
+        <circle cx="6" cy="6" r="5.5" fill="rgba(250,199,117,0.18)" stroke="#FAC775" strokeWidth="1"/>
+        <path d="M6 3.5v3" stroke="#FAC775" strokeWidth="1.4" strokeLinecap="round"/>
+        <circle cx="6" cy="8.5" r="0.65" fill="#FAC775"/>
       </svg>
       هذا الحقل مطلوب
     </span>
@@ -87,7 +87,7 @@ export function RequiredMarker() {
 
 export function invalidFieldClass(base: string, invalid: boolean) {
   return invalid
-    ? `${base} !border-red-500 !bg-red-50 focus:!border-red-500 focus:!ring-2 focus:!ring-red-500/30`
+    ? `${base} !border-[#FAC775] !bg-[#FFF8EC] focus:!border-[#FAC775] focus:!ring-2 focus:!ring-[#FAC775]/30`
     : base;
 }
 
@@ -147,61 +147,19 @@ export function WorkExperienceDateRange({
       <label className={labelClass}>فترة العمل</label>
       {(invalidStart || invalidEnd) && <RequiredMarker />}
 
-      <div className="flex flex-wrap items-center gap-2">
-        <select
-          value={start.month}
-          onChange={(e) =>
-            onStartChange(formatYearMonth(start.year, e.target.value))
-          }
-          className={invalidFieldClass(dateSelectBase, invalidStart)}
-          aria-label="شهر البداية"
-        >
-          <option value="">شهر البداية</option>
-          {MONTHS.map((m) => (
-            <option key={m.value} value={m.value}>
-              {m.label}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={start.year}
-          onChange={(e) =>
-            onStartChange(formatYearMonth(e.target.value, start.month))
-          }
-          className={invalidFieldClass(dateSelectBase, invalidStart)}
-          aria-label="سنة البداية"
-        >
-          <option value="">سنة البداية</option>
-          {WORK_YEARS.map((y) => (
-            <option key={y} value={y}>
-              {y}
-            </option>
-          ))}
-        </select>
-
-        <span
-          className="flex shrink-0 items-center px-1 text-lg font-bold text-[#378ADD]"
-          aria-hidden
-        >
-          ←
-        </span>
-
-        {isCurrent ? (
-          <span className="inline-flex min-h-[46px] flex-1 items-center justify-center rounded-xl bg-emerald-100 px-4 py-2 text-sm font-bold text-emerald-700">
-            حتى الآن
-          </span>
-        ) : (
-          <>
+      <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-end">
+        <div className="flex flex-1 flex-col gap-1.5">
+          <span className="text-[10.5px] text-white/45">من</span>
+          <div className="flex gap-2">
             <select
-              value={end.month}
+              value={start.month}
               onChange={(e) =>
-                onEndChange(formatYearMonth(end.year, e.target.value))
+                onStartChange(formatYearMonth(start.year, e.target.value))
               }
-              className={invalidFieldClass(dateSelectBase, invalidEnd)}
-              aria-label="شهر النهاية"
+              className={invalidFieldClass(dateSelectBase, invalidStart)}
+              aria-label="شهر البداية"
             >
-              <option value="">شهر النهاية</option>
+              <option value="">شهر البداية</option>
               {MONTHS.map((m) => (
                 <option key={m.value} value={m.value}>
                   {m.label}
@@ -210,22 +168,72 @@ export function WorkExperienceDateRange({
             </select>
 
             <select
-              value={end.year}
+              value={start.year}
               onChange={(e) =>
-                onEndChange(formatYearMonth(e.target.value, end.month))
+                onStartChange(formatYearMonth(e.target.value, start.month))
               }
-              className={invalidFieldClass(dateSelectBase, invalidEnd)}
-              aria-label="سنة النهاية"
+              className={invalidFieldClass(dateSelectBase, invalidStart)}
+              aria-label="سنة البداية"
             >
-              <option value="">سنة النهاية</option>
+              <option value="">سنة البداية</option>
               {WORK_YEARS.map((y) => (
                 <option key={y} value={y}>
                   {y}
                 </option>
               ))}
             </select>
-          </>
-        )}
+          </div>
+        </div>
+
+        <span
+          className="flex shrink-0 items-center justify-center px-1 py-1 text-lg font-bold text-[#6FB6FF] -rotate-90 sm:rotate-0"
+          aria-hidden
+        >
+          ←
+        </span>
+
+        <div className="flex flex-1 flex-col gap-1.5">
+          <span className="text-[10.5px] text-white/45">إلى</span>
+          {isCurrent ? (
+            <span className="inline-flex min-h-[46px] flex-1 items-center justify-center rounded-xl border border-[#6FB6FF]/45 bg-[#6FB6FF]/15 px-4 py-2 text-sm font-bold text-[#8FC4FF]">
+              حتى الآن
+            </span>
+          ) : (
+            <div className="flex gap-2">
+              <select
+                value={end.month}
+                onChange={(e) =>
+                  onEndChange(formatYearMonth(end.year, e.target.value))
+                }
+                className={invalidFieldClass(dateSelectBase, invalidEnd)}
+                aria-label="شهر النهاية"
+              >
+                <option value="">شهر النهاية</option>
+                {MONTHS.map((m) => (
+                  <option key={m.value} value={m.value}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={end.year}
+                onChange={(e) =>
+                  onEndChange(formatYearMonth(e.target.value, end.month))
+                }
+                className={invalidFieldClass(dateSelectBase, invalidEnd)}
+                aria-label="سنة النهاية"
+              >
+                <option value="">سنة النهاية</option>
+                {WORK_YEARS.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
       </div>
 
       <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm font-medium text-white/85">

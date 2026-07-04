@@ -181,5 +181,12 @@ export default function EnhanceContent({ userName: _userName }: EnhanceContentPr
     );
   }
 
-  return <CvLaptopLoader mode="enhance" />;
+  return (
+    <CvLaptopLoader
+      mode="enhance"
+      name={cv?.name}
+      email={cv?.email}
+      jobTitle={(cv?.contentEn ?? cv?.content)?.headline}
+    />
+  );
 }

@@ -22,28 +22,6 @@ import { isTestUserEmail } from "@/lib/test-user";
 import PaymentSection from "./payment-section";
 import PreviewCvCard from "./preview-cv-card";
 
-function AiReadyBadge() {
-  return (
-    <div className="mb-6 flex justify-center">
-      <div className="inline-flex items-center gap-2 rounded-full border border-[#C0DD97] bg-[#EAF3DE] px-[18px] py-[7px]">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-          <circle cx="8" cy="8" r="7" fill="#639922" fillOpacity="0.15" />
-          <path
-            d="M5 8L7 10L11 6"
-            stroke="#639922"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        <span className="text-[13px] font-semibold text-[#27500A]">
-          تم التحسين بالذكاء الاصطناعي — سيرتك جاهزة
-        </span>
-      </div>
-    </div>
-  );
-}
-
 function AiStamp() {
   return (
     <div className="mt-3 flex items-center gap-2 rounded-xl border border-[#B5D4F4] bg-[#E6F1FB] px-3 py-2">
@@ -198,8 +176,6 @@ export default function CvPreview() {
 
   return (
     <div className="animate-fade-in w-full" dir="rtl">
-      <AiReadyBadge />
-
       <div className="mx-auto grid max-w-[1100px] grid-cols-1 items-start gap-5 lg:grid-cols-[1fr_300px]">
         <div>
           <PreviewCvCard cv={cv} isPaid={isPaid || isTestUser} />

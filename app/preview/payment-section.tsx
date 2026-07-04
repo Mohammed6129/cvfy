@@ -135,6 +135,11 @@ function PreviewPriceCard() {
   return (
     <div className="relative w-full overflow-hidden glass-page-card p-5">
       <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-[3px]"
+        style={{ background: "linear-gradient(90deg, #FAC775, #F5D89A, #FAC775)" }}
+        aria-hidden
+      />
+      <div
         className="pointer-events-none absolute -left-6 -top-6 h-[90px] w-[90px] rounded-full bg-[#E6F1FB] opacity-50"
         aria-hidden
       />
@@ -153,11 +158,14 @@ function PreviewPriceCard() {
           <p className="mt-0.5 text-[10px] text-white/55">دفعة واحدة — بدون اشتراك</p>
         </div>
 
-        <div className="flex items-center gap-1.5 rounded-[10px] bg-[#E6F1FB] px-2 py-1.5">
+        <div
+          className="flex items-center gap-1.5 rounded-[10px] px-2 py-1.5"
+          style={{ background: "linear-gradient(135deg, #FAC775, #F0A93E)" }}
+        >
           <StarIcon />
           <div className="flex flex-col leading-tight">
-            <span className="text-[8px] font-bold text-[#185FA5]">AI</span>
-            <span className="text-[8px] font-bold text-[#185FA5]">مدعوم</span>
+            <span className="text-[8px] font-bold text-[#142c54]">AI</span>
+            <span className="text-[8px] font-bold text-[#142c54]">مدعوم</span>
           </div>
         </div>
       </div>
@@ -186,6 +194,53 @@ function PreviewPriceCard() {
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+function PaymentMethodLogos() {
+  const markClass = "flex h-[26px] items-center justify-center rounded-md bg-white px-2.5";
+
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-2">
+      <span className={markClass} title="Visa">
+        <svg width="34" height="11" viewBox="0 0 48 16" aria-hidden>
+          <text x="0" y="13" fontFamily="Arial, sans-serif" fontSize="16" fontStyle="italic" fontWeight="800" fill="#1A1F71">VISA</text>
+        </svg>
+      </span>
+      <span className={markClass} title="mada">
+        <svg width="34" height="14" viewBox="0 0 60 24" aria-hidden>
+          <text x="0" y="17" fontFamily="Arial, sans-serif" fontSize="18" fontWeight="700" fill="#66B245">m</text>
+          <text x="13" y="17" fontFamily="Arial, sans-serif" fontSize="18" fontWeight="700" fill="#5AA1DE">a</text>
+          <text x="24" y="17" fontFamily="Arial, sans-serif" fontSize="18" fontWeight="700" fill="#66B245">d</text>
+          <text x="36" y="17" fontFamily="Arial, sans-serif" fontSize="18" fontWeight="700" fill="#5AA1DE">a</text>
+        </svg>
+      </span>
+      <span className={markClass} title="Tamara">
+        <svg width="46" height="12" viewBox="0 0 90 20" aria-hidden>
+          <text x="0" y="15" fontFamily="Arial, sans-serif" fontSize="17" fontWeight="800" fill="#EE5A9E">tamara</text>
+        </svg>
+      </span>
+      <span className={markClass} title="Apple Pay">
+        <svg width="44" height="18" viewBox="0 0 165 70" aria-hidden>
+          <g fill="#000">
+            <path d="M33.7 12.6c-2.1 2.5-5.5 4.5-8.8 4.2-.4-3.3 1.2-6.8 3.1-9 2.1-2.5 5.8-4.4 8.8-4.5.3 3.4-1 6.8-3.1 9.3z"/>
+            <path d="M36.7 18.4c-4.9-.3-9.1 2.8-11.4 2.8-2.4 0-6-2.7-9.9-2.6-5.1.1-9.8 3-12.4 7.6-5.3 9.2-1.4 22.8 3.8 30.3 2.5 3.7 5.5 7.8 9.5 7.6 3.8-.1 5.3-2.5 9.9-2.5 4.6 0 6 2.5 10 2.4 4.2-.1 6.8-3.7 9.3-7.4 2.9-4.2 4.1-8.3 4.1-8.5-.1-.1-7.9-3.1-8-12.2-.1-7.6 6.2-11.2 6.5-11.4-3.6-5.2-9.1-5.8-11.1-6.1z"/>
+          </g>
+          <text x="52" y="46" fontFamily="Arial, sans-serif" fontSize="34" fontWeight="600" fill="#000">Pay</text>
+        </svg>
+      </span>
+      <span className={markClass} title="Google Pay">
+        <svg width="46" height="18" viewBox="0 0 96 40" aria-hidden>
+          <text x="0" y="29" fontFamily="Arial, sans-serif" fontSize="26" fontWeight="500" fill="#5F6368">Pay</text>
+          <g transform="translate(-4,4)">
+            <path fill="#4285F4" d="M20.4 12.2c0-.7-.1-1.4-.2-2.1H12v4h4.7c-.2 1.1-.8 2-1.8 2.7v2.2h2.9c1.7-1.6 2.6-3.9 2.6-6.8z"/>
+            <path fill="#34A853" d="M12 21c2.4 0 4.5-.8 6-2.2l-2.9-2.2c-.8.5-1.8.9-3.1.9-2.4 0-4.4-1.6-5.1-3.7H3.9v2.3C5.4 19 8.5 21 12 21z"/>
+            <path fill="#FBBC05" d="M6.9 13.8c-.2-.5-.3-1.1-.3-1.8s.1-1.2.3-1.8V7.9H3.9C3.3 9.1 3 10.5 3 12s.3 2.9.9 4.1l3-2.3z"/>
+            <path fill="#EA4335" d="M12 6.6c1.3 0 2.5.5 3.4 1.3l2.6-2.6C16.4 3.9 14.4 3 12 3 8.5 3 5.4 5 3.9 7.9l3 2.3c.7-2.1 2.7-3.6 5.1-3.6z"/>
+          </g>
+        </svg>
+      </span>
     </div>
   );
 }
@@ -300,7 +355,7 @@ function CvDownloadButtons({
       </div>
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-xs text-red-700">
+        <div className="rounded-xl border border-[#FAC775]/40 bg-[#FFF8EC] px-4 py-3 text-center text-xs text-[#8A5A0A]">
           {error}
         </div>
       )}
@@ -464,11 +519,13 @@ export default function PaymentSection({
             <button
               type="button"
               onClick={handlePay}
-              className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#378ADD] px-4 py-[15px] text-[15px] font-extrabold text-white transition-colors hover:bg-[#2a6bb8]"
+              className="flex w-full items-center justify-center gap-2 rounded-[14px] px-4 py-[15px] text-[15px] font-extrabold text-white shadow-[0_8px_22px_rgba(55,138,221,0.4)] transition-transform hover:-translate-y-px"
+              style={{ background: "linear-gradient(90deg, #2E75BF, #4C9CE8)" }}
             >
               <span>ادفع وحمّل الآن</span>
               <CardIcon />
             </button>
+            <PaymentMethodLogos />
             <p className="text-center text-[10px] text-white/55">
               🔒 ضمان استرجاع كامل خلال 24 ساعة إذا لم تكن راضياً
             </p>
@@ -499,7 +556,7 @@ export default function PaymentSection({
         )}
 
         {paymentError && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-700">
+          <div className="rounded-xl border border-[#FAC775]/40 bg-[#FFF8EC] px-4 py-3 text-center text-sm text-[#8A5A0A]">
             {paymentError}
           </div>
         )}
@@ -566,7 +623,7 @@ export default function PaymentSection({
       <div className="w-full">
         {payButton}
         {paymentError && (
-          <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-700">
+          <div className="mt-3 rounded-xl border border-[#FAC775]/40 bg-[#FFF8EC] px-4 py-3 text-center text-sm text-[#8A5A0A]">
             {paymentError}
           </div>
         )}
@@ -585,7 +642,7 @@ export default function PaymentSection({
       <p className="mb-4 text-center text-xs text-white/60">{plan.description}</p>
       {payButton}
       {paymentError && (
-        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-700">
+        <div className="mt-4 rounded-xl border border-[#FAC775]/40 bg-[#FFF8EC] px-4 py-3 text-center text-sm text-[#8A5A0A]">
           {paymentError}
         </div>
       )}

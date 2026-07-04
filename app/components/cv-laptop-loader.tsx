@@ -4,14 +4,17 @@ import { useEffect, useState } from "react";
 
 type CvLaptopLoaderProps = {
   mode: "generate" | "enhance";
+  name?: string;
+  email?: string;
+  jobTitle?: string;
 };
 
 const SUBTITLES = {
-  generate: "فريقنا يبني سيرتك الآن...",
+  generate: "فريقنا يبني سيرتك الذاتية الآن...",
   enhance: "نصقل إنجازاتك ونجعلها تتحدث عنك...",
 };
 
-const GENERATE_LINES = [
+const FALLBACK_LINES = [
   "John Smith",
   "Marketing Manager",
   "john.smith@email.com",
@@ -20,14 +23,25 @@ const GENERATE_LINES = [
   "Senior Specialist — ABC Corp",
 ];
 
-const ENHANCE_LINES = [
-  ...GENERATE_LINES,
-  "SKILLS: Marketing • SEO • Analytics",
-  "B.A. Business Administration",
-];
+function buildLines(mode: "generate" | "enhance", name?: string, email?: string, jobTitle?: string) {
+  const generateLines = name || email || jobTitle
+    ? [
+        name || FALLBACK_LINES[0],
+        jobTitle || FALLBACK_LINES[1],
+        email || FALLBACK_LINES[2],
+        "PROFESSIONAL SUMMARY",
+        "Results-driven professional with 5+ years...",
+        `Senior ${jobTitle || "Specialist"}`,
+      ]
+    : FALLBACK_LINES;
 
-export default function CvLaptopLoader({ mode }: CvLaptopLoaderProps) {
-  const lines = mode === "enhance" ? ENHANCE_LINES : GENERATE_LINES;
+  return mode === "enhance"
+    ? [...generateLines, "SKILLS: Marketing • SEO • Analytics", "B.A. Business Administration"]
+    : generateLines;
+}
+
+export default function CvLaptopLoader({ mode, name, email, jobTitle }: CvLaptopLoaderProps) {
+  const lines = buildLines(mode, name, email, jobTitle);
   const subtitle = SUBTITLES[mode];
 
   const [lineIndex, setLineIndex] = useState(0);
@@ -71,7 +85,7 @@ export default function CvLaptopLoader({ mode }: CvLaptopLoaderProps) {
 
   return (
     <div
-      className="animate-fade-in mx-auto max-w-md rounded-2xl border border-slate-100 bg-white px-6 py-8 text-center shadow-lg sm:px-8 sm:py-10"
+      className="glass-page-card animate-fade-in mx-auto max-w-md px-6 py-8 text-center sm:px-8 sm:py-10"
       role="status"
       aria-live="polite"
       aria-label={subtitle}
@@ -140,9 +154,9 @@ export default function CvLaptopLoader({ mode }: CvLaptopLoaderProps) {
               strokeWidth="2"
             />
             <rect
-              x="60"
+              x="56"
               y="32"
-              width="160"
+              width="168"
               height="102"
               rx="4"
               className="laptop-screen-glow"
@@ -178,7 +192,17 @@ export default function CvLaptopLoader({ mode }: CvLaptopLoaderProps) {
         </div>
       </div>
 
-      <p className="text-base font-semibold text-slate-700 sm:text-lg">{subtitle}</p>
+      <p className="mb-4 text-base font-semibold text-white sm:text-lg">{subtitle}</p>
+
+      <div className="h-2 overflow-hidden rounded-full bg-white/15">
+        <div
+          className="progress-shimmer relative h-full w-[55%] rounded-full"
+          style={{
+            background: "linear-gradient(90deg, #FAC775, #F5D89A)",
+            boxShadow: "0 0 10px 2px rgba(250,199,117,0.5)",
+          }}
+        />
+      </div>
 
       {mode === "enhance" && <EnhanceProgressSteps />}
     </div>
@@ -209,10 +233,10 @@ function EnhanceProgressSteps() {
           key={step.label}
           className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs transition-all duration-500 ${
             i < activeStep
-              ? "bg-green-50 text-green-700"
+              ? "bg-[#378ADD]/10 text-white/55"
               : i === activeStep
-              ? "bg-blue-50 text-[#0C447C] font-semibold"
-              : "text-slate-400"
+              ? "bg-[#FAC775]/15 text-[#FAC775] font-semibold"
+              : "text-white/35"
           }`}
         >
           <span className="shrink-0 text-base">

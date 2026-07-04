@@ -14,10 +14,7 @@ import {
   RequiredMarker,
   WorkExperienceDateRange,
 } from "./create-form-fields";
-import {
-  SAUDI_CITIES,
-  SUGGESTED_SKILLS,
-} from "@/lib/create-form-constants";
+import { SUGGESTED_SKILLS } from "@/lib/create-form-constants";
 import {
   CURRENT_CV_ID_KEY,
   STORAGE_KEY,
@@ -41,9 +38,9 @@ import {
   FORM_TIP_CLASS,
 } from "@/app/components/home-glass-shell";
 
-const BRAND = "#378ADD";
 const TOTAL_STEPS = 5;
 const MAX_EXPERIENCES = 5;
+const WORK_EXPERIENCE_ORDINALS = ["الأولى", "الثانية", "الثالثة", "الرابعة", "الخامسة"];
 const MANDATORY_MSG =
   "يجب تعبئة جميع الحقول لضمان سيرة ذاتية مثالية تطابق نظام ATS";
 
@@ -138,6 +135,7 @@ export default function CreateForm() {
   const [editCvId, setEditCvId] = useState<string | null>(null);
   const [skillInput, setSkillInput] = useState("");
   const [invalidFields, setInvalidFields] = useState<Set<string>>(new Set());
+  const [agreedOnePage, setAgreedOnePage] = useState(true);
 
   const progress = (step / TOTAL_STEPS) * 100;
 
@@ -265,6 +263,7 @@ export default function CreateForm() {
           ? "رابط LinkedIn غير صالح. استخدم صيغة: linkedin.com/in/username"
           : MANDATORY_MSG
       );
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return false;
     }
 
@@ -395,7 +394,14 @@ export default function CreateForm() {
   if (loadingForm) return <LoadingSpinner label="جاري تحميل بيانات السيرة..." />;
 
   if (generating) {
-    return <CvLaptopLoader mode="generate" />;
+    return (
+      <CvLaptopLoader
+        mode="generate"
+        name={data.name}
+        email={data.email}
+        jobTitle={data.currentJobTitle}
+      />
+    );
   }
 
   const availableSuggestions = SUGGESTED_SKILLS.filter(
@@ -414,18 +420,26 @@ export default function CreateForm() {
       </div>
 
       <div className="mb-8">
-        <div className="mb-3 flex justify-between text-sm">
-          <span className="font-semibold text-[#FAC775]">الخطوة {step} من {TOTAL_STEPS}</span>
+        <div className="mb-3 flex justify-end text-sm">
           <span className="text-white/60">{STEP_TITLES[step - 1]}</span>
         </div>
         <div className="h-2.5 overflow-hidden rounded-full bg-white/15">
-          <div className="h-full rounded-full transition-all duration-300" style={{ width: `${progress}%`, backgroundColor: BRAND }} />
+          <div
+            className="relative h-full overflow-hidden rounded-full transition-all duration-500"
+            style={{
+              width: `${progress}%`,
+              background: "linear-gradient(90deg, #378ADD, #6FB6FF)",
+              boxShadow: "0 0 12px 2px rgba(111,182,255,0.55)",
+            }}
+          >
+            <div className="progress-shimmer absolute inset-0" />
+          </div>
         </div>
       </div>
 
       <div className="glass-page-card p-5 sm:p-8">
         {error && (
-          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+          <div className="mb-6 rounded-xl border border-[#FAC775]/40 bg-[#FFF8EC] px-4 py-3 text-sm text-[#8A5A0A]">{error}</div>
         )}
 
         {step === 1 && (
@@ -437,20 +451,25 @@ export default function CreateForm() {
               label="اسمك الكامل"
               required
               invalid={isInvalid("name")}
-              tip={<FieldTip>مثال: محمد عبدالله العمري</FieldTip>}
             >
               <input
                 value={data.name}
                 onChange={(e) => update("name", e.target.value)}
-                placeholder="مثال: محمد عبدالله العمري"
+                placeholder="مثال: محمد عبدالله"
                 className={invalidFieldClass(inputClass, isInvalid("name"))}
               />
             </FormField>
             <FormField
-              label="المسمى المهني الحالي"
+              label={
+                <>
+                  المسمى المهني الحالي
+                  <span className="mt-1 block text-[11px] font-normal text-white/45">
+                    يظهر فقط في رأس السيرة الذاتية
+                  </span>
+                </>
+              }
               required
               invalid={isInvalid("currentJobTitle")}
-              tip={<FieldTip>هذا المسمى فقط هو الذي يظهر في رأس السيرة الذاتية</FieldTip>}
             >
               <input
                 value={data.currentJobTitle}
@@ -463,7 +482,6 @@ export default function CreateForm() {
               label="البريد الإلكتروني"
               required
               invalid={isInvalid("email")}
-              tip={<FieldTip>استخدم إيميل احترافي — الأفضل: اسمك.كنيتك@gmail.com</FieldTip>}
             >
               <input
                 type="email"
@@ -478,7 +496,6 @@ export default function CreateForm() {
               label="رقم الجوال"
               required
               invalid={isInvalid("phone")}
-              tip={<FieldTip>مثال: 501234567</FieldTip>}
             >
               <div
                 className={invalidFieldClass(
@@ -501,20 +518,13 @@ export default function CreateForm() {
               label="المدينة"
               required
               invalid={isInvalid("city")}
-              tip={<FieldTip>مثال: الرياض</FieldTip>}
             >
-              <select
+              <input
                 value={data.city}
                 onChange={(e) => update("city", e.target.value)}
-                className={invalidFieldClass(selectClass, isInvalid("city"))}
-              >
-                <option value="">اختر المدينة</option>
-                {SAUDI_CITIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+                placeholder="مثال: الرياض"
+                className={invalidFieldClass(inputClass, isInvalid("city"))}
+              />
             </FormField>
             <FormField
               label={
@@ -545,7 +555,7 @@ export default function CreateForm() {
               {data.workExperience.map((job, i) => (
                 <div key={job.id} className={FORM_NESTED_SECTION_CLASS}>
                   <div className="mb-4 flex justify-between">
-                    <span className="text-sm font-bold text-[#FAC775]">الخبرة {i + 1}</span>
+                    <span className="text-sm font-bold text-[#FAC775]">الخبرة {WORK_EXPERIENCE_ORDINALS[i]}</span>
                     {data.workExperience.length > 1 && (
                       <button type="button" onClick={() => update("workExperience", data.workExperience.filter((w) => w.id !== job.id))} className="text-sm text-red-300">حذف</button>
                     )}
@@ -572,7 +582,18 @@ export default function CreateForm() {
                       />
                     </FormField>
                   </div>
-                  <FormField label="القسم / الإدارة" required invalid={isInvalid(`work-${job.id}-department`)}>
+                  <FormField
+                    label={
+                      <>
+                        القسم / الإدارة
+                        <span className="mt-1 block text-[11px] font-normal text-white/45">
+                          سنحافظ على اسم الشركة والمسمى كما هو
+                        </span>
+                      </>
+                    }
+                    required
+                    invalid={isInvalid(`work-${job.id}-department`)}
+                  >
                     <input
                       value={job.department}
                       onChange={(e) =>
@@ -582,29 +603,26 @@ export default function CreateForm() {
                       className={invalidFieldClass(inputClass, isInvalid(`work-${job.id}-department`))}
                     />
                   </FormField>
-                  <p className="mb-4 flex items-center gap-1 text-xs text-white/45">
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0" aria-hidden>
-                      <circle cx="6" cy="6" r="5.5" stroke="currentColor" strokeWidth="1" fill="none"/>
-                      <path d="M6 5v3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
-                      <circle cx="6" cy="3.5" r="0.6" fill="currentColor"/>
-                    </svg>
-                    سنحافظ على اسم الشركة والمسمى كما هو
-                  </p>
-                  <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
-                    <FormField label="وصف الخبرة" required invalid={isInvalid(`work-${job.id}-description`)}>
-                      <textarea
-                        value={job.description}
-                        onChange={(e) =>
-                          updateWork(job.id, { description: e.target.value }, [`work-${job.id}-description`])
-                        }
-                        rows={5}
-                        placeholder="اكتب بأسلوبك العادي وش سويت في هذي الوظيفة..."
-                        className={invalidFieldClass(inputClass, isInvalid(`work-${job.id}-description`))}
-                      />
-                    </FormField>
-                    <div className="rounded-[11px] border border-[#E0EDF8] bg-white p-4 text-sm text-[#333]">
-                      ✅ مثال: كنت مسؤول عن إدارة 5 حسابات كبيرة، نظمت اجتماعات أسبوعية مع العملاء، وطورت استراتيجية تسويقية زادت المبيعات 30%
-                    </div>
+                  <FormField label="وصف الخبرة" required invalid={isInvalid(`work-${job.id}-description`)}>
+                    <textarea
+                      value={job.description}
+                      onChange={(e) =>
+                        updateWork(job.id, { description: e.target.value }, [`work-${job.id}-description`])
+                      }
+                      rows={5}
+                      placeholder="اكتب بأسلوبك العادي وش سويت في هذي الوظيفة..."
+                      className={invalidFieldClass(inputClass, isInvalid(`work-${job.id}-description`))}
+                    />
+                  </FormField>
+                  <div className="mb-4 mt-3 flex items-start gap-2.5 rounded-xl border border-[#6FB6FF]/30 bg-[#378ADD]/10 px-3.5 py-3">
+                    <span className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-[#6FB6FF]/20">
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+                        <path d="M2.5 6.5l2.5 2.5 4.5-5.5" stroke="#8FC4FF" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </span>
+                    <p className="text-xs leading-relaxed text-white/75">
+                      <span className="font-bold text-[#8FC4FF]">مثال:</span> كنت مسؤول عن إدارة 5 حسابات كبيرة، نظمت اجتماعات أسبوعية مع العملاء، وطورت استراتيجية تسويقية زادت المبيعات 30%
+                    </p>
                   </div>
                   <WorkExperienceDateRange
                     startDate={job.startDate}
@@ -697,29 +715,38 @@ export default function CreateForm() {
             <div className="space-y-5">
               <h2 className="text-xl font-extrabold text-white sm:text-2xl">المهارات</h2>
               {isInvalid("skills") && <RequiredMarker />}
-              <input
-                value={skillInput}
-                onChange={(e) => setSkillInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    addSkill(skillInput);
-                  }
-                }}
-                placeholder="اكتب مهارة واضغط Enter"
-                className={invalidFieldClass(inputClass, isInvalid("skills"))}
-              />
+              <div
+                className={invalidFieldClass(
+                  `${inputClass} flex h-auto min-h-[54px] flex-wrap items-center gap-2 py-2`,
+                  isInvalid("skills")
+                )}
+              >
+                {data.skills.map((s) => (
+                  <span key={s.id} className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#378ADD] py-1.5 pr-3 pl-1.5 text-sm font-semibold text-white">
+                    {s.name}
+                    <button
+                      type="button"
+                      onClick={() => update("skills", data.skills.filter((x) => x.id !== s.id))}
+                      className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-white/25 text-xs leading-none"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+                <input
+                  value={skillInput}
+                  onChange={(e) => setSkillInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addSkill(skillInput);
+                    }
+                  }}
+                  placeholder="اكتب مهارة واضغط Enter"
+                  className="min-w-[140px] flex-1 border-none bg-transparent p-1 text-sm text-[#333] outline-none placeholder:text-[#94a3b8]"
+                />
+              </div>
               <FieldTip>مثال: Excel، إدارة المشاريع</FieldTip>
-              {data.skills.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {data.skills.map((s) => (
-                    <span key={s.id} className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-[#378ADD]">
-                      {s.name}
-                      <button type="button" onClick={() => update("skills", data.skills.filter((x) => x.id !== s.id))}>×</button>
-                    </span>
-                  ))}
-                </div>
-              )}
               {availableSuggestions.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {availableSuggestions.map((skill) => (
@@ -787,31 +814,26 @@ export default function CreateForm() {
         )}
 
         {step === 5 && (
-          <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
-            <div>
-              <h2 className="mb-4 text-xl font-extrabold text-white sm:text-2xl">نبذة عنك</h2>
-              <FormField
-                label="اكتب نبذة عنك بأسلوبك"
-                required
-                invalid={isInvalid("selfDescription")}
-                tip={
-                  <FieldTip>
-                    اكتب بأسلوبك العادي حتى لو بالعامية، الذكاء الاصطناعي سيحولها لنبذة احترافية بضمير المتكلم
-                  </FieldTip>
-                }
-              >
-                <textarea
-                  value={data.selfDescription}
-                  onChange={(e) => update("selfDescription", e.target.value)}
-                  rows={8}
-                  placeholder="أنا شخص طموح..."
-                  className={invalidFieldClass(inputClass, isInvalid("selfDescription"))}
-                />
-              </FormField>
-            </div>
-            <div className="rounded-[11px] border border-[#E0EDF8] bg-white p-4 text-sm text-[#333]">
-              ✅ مثال: أنا شخص طموح عندي 5 سنوات خبرة في التسويق الرقمي، أحب أشتغل بفريق وأحقق أهداف واضحة
-            </div>
+          <div>
+            <h2 className="mb-4 text-xl font-extrabold text-white sm:text-2xl">نبذة عنك</h2>
+            <FormField
+              label="اكتب نبذة عنك بأسلوبك"
+              required
+              invalid={isInvalid("selfDescription")}
+              tip={
+                <FieldTip>
+                  اكتب بأسلوبك العادي حتى لو بالعامية، الذكاء الاصطناعي سيحولها لنبذة احترافية بضمير المتكلم
+                </FieldTip>
+              }
+            >
+              <textarea
+                value={data.selfDescription}
+                onChange={(e) => update("selfDescription", e.target.value)}
+                rows={8}
+                placeholder="أنا شخص طموح عندي 5 سنوات خبرة في التسويق الرقمي، أحب أشتغل بفريق وأحقق أهداف واضحة..."
+                className={invalidFieldClass(inputClass, isInvalid("selfDescription"))}
+              />
+            </FormField>
           </div>
         )}
 
@@ -820,16 +842,28 @@ export default function CreateForm() {
           {step < TOTAL_STEPS ? (
             <button type="button" onClick={goNext} className={FORM_BTN_NEXT_CLASS}>التالي</button>
           ) : (
-            <div className="flex flex-col items-end gap-2">
-              <button type="button" onClick={handleSubmit} className={FORM_BTN_NEXT_CLASS}>إنشاء السيرة الذاتية ✨</button>
-              <p className="flex items-center gap-1 text-[10px] text-white/40">
-                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden>
-                  <circle cx="5.5" cy="5.5" r="5" stroke="currentColor" strokeWidth="1" fill="none"/>
-                  <path d="M5.5 4.5v3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-                  <circle cx="5.5" cy="3.2" r="0.55" fill="currentColor"/>
+            <div className="flex w-full flex-col items-end gap-3 sm:w-auto">
+              <label className="flex w-full items-start justify-end gap-2 text-right text-xs text-white/75 sm:w-auto">
+                <span>أوافق على اختصار سيرتي الذاتية لتكون بصفحة واحدة (A4) بالشكل الأنسب لعرضها</span>
+                <input
+                  type="checkbox"
+                  checked={agreedOnePage}
+                  onChange={(e) => setAgreedOnePage(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded text-[#378ADD]"
+                />
+              </label>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={!agreedOnePage}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-4 text-[15px] font-extrabold text-white shadow-[0_8px_24px_rgba(55,138,221,0.4)] transition-transform hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+                style={{ background: "linear-gradient(90deg, #2E75BF, #4C9CE8)" }}
+              >
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden>
+                  <path d="M10 2l1.8 4.6L16 8l-4.2 1.4L10 14l-1.8-4.6L4 8l4.2-1.4L10 2z" fill="#FAC775" />
                 </svg>
-                السيرة الذاتية ستكون صفحة واحدة (A4)
-              </p>
+                إنشاء السيرة الذاتية
+              </button>
             </div>
           )}
         </div>

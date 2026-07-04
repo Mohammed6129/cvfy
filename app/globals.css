@@ -50,6 +50,24 @@ body {
   animation: fade-in 0.4s ease-out forwards;
 }
 
+@keyframes progress-shimmer {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(280%);
+  }
+}
+
+.progress-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  animation: progress-shimmer 2.2s ease-in-out infinite;
+}
+
 /* Customer journey card animations */
 @keyframes journey-card-in {
   from {
@@ -117,8 +135,8 @@ body {
 
 .laptop-screen-content {
   position: absolute;
-  left: 21.5%;
-  right: 21.5%;
+  left: 20%;
+  right: 20%;
   top: 16%;
   height: 51%;
   overflow: hidden;

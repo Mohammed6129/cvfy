@@ -102,10 +102,19 @@ export default function CvUpload({ onParsed, onError }: CvUploadProps) {
   };
 
   return (
-    <div className="mb-8 rounded-2xl border border-dashed border-white/25 bg-white/10 p-4 sm:p-5">
-      <p className="mb-3 text-sm font-bold text-white">
-        عندك سيرة قديمة؟ ارفعها هنا
-      </p>
+    <div className="mb-8 flex flex-col items-center gap-2.5 rounded-2xl border border-dashed border-white/25 bg-white/10 p-6 text-center transition-colors hover:border-[#6FB6FF]/60 hover:bg-white/[0.09] sm:p-7">
+      <svg width="72" height="72" viewBox="0 0 72 72" fill="none" aria-hidden>
+        <rect x="14" y="8" width="34" height="46" rx="4" fill="#2C5590" stroke="#6FB6FF" strokeWidth="1.5"/>
+        <line x1="20" y1="18" x2="42" y2="18" stroke="#8FC4FF" strokeWidth="1.4" strokeLinecap="round"/>
+        <line x1="20" y1="24" x2="42" y2="24" stroke="#8FC4FF" strokeWidth="1.4" strokeLinecap="round" opacity="0.7"/>
+        <line x1="20" y1="30" x2="34" y2="30" stroke="#8FC4FF" strokeWidth="1.4" strokeLinecap="round" opacity="0.7"/>
+        <circle cx="52" cy="46" r="16" fill="#FAC775"/>
+        <path d="M45 46l5 5 9-10" stroke="#142c54" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+
+      <p className="text-sm font-bold text-white">عندك سيرة قديمة؟</p>
+      <p className="text-xs text-white/55">ارفعها وخلّي الذكاء الاصطناعي يعبّي بياناتك تلقائياً</p>
+
       <input
         ref={fileRef}
         type="file"
@@ -116,14 +125,21 @@ export default function CvUpload({ onParsed, onError }: CvUploadProps) {
           if (file) void handleUpload(file);
         }}
       />
-      <button
-        type="button"
-        disabled={uploading}
-        onClick={() => fileRef.current?.click()}
-        className="rounded-[11px] border border-[#E0EDF8] bg-white px-5 py-2.5 text-sm font-semibold text-[#378ADD] transition-colors hover:bg-[#f4f8ff] disabled:opacity-60"
-      >
-        {uploading ? "جاري الاستخراج..." : "رفع سيرة (PDF أو Word)"}
-      </button>
+      <div className="mt-1 flex items-center justify-center gap-3">
+        <button
+          type="button"
+          disabled={uploading}
+          onClick={() => fileRef.current?.click()}
+          className="flex items-center gap-2 rounded-[11px] border border-[#E0EDF8] bg-white px-5 py-2.5 text-sm font-semibold text-[#378ADD] transition-colors hover:bg-[#f4f8ff] disabled:opacity-60"
+        >
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden>
+            <path d="M10 3v10M10 3l-3.5 3.5M10 3l3.5 3.5" stroke="#378ADD" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M4 14v1.5A1.5 1.5 0 0 0 5.5 17h9a1.5 1.5 0 0 0 1.5-1.5V14" stroke="#378ADD" strokeWidth="1.6" strokeLinecap="round"/>
+          </svg>
+          {uploading ? "جاري الاستخراج..." : "اختر ملف"}
+        </button>
+        <span className="text-[10px] text-white/35">PDF · Word</span>
+      </div>
     </div>
   );
 }
