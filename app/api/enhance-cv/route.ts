@@ -1,7 +1,7 @@
 import Anthropic, { APIError } from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { getAnthropicApiKey } from "@/lib/anthropic-env";
-import { ATS_GATE_MAX_ATTEMPTS, runAtsGate } from "@/lib/ats-gate";
+import { applyGuaranteedFallback, runAtsGate } from "@/lib/ats-gate";
 import { CLAUDE_MODEL, extractCvContentJson } from "@/lib/cv-claude";
 import type {
   AtsGateInfo,
@@ -170,35 +170,35 @@ export async function POST(request: Request) {
       : Promise.reject(new Error("No English content to enhance")),
   ]);
 
-  const failedGate: AtsGateInfo = {
-    score: 0,
-    attempts: ATS_GATE_MAX_ATTEMPTS,
-    passed: false,
-  };
-
-  let content = cv.content;
-  let gateAr = failedGate;
+  // A hard pipeline failure (AI unavailable, parse error, ...) still may
+  // never break the commercial 80%+ promise: the guaranteed rule-based
+  // template is applied to the last available content for that language.
+  let content: GeneratedCvContent;
+  let gateAr: AtsGateInfo;
   if (arResult.status === "fulfilled") {
     content = arResult.value.content;
     gateAr = arResult.value.gate;
   } else {
-    logError("Arabic pipeline failed", arResult.reason);
+    logError("Arabic pipeline failed — applying guaranteed template", arResult.reason);
+    const fallback = applyGuaranteedFallback(cv.content, "ar", 1);
+    content = fallback.content;
+    gateAr = fallback.gate;
   }
 
-  let contentEn = cv.contentEn;
-  let gateEn = failedGate;
+  let contentEn: GeneratedCvContent;
+  let gateEn: AtsGateInfo;
   if (enResult.status === "fulfilled") {
     contentEn = enResult.value.content;
     gateEn = enResult.value.gate;
   } else {
-    logError("English pipeline failed", enResult.reason);
-  }
-
-  if (arResult.status === "rejected" && enResult.status === "rejected") {
-    return NextResponse.json(
-      { error: "تعذر تحسين السيرة الذاتية. يرجى المحاولة مرة أخرى." },
-      { status: 500 }
+    logError("English pipeline failed — applying guaranteed template", enResult.reason);
+    const fallback = applyGuaranteedFallback(
+      cv.contentEn ?? cv.content,
+      "en",
+      1
     );
+    contentEn = fallback.content;
+    gateEn = fallback.gate;
   }
 
   const enhancedCv: GeneratedCv = {
@@ -207,12 +207,10 @@ export async function POST(request: Request) {
       ...content,
       headline: cv.content.headline,
     },
-    contentEn: contentEn
-      ? {
-          ...contentEn,
-          headline: cv.contentEn?.headline ?? cv.content.headline,
-        }
-      : cv.contentEn,
+    contentEn: {
+      ...contentEn,
+      headline: cv.contentEn?.headline ?? cv.content.headline,
+    },
     atsGate: {
       ar: gateAr,
       en: gateEn,

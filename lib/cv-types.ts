@@ -82,6 +82,8 @@ export type AtsGateInfo = {
   score: number;
   attempts: number;
   passed: boolean;
+  /** True when the pre-certified rule-based fallback template was applied. */
+  template?: boolean;
 };
 
 export type GeneratedCv = {

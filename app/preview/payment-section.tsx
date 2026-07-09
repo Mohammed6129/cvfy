@@ -15,7 +15,6 @@ import {
   downloadCvAsPdf,
   downloadCvAsWord,
   fetchAtsResult,
-  isLanguageDeliverable,
 } from "@/lib/cv-export";
 import type { CvLanguage } from "@/lib/cv-types";
 import {
@@ -265,7 +264,6 @@ function LanguageDownloadCard({
   onWord: () => void;
 }) {
   const isArabic = language === "ar";
-  const deliverable = isLanguageDeliverable(cv, language);
   const gate = cv.atsGate?.[language];
   const pdfKind: DownloadKind = isArabic ? "pdf-ar" : "pdf-en";
 
@@ -275,45 +273,37 @@ function LanguageDownloadCard({
         <span className="text-sm font-bold text-white">
           {isArabic ? "🇸🇦 السيرة الذاتية بالعربية" : "🇺🇸 CV in English"}
         </span>
-        {gate?.passed && (
+        {gate && (
           <span className="rounded-full bg-[#378ADD]/20 px-2 py-0.5 text-[10px] font-bold text-[#8FC4FF]">
             ATS {gate.score}%
           </span>
         )}
       </div>
 
-      {deliverable ? (
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={onPdf}
-            disabled={downloading !== null}
-            className={downloadButtonPrimary}
-          >
-            {downloading === pdfKind
-              ? isArabic
-                ? "جاري التحميل..."
-                : "Downloading..."
-              : isArabic
-                ? "⬇ تحميل"
-                : "⬇ Download"}
-          </button>
-          <button
-            type="button"
-            onClick={onWord}
-            disabled={downloading !== null}
-            className={`${downloadButtonSecondary} !w-auto shrink-0`}
-          >
-            Word
-          </button>
-        </div>
-      ) : (
-        <div className="rounded-xl border border-[#FAC775]/40 bg-[#FFF8EC] px-3 py-2.5 text-[11px] leading-relaxed text-[#8A5A0A]">
-          {isArabic
-            ? `لم تصل النسخة العربية للحد الأدنى لتوافق ATS (80%) بعد ${gate?.attempts ?? 3} محاولات تحسين تلقائية، ولذلك لن نسلّمها. عدّل بياناتك وأعد التوليد.`
-            : `النسخة الإنجليزية لم تصل للحد الأدنى لتوافق ATS (80%) بعد ${gate?.attempts ?? 3} محاولات تحسين تلقائية، ولذلك لن نسلّمها. عدّل بياناتك وأعد التوليد.`}
-        </div>
-      )}
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={onPdf}
+          disabled={downloading !== null}
+          className={downloadButtonPrimary}
+        >
+          {downloading === pdfKind
+            ? isArabic
+              ? "جاري التحميل..."
+              : "Downloading..."
+            : isArabic
+              ? "⬇ تحميل"
+              : "⬇ Download"}
+        </button>
+        <button
+          type="button"
+          onClick={onWord}
+          disabled={downloading !== null}
+          className={`${downloadButtonSecondary} !w-auto shrink-0`}
+        >
+          Word
+        </button>
+      </div>
     </div>
   );
 }

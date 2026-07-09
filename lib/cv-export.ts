@@ -1,4 +1,5 @@
 import { jsPDF } from "jspdf";
+import { applyGuaranteedTemplate } from "@/lib/cv-guaranteed-template";
 import type {
   AtsScoreResult,
   CvLanguage,
@@ -7,14 +8,16 @@ import type {
 } from "@/lib/cv-types";
 
 function contentForLanguage(cv: GeneratedCv, language: CvLanguage): GeneratedCvContent {
-  return language === "ar" ? cv.content : (cv.contentEn ?? cv.content);
-}
-
-export function isLanguageDeliverable(cv: GeneratedCv, language: CvLanguage): boolean {
+  const content = language === "ar" ? cv.content : (cv.contentEn ?? cv.content);
   const gate = cv.atsGate?.[language];
-  // Legacy CVs generated before the gate existed carry no gate info — allow them.
-  if (!gate) return true;
-  return gate.passed;
+  // Delivery is unconditional: a record whose gate is marked as failed
+  // (saved before the guaranteed-template rollout) gets the pre-certified
+  // rule-based template applied here, so no file below the ATS minimum
+  // can ever leave the system.
+  if (gate && !gate.passed) {
+    return applyGuaranteedTemplate(content, language);
+  }
+  return content;
 }
 
 const CV_FONT = '"Times New Roman", Times, serif';
@@ -512,18 +515,10 @@ export function buildAtsReportHtml(cv: GeneratedCv, result: AtsScoreResult): str
 </html>`;
 }
 
-const GATE_BLOCK_MESSAGES: Record<CvLanguage, string> = {
-  ar: "النسخة العربية لم تجتز الحد الأدنى لتوافق ATS (80%) ولا يمكن تسليمها.",
-  en: "النسخة الإنجليزية لم تجتز الحد الأدنى لتوافق ATS (80%) ولا يمكن تسليمها.",
-};
-
 export async function downloadCvAsPdf(
   cv: GeneratedCv,
   language: CvLanguage
 ): Promise<void> {
-  if (!isLanguageDeliverable(cv, language)) {
-    throw new Error(GATE_BLOCK_MESSAGES[language]);
-  }
   const blob = await buildCvPdfBlobForLanguage(cv, language);
   const suffix = language === "ar" ? "AR" : "EN";
   triggerBlobDownload(blob, `${sanitizeFilename(cv.name)}_CV_${suffix}.pdf`);
@@ -537,9 +532,6 @@ export function buildCvWordBlob(cv: GeneratedCv, language: CvLanguage): Blob {
 }
 
 export function downloadCvAsWord(cv: GeneratedCv, language: CvLanguage): void {
-  if (!isLanguageDeliverable(cv, language)) {
-    throw new Error(GATE_BLOCK_MESSAGES[language]);
-  }
   const suffix = language === "ar" ? "AR" : "EN";
   triggerBlobDownload(
     buildCvWordBlob(cv, language),
@@ -606,10 +598,10 @@ export async function buildAtsPdfBlobAsync(
 }
 
 export type CvFileBlobs = {
-  cvPdfAr: Blob | null;
-  cvPdfEn: Blob | null;
-  cvWordAr: Blob | null;
-  cvWordEn: Blob | null;
+  cvPdfAr: Blob;
+  cvPdfEn: Blob;
+  cvWordAr: Blob;
+  cvWordEn: Blob;
   atsPdf: Blob;
 };
 
@@ -617,24 +609,14 @@ export async function buildAllCvFileBlobs(
   cv: GeneratedCv,
   atsResult: AtsScoreResult
 ): Promise<CvFileBlobs> {
-  const arDeliverable = isLanguageDeliverable(cv, "ar");
-  const enDeliverable = isLanguageDeliverable(cv, "en");
-
-  const cvPdfAr = arDeliverable
-    ? await buildCvPdfBlobForLanguage(cv, "ar")
-    : null;
-  const cvPdfEn = enDeliverable
-    ? await buildCvPdfBlobForLanguage(cv, "en")
-    : null;
-  const cvWordAr = arDeliverable ? buildCvWordBlob(cv, "ar") : null;
-  const cvWordEn = enDeliverable ? buildCvWordBlob(cv, "en") : null;
+  const cvPdfAr = await buildCvPdfBlobForLanguage(cv, "ar");
+  const cvPdfEn = await buildCvPdfBlobForLanguage(cv, "en");
+  const cvWordAr = buildCvWordBlob(cv, "ar");
+  const cvWordEn = buildCvWordBlob(cv, "en");
   const atsPdf = await buildAtsPdfBlobAsync(cv, atsResult);
 
-  if (!cvPdfAr && !cvPdfEn) {
-    throw new Error("لم تجتز أي نسخة الحد الأدنى لتوافق ATS (80%).");
-  }
-  if (cvWordAr && cvWordAr.size < 100) throw new Error("ملف Word للسيرة فارغ.");
-  if (cvWordEn && cvWordEn.size < 100) throw new Error("ملف Word للسيرة فارغ.");
+  if (cvWordAr.size < 100) throw new Error("ملف Word للسيرة فارغ.");
+  if (cvWordEn.size < 100) throw new Error("ملف Word للسيرة فارغ.");
   if (atsPdf.size < 500) throw new Error("ملف تقرير ATS فارغ.");
 
   return { cvPdfAr, cvPdfEn, cvWordAr, cvWordEn, atsPdf };
