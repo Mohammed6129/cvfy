@@ -76,6 +76,14 @@ export type GeneratedCvContent = {
   courses: GeneratedCourse[];
 };
 
+export type CvLanguage = "ar" | "en";
+
+export type AtsGateInfo = {
+  score: number;
+  attempts: number;
+  passed: boolean;
+};
+
 export type GeneratedCv = {
   name: string;
   email: string;
@@ -85,6 +93,10 @@ export type GeneratedCv = {
   language?: Language;
   content: GeneratedCvContent;
   contentEn?: GeneratedCvContent;
+  atsGate?: {
+    ar?: AtsGateInfo;
+    en?: AtsGateInfo;
+  };
   aiEnhanced?: boolean;
   generatedWithFallback?: boolean;
   warning?: string;

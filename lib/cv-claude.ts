@@ -5,6 +5,9 @@ export const CLAUDE_MODEL = "claude-sonnet-4-5-20250929";
 export const CV_GENERATION_SYSTEM_PROMPT =
   "NEVER copy the user's text directly. Always rewrite everything in formal professional Arabic (فصحى). Transform casual dialect into professional language.";
 
+export const CV_GENERATION_SYSTEM_PROMPT_EN =
+  "NEVER copy the user's text directly. Rewrite everything from scratch in formal professional English following native English CV conventions with strong achievement verbs. Never translate literally and never output Arabic.";
+
 export function normalizeContent(
   content: Partial<GeneratedCvContent>
 ): GeneratedCvContent {

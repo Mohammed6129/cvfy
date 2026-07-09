@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import LoadingSpinner from "@/app/components/loading-spinner";
 import { fetchProfileFiles, type ProfileFilesResponse } from "@/lib/cv-file-storage";
 
-type FileKind = "pdf" | "word" | "ats";
+type FileKind = "pdfAr" | "pdfEn" | "wordAr" | "wordEn" | "ats";
 
 function formatDate(date: string) {
   return new Intl.DateTimeFormat("ar-SA", {
@@ -14,8 +14,10 @@ function formatDate(date: string) {
 }
 
 const DOWNLOAD_FILENAMES: Record<FileKind, string> = {
-  pdf: "CV.pdf",
-  word: "CV.docx",
+  pdfAr: "CV-AR.pdf",
+  pdfEn: "CV-EN.pdf",
+  wordAr: "CV-AR.doc",
+  wordEn: "CV-EN.doc",
   ats: "ATS-Report.pdf",
 };
 
@@ -107,19 +109,35 @@ export default function MyFilesSection() {
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <button
               type="button"
-              onClick={() => void handleDownload("pdf", files.signedUrls.pdf)}
-              disabled={!files.signedUrls.pdf || downloading !== null}
+              onClick={() => void handleDownload("pdfAr", files.signedUrls.pdfAr)}
+              disabled={!files.signedUrls.pdfAr || downloading !== null}
               className={buttonClass}
             >
-              {downloading === "pdf" ? "جاري التحميل..." : "تحميل السيرة PDF"}
+              {downloading === "pdfAr" ? "جاري التحميل..." : "🇸🇦 السيرة بالعربية PDF"}
             </button>
             <button
               type="button"
-              onClick={() => void handleDownload("word", files.signedUrls.word)}
-              disabled={!files.signedUrls.word || downloading !== null}
+              onClick={() => void handleDownload("pdfEn", files.signedUrls.pdfEn)}
+              disabled={!files.signedUrls.pdfEn || downloading !== null}
               className={buttonClass}
             >
-              {downloading === "word" ? "جاري التحميل..." : "تحميل السيرة Word"}
+              {downloading === "pdfEn" ? "جاري التحميل..." : "🇺🇸 CV in English PDF"}
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleDownload("wordAr", files.signedUrls.wordAr)}
+              disabled={!files.signedUrls.wordAr || downloading !== null}
+              className={buttonClass}
+            >
+              {downloading === "wordAr" ? "جاري التحميل..." : "🇸🇦 السيرة بالعربية Word"}
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleDownload("wordEn", files.signedUrls.wordEn)}
+              disabled={!files.signedUrls.wordEn || downloading !== null}
+              className={buttonClass}
+            >
+              {downloading === "wordEn" ? "جاري التحميل..." : "🇺🇸 CV in English Word"}
             </button>
             <button
               type="button"

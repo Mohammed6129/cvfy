@@ -6,8 +6,10 @@ const BUCKET = "cvs";
 const SIGNED_URL_TTL = 3600;
 
 type ProfileRow = {
-  cv_pdf_url: string | null;
-  cv_word_url: string | null;
+  cv_pdf_ar_url: string | null;
+  cv_pdf_en_url: string | null;
+  cv_word_ar_url: string | null;
+  cv_word_en_url: string | null;
   ats_report_url: string | null;
   cv_generated_at: string | null;
   is_paid: boolean;
@@ -54,7 +56,9 @@ export async function GET() {
   const supabase = await createClient();
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("cv_pdf_url, cv_word_url, ats_report_url, cv_generated_at, is_paid")
+    .select(
+      "cv_pdf_ar_url, cv_pdf_en_url, cv_word_ar_url, cv_word_en_url, ats_report_url, cv_generated_at, is_paid"
+    )
     .eq("id", user.id)
     .maybeSingle();
 
@@ -68,83 +72,125 @@ export async function GET() {
   }
 
   const row = profile as ProfileRow;
-  const [pdf, word, ats] = await Promise.all([
-    createSignedUrl(row.cv_pdf_url),
-    createSignedUrl(row.cv_word_url),
+  const [pdfAr, pdfEn, wordAr, wordEn, ats] = await Promise.all([
+    createSignedUrl(row.cv_pdf_ar_url),
+    createSignedUrl(row.cv_pdf_en_url),
+    createSignedUrl(row.cv_word_ar_url),
+    createSignedUrl(row.cv_word_en_url),
     createSignedUrl(row.ats_report_url),
   ]);
 
   return NextResponse.json({
     ...row,
     signedUrls: {
-      pdf,
-      word,
+      pdfAr,
+      pdfEn,
+      wordAr,
+      wordEn,
       ats,
     },
   });
 }
+
+type UploadSpec = {
+  field: string;
+  path: string;
+  column: string;
+  contentType: string;
+};
 
 export async function POST(request: Request) {
   const { user, error } = await getAuthenticatedUser();
   if (error || !user) return error;
 
   const formData = await request.formData();
-  const cvPdf = formData.get("cvPdf");
-  const cvWord = formData.get("cvWord");
   const atsPdf = formData.get("atsPdf");
 
-  if (!(cvPdf instanceof Blob) || !(cvWord instanceof Blob) || !(atsPdf instanceof Blob)) {
+  if (!(atsPdf instanceof Blob)) {
     return NextResponse.json({ error: "ملفات غير مكتملة." }, { status: 400 });
   }
 
   const userId = user.id;
-  const pdfPath = `${userId}/cv.pdf`;
-  const wordPath = `${userId}/cv.docx`;
-  const atsPath = `${userId}/ats-report.pdf`;
+
+  // Each language version is an independent file with its own storage
+  // identifier. A language whose ATS gate failed is simply absent.
+  const specs: UploadSpec[] = [
+    {
+      field: "cvPdfAr",
+      path: `${userId}/cv-ar.pdf`,
+      column: "cv_pdf_ar_url",
+      contentType: "application/pdf",
+    },
+    {
+      field: "cvPdfEn",
+      path: `${userId}/cv-en.pdf`,
+      column: "cv_pdf_en_url",
+      contentType: "application/pdf",
+    },
+    {
+      field: "cvWordAr",
+      path: `${userId}/cv-ar.doc`,
+      column: "cv_word_ar_url",
+      contentType: "application/msword",
+    },
+    {
+      field: "cvWordEn",
+      path: `${userId}/cv-en.doc`,
+      column: "cv_word_en_url",
+      contentType: "application/msword",
+    },
+    {
+      field: "atsPdf",
+      path: `${userId}/ats-report.pdf`,
+      column: "ats_report_url",
+      contentType: "application/pdf",
+    },
+  ];
+
+  const present = specs.filter((spec) => formData.get(spec.field) instanceof Blob);
+  const hasCvFile = present.some((spec) => spec.field !== "atsPdf");
+
+  if (!hasCvFile) {
+    return NextResponse.json(
+      { error: "لا توجد نسخة سيرة ذاتية صالحة للحفظ." },
+      { status: 400 }
+    );
+  }
 
   try {
     const admin = createAdminClient();
     const storage = admin.storage.from(BUCKET);
 
-    const [pdfUpload, wordUpload, atsUpload] = await Promise.all([
-      storage.upload(pdfPath, cvPdf, {
-        upsert: true,
-        contentType: "application/pdf",
-      }),
-      storage.upload(wordPath, cvWord, {
-        upsert: true,
-        contentType: "application/msword",
-      }),
-      storage.upload(atsPath, atsPdf, {
-        upsert: true,
-        contentType: "application/pdf",
-      }),
-    ]);
+    const uploads = await Promise.all(
+      present.map((spec) =>
+        storage.upload(spec.path, formData.get(spec.field) as Blob, {
+          upsert: true,
+          contentType: spec.contentType,
+        })
+      )
+    );
 
-    if (pdfUpload.error || wordUpload.error || atsUpload.error) {
-      console.error("[api/cv-files] upload errors:", {
-        pdf: pdfUpload.error,
-        word: wordUpload.error,
-        ats: atsUpload.error,
-      });
+    const failed = uploads.find((u) => u.error);
+    if (failed?.error) {
+      console.error("[api/cv-files] upload error:", failed.error);
       return NextResponse.json({ error: "تعذر رفع الملفات." }, { status: 500 });
     }
 
     const generatedAt = new Date().toISOString();
-    const isPaid = true;
 
-    const { error: profileError } = await admin.from("profiles").upsert(
-      {
-        id: userId,
-        cv_pdf_url: pdfUpload.data?.path ?? pdfPath,
-        cv_word_url: wordUpload.data?.path ?? wordPath,
-        ats_report_url: atsUpload.data?.path ?? atsPath,
-        cv_generated_at: generatedAt,
-        is_paid: isPaid,
-        updated_at: generatedAt,
-      },
-      { onConflict: "id" }
-    );
+    const profileUpdate: Record<string, unknown> = {
+      id: userId,
+      cv_generated_at: generatedAt,
+      is_paid: true,
+      updated_at: generatedAt,
+    };
+    present.forEach((spec, i) => {
+      profileUpdate[spec.column] = uploads[i].data?.path ?? spec.path;
+    });
+
+    const { error: profileError } = await admin
+      .from("profiles")
+      .upsert(profileUpdate, { onConflict: "id" });
 
     if (profileError) {
       console.error("[api/cv-files] profile upsert error:", profileError);
@@ -153,11 +199,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      cv_pdf_url: pdfUpload.data?.path ?? pdfPath,
-      cv_word_url: wordUpload.data?.path ?? wordPath,
-      ats_report_url: atsUpload.data?.path ?? atsPath,
+      saved: present.map((spec) => spec.column),
       cv_generated_at: generatedAt,
-      is_paid: isPaid,
+      is_paid: true,
     });
   } catch (uploadError) {
     console.error("[api/cv-files] upload failed:", uploadError);

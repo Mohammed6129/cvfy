@@ -2,14 +2,18 @@ import type { AtsScoreResult, GeneratedCv } from "@/lib/cv-types";
 import { buildAllCvFileBlobs, fetchAtsResult } from "@/lib/cv-export";
 
 export type ProfileFilesResponse = {
-  cv_pdf_url: string | null;
-  cv_word_url: string | null;
+  cv_pdf_ar_url: string | null;
+  cv_pdf_en_url: string | null;
+  cv_word_ar_url: string | null;
+  cv_word_en_url: string | null;
   ats_report_url: string | null;
   cv_generated_at: string | null;
   is_paid: boolean;
   signedUrls: {
-    pdf: string | null;
-    word: string | null;
+    pdfAr: string | null;
+    pdfEn: string | null;
+    wordAr: string | null;
+    wordEn: string | null;
     ats: string | null;
   };
 };
@@ -25,8 +29,10 @@ export async function saveCvFilesToProfile(
 
   const blobs = await buildAllCvFileBlobs(cv, result);
   const formData = new FormData();
-  formData.append("cvPdf", blobs.cvPdf, "cv.pdf");
-  formData.append("cvWord", blobs.cvWord, "cv.docx");
+  if (blobs.cvPdfAr) formData.append("cvPdfAr", blobs.cvPdfAr, "cv-ar.pdf");
+  if (blobs.cvPdfEn) formData.append("cvPdfEn", blobs.cvPdfEn, "cv-en.pdf");
+  if (blobs.cvWordAr) formData.append("cvWordAr", blobs.cvWordAr, "cv-ar.doc");
+  if (blobs.cvWordEn) formData.append("cvWordEn", blobs.cvWordEn, "cv-en.doc");
   formData.append("atsPdf", blobs.atsPdf, "ats-report.pdf");
 
   const response = await fetch("/api/cv-files", {

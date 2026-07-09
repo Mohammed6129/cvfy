@@ -15,7 +15,9 @@ import {
   downloadCvAsPdf,
   downloadCvAsWord,
   fetchAtsResult,
+  isLanguageDeliverable,
 } from "@/lib/cv-export";
+import type { CvLanguage } from "@/lib/cv-types";
 import {
   PENDING_PLAN_KEY,
   SINGLE_PLAN,
@@ -37,7 +39,7 @@ type PaymentSectionProps = {
   onPersistFiles?: () => Promise<void>;
 };
 
-type DownloadKind = "pdf" | "word" | "ats" | null;
+type DownloadKind = "pdf-ar" | "pdf-en" | "word-ar" | "word-en" | "ats" | null;
 
 function StarIcon({ size = 20 }: { size?: number }) {
   return (
@@ -249,7 +251,72 @@ const downloadButtonPrimary =
   "flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#378ADD] px-4 py-3.5 text-sm font-extrabold text-white transition-colors hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-60";
 const downloadButtonSecondary =
   "flex w-full items-center justify-center gap-2 rounded-[14px] border border-[#378ADD]/40 bg-white px-4 py-2.5 text-sm font-semibold text-[#378ADD] transition-colors hover:bg-[#E6F1FB] disabled:cursor-not-allowed disabled:opacity-60";
-const downloadButtonClass = downloadButtonPrimary;
+function LanguageDownloadCard({
+  cv,
+  language,
+  downloading,
+  onPdf,
+  onWord,
+}: {
+  cv: GeneratedCv;
+  language: CvLanguage;
+  downloading: DownloadKind;
+  onPdf: () => void;
+  onWord: () => void;
+}) {
+  const isArabic = language === "ar";
+  const deliverable = isLanguageDeliverable(cv, language);
+  const gate = cv.atsGate?.[language];
+  const pdfKind: DownloadKind = isArabic ? "pdf-ar" : "pdf-en";
+
+  return (
+    <div className="rounded-2xl border border-white/15 bg-white/[0.06] p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <span className="text-sm font-bold text-white">
+          {isArabic ? "🇸🇦 السيرة الذاتية بالعربية" : "🇺🇸 CV in English"}
+        </span>
+        {gate?.passed && (
+          <span className="rounded-full bg-[#378ADD]/20 px-2 py-0.5 text-[10px] font-bold text-[#8FC4FF]">
+            ATS {gate.score}%
+          </span>
+        )}
+      </div>
+
+      {deliverable ? (
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onPdf}
+            disabled={downloading !== null}
+            className={downloadButtonPrimary}
+          >
+            {downloading === pdfKind
+              ? isArabic
+                ? "جاري التحميل..."
+                : "Downloading..."
+              : isArabic
+                ? "⬇ تحميل"
+                : "⬇ Download"}
+          </button>
+          <button
+            type="button"
+            onClick={onWord}
+            disabled={downloading !== null}
+            className={`${downloadButtonSecondary} !w-auto shrink-0`}
+          >
+            Word
+          </button>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-[#FAC775]/40 bg-[#FFF8EC] px-3 py-2.5 text-[11px] leading-relaxed text-[#8A5A0A]">
+          {isArabic
+            ? `لم تصل النسخة العربية للحد الأدنى لتوافق ATS (80%) بعد ${gate?.attempts ?? 3} محاولات تحسين تلقائية، ولذلك لن نسلّمها. عدّل بياناتك وأعد التوليد.`
+            : `النسخة الإنجليزية لم تصل للحد الأدنى لتوافق ATS (80%) بعد ${gate?.attempts ?? 3} محاولات تحسين تلقائية، ولذلك لن نسلّمها. عدّل بياناتك وأعد التوليد.`}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function CvDownloadButtons({
   cv,
@@ -269,12 +336,12 @@ function CvDownloadButtons({
   const [downloading, setDownloading] = useState<DownloadKind>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleCvPdf = async () => {
+  const handleCvPdf = async (language: CvLanguage) => {
     if (!cv) return;
-    setDownloading("pdf");
+    setDownloading(language === "ar" ? "pdf-ar" : "pdf-en");
     setError(null);
     try {
-      await downloadCvAsPdf(cv);
+      await downloadCvAsPdf(cv, language);
       if (onPersistFiles) {
         void onPersistFiles();
       }
@@ -285,11 +352,11 @@ function CvDownloadButtons({
     }
   };
 
-  const handleCvWord = () => {
+  const handleCvWord = (language: CvLanguage) => {
     if (!cv) return;
     setError(null);
     try {
-      downloadCvAsWord(cv);
+      downloadCvAsWord(cv, language);
       if (onPersistFiles) {
         void onPersistFiles();
       }
@@ -324,35 +391,35 @@ function CvDownloadButtons({
 
   return (
     <>
-      {/* Primary: PDF — most important action */}
+      {/* Two fully independent language downloads — each button reflects
+          only its own language's ATS-gate readiness. */}
+      {cv && (
+        <>
+          <LanguageDownloadCard
+            cv={cv}
+            language="ar"
+            downloading={downloading}
+            onPdf={() => void handleCvPdf("ar")}
+            onWord={() => handleCvWord("ar")}
+          />
+          <LanguageDownloadCard
+            cv={cv}
+            language="en"
+            downloading={downloading}
+            onPdf={() => void handleCvPdf("en")}
+            onWord={() => handleCvWord("en")}
+          />
+        </>
+      )}
+
       <button
         type="button"
-        onClick={() => void handleCvPdf()}
+        onClick={() => void handleAtsPdf()}
         disabled={!cv || downloading !== null}
-        className={downloadButtonPrimary}
+        className={downloadButtonSecondary}
       >
-        {downloading === "pdf" ? "جاري التحميل..." : "⬇ تحميل السيرة PDF"}
+        {downloading === "ats" ? "جاري التحميل..." : "تقرير ATS"}
       </button>
-
-      {/* Secondary actions */}
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={handleCvWord}
-          disabled={!cv || downloading !== null}
-          className={downloadButtonSecondary}
-        >
-          Word
-        </button>
-        <button
-          type="button"
-          onClick={() => void handleAtsPdf()}
-          disabled={!cv || downloading !== null}
-          className={downloadButtonSecondary}
-        >
-          {downloading === "ats" ? "..." : "تقرير ATS"}
-        </button>
-      </div>
 
       {error && (
         <div className="rounded-xl border border-[#FAC775]/40 bg-[#FFF8EC] px-4 py-3 text-center text-xs text-[#8A5A0A]">

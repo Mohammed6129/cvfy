@@ -1,5 +1,21 @@
 import { jsPDF } from "jspdf";
-import type { AtsScoreResult, GeneratedCv } from "@/lib/cv-types";
+import type {
+  AtsScoreResult,
+  CvLanguage,
+  GeneratedCv,
+  GeneratedCvContent,
+} from "@/lib/cv-types";
+
+function contentForLanguage(cv: GeneratedCv, language: CvLanguage): GeneratedCvContent {
+  return language === "ar" ? cv.content : (cv.contentEn ?? cv.content);
+}
+
+export function isLanguageDeliverable(cv: GeneratedCv, language: CvLanguage): boolean {
+  const gate = cv.atsGate?.[language];
+  // Legacy CVs generated before the gate existed carry no gate info — allow them.
+  if (!gate) return true;
+  return gate.passed;
+}
 
 const CV_FONT = '"Times New Roman", Times, serif';
 const PDF_UI_FONT = '"Segoe UI", Tahoma, Arial, sans-serif';
@@ -69,8 +85,7 @@ function addSectionTitle(doc: jsPDF, title: string, y: number, maxWidth: number)
 }
 
 // Measure total CV content height using a dry-run jsPDF (no actual drawing)
-function measureCvHeight(cv: GeneratedCv): number {
-  const content = cv.contentEn ?? cv.content;
+function measureCvHeight(cv: GeneratedCv, content: GeneratedCvContent): number {
   const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
   const maxWidth = doc.internal.pageSize.getWidth() - PAGE_MARGIN * 2;
 
@@ -139,8 +154,7 @@ function measureCvHeight(cv: GeneratedCv): number {
   return y;
 }
 
-function renderCvPdfDoc(cv: GeneratedCv, scale: number): jsPDF {
-  const content = cv.contentEn ?? cv.content;
+function renderCvPdfDoc(cv: GeneratedCv, content: GeneratedCvContent, scale: number): jsPDF {
   const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -237,12 +251,35 @@ function renderCvPdfDoc(cv: GeneratedCv, scale: number): jsPDF {
   return doc;
 }
 
+// jsPDF's built-in helvetica cannot render Arabic script, so this fast
+// selectable-text path is only valid for the English document.
 export function buildCvPdfBlob(cv: GeneratedCv): Blob {
+  const content = contentForLanguage(cv, "en");
   const PAGE_USABLE = 297 - PAGE_MARGIN * 2 - 4; // A4 usable height (mm)
-  const measured = measureCvHeight(cv);
+  const measured = measureCvHeight(cv, content);
   // Apply scale if content overflows; cap at 1.0 so we never upscale
   const scale = measured > PAGE_USABLE ? (PAGE_USABLE / measured) * 0.97 : 1.0;
-  return renderCvPdfDoc(cv, Math.min(scale, 1.0)).output("blob");
+  return renderCvPdfDoc(cv, content, Math.min(scale, 1.0)).output("blob");
+}
+
+export async function buildCvPdfBlobForLanguage(
+  cv: GeneratedCv,
+  language: CvLanguage
+): Promise<Blob> {
+  if (language === "en") {
+    const blob = buildCvPdfBlob(cv);
+    if (!blob || blob.size < 500) {
+      throw new Error("ملف PDF فارغ.");
+    }
+    return blob;
+  }
+
+  // Arabic must go through the HTML renderer for correct script shaping.
+  const blob = await renderHtmlToPdfBlob(buildCvHtml(cv, "ar"));
+  if (!blob || blob.size < 500) {
+    throw new Error("ملف PDF فارغ.");
+  }
+  return blob;
 }
 
 async function waitForIframeDocument(iframe: HTMLIFrameElement): Promise<Document> {
@@ -321,8 +358,34 @@ async function downloadHtmlAsPdf(html: string, filename: string): Promise<void> 
   triggerBlobDownload(blob, filename);
 }
 
-export function buildCvHtml(cv: GeneratedCv): string {
-  const content = cv.contentEn ?? cv.content;
+const CV_SECTION_TITLES: Record<CvLanguage, {
+  summary: string;
+  experience: string;
+  education: string;
+  skills: string;
+  courses: string;
+}> = {
+  ar: {
+    summary: "الملخص المهني",
+    experience: "الخبرات العملية",
+    education: "التعليم",
+    skills: "المهارات",
+    courses: "الدورات والشهادات",
+  },
+  en: {
+    summary: "Professional Summary",
+    experience: "Work Experience",
+    education: "Education",
+    skills: "Skills",
+    courses: "Courses & Certifications",
+  },
+};
+
+export function buildCvHtml(cv: GeneratedCv, language: CvLanguage): string {
+  const content = contentForLanguage(cv, language);
+  const titles = CV_SECTION_TITLES[language];
+  const dir = language === "ar" ? "rtl" : "ltr";
+  const langAttr = language === "ar" ? "ar" : "en";
 
   const section = (title: string, body: string) =>
     body
@@ -365,13 +428,13 @@ export function buildCvHtml(cv: GeneratedCv): string {
     .join("");
 
   return `<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="${langAttr}" dir="${dir}">
 <head>
   <meta charset="utf-8" />
   <title>${escapeHtml(cv.name)} - CV</title>
   <style>
     * { color: #000 !important; background: #fff !important; }
-    body { font-family: ${CV_FONT}; color: #000; max-width: 800px; margin: 0 auto; padding: 32px; }
+    body { font-family: ${CV_FONT}; color: #000; max-width: 800px; margin: 0 auto; padding: 32px; direction: ${dir}; }
   </style>
 </head>
 <body>
@@ -382,11 +445,11 @@ export function buildCvHtml(cv: GeneratedCv): string {
       ${[cv.email, cv.phone, cv.city, cv.linkedIn].filter((v): v is string => Boolean(v)).map(escapeHtml).join(" · ")}
     </p>
   </header>
-  ${section("الملخص المهني / Professional Summary", content.summary ? `<p style="line-height:1.7;font-family:${CV_FONT};">${escapeHtml(content.summary)}</p>` : "")}
-  ${section("الخبرات العملية / Work Experience", experiences)}
-  ${section("التعليم / Education", education)}
-  ${section("المهارات / Skills", skills ? `<p style="font-family:${CV_FONT};">${skills}</p>` : "")}
-  ${section("الدورات والشهادات / Courses & Certifications", courses)}
+  ${section(titles.summary, content.summary ? `<p style="line-height:1.7;font-family:${CV_FONT};">${escapeHtml(content.summary)}</p>` : "")}
+  ${section(titles.experience, experiences)}
+  ${section(titles.education, education)}
+  ${section(titles.skills, skills ? `<p style="font-family:${CV_FONT};">${skills}</p>` : "")}
+  ${section(titles.courses, courses)}
 </body>
 </html>`;
 }
@@ -449,23 +512,39 @@ export function buildAtsReportHtml(cv: GeneratedCv, result: AtsScoreResult): str
 </html>`;
 }
 
-export async function downloadCvAsPdf(cv: GeneratedCv): Promise<void> {
-  const blob = buildCvPdfBlob(cv);
-  if (!blob || blob.size < 500) {
-    throw new Error("ملف PDF فارغ.");
+const GATE_BLOCK_MESSAGES: Record<CvLanguage, string> = {
+  ar: "النسخة العربية لم تجتز الحد الأدنى لتوافق ATS (80%) ولا يمكن تسليمها.",
+  en: "النسخة الإنجليزية لم تجتز الحد الأدنى لتوافق ATS (80%) ولا يمكن تسليمها.",
+};
+
+export async function downloadCvAsPdf(
+  cv: GeneratedCv,
+  language: CvLanguage
+): Promise<void> {
+  if (!isLanguageDeliverable(cv, language)) {
+    throw new Error(GATE_BLOCK_MESSAGES[language]);
   }
-  triggerBlobDownload(blob, `${sanitizeFilename(cv.name)}_CV.pdf`);
+  const blob = await buildCvPdfBlobForLanguage(cv, language);
+  const suffix = language === "ar" ? "AR" : "EN";
+  triggerBlobDownload(blob, `${sanitizeFilename(cv.name)}_CV_${suffix}.pdf`);
 }
 
-export function buildCvWordBlob(cv: GeneratedCv): Blob {
-  const html = buildCvHtml(cv);
+export function buildCvWordBlob(cv: GeneratedCv, language: CvLanguage): Blob {
+  const html = buildCvHtml(cv, language);
   return new Blob([`\ufeff${html}`], {
     type: "application/msword;charset=utf-8",
   });
 }
 
-export function downloadCvAsWord(cv: GeneratedCv): void {
-  triggerBlobDownload(buildCvWordBlob(cv), `${sanitizeFilename(cv.name)}_CV.doc`);
+export function downloadCvAsWord(cv: GeneratedCv, language: CvLanguage): void {
+  if (!isLanguageDeliverable(cv, language)) {
+    throw new Error(GATE_BLOCK_MESSAGES[language]);
+  }
+  const suffix = language === "ar" ? "AR" : "EN";
+  triggerBlobDownload(
+    buildCvWordBlob(cv, language),
+    `${sanitizeFilename(cv.name)}_CV_${suffix}.doc`
+  );
 }
 
 export function buildAtsPdfBlob(cv: GeneratedCv, result: AtsScoreResult): Blob {
@@ -526,19 +605,39 @@ export async function buildAtsPdfBlobAsync(
   }
 }
 
+export type CvFileBlobs = {
+  cvPdfAr: Blob | null;
+  cvPdfEn: Blob | null;
+  cvWordAr: Blob | null;
+  cvWordEn: Blob | null;
+  atsPdf: Blob;
+};
+
 export async function buildAllCvFileBlobs(
   cv: GeneratedCv,
   atsResult: AtsScoreResult
-): Promise<{ cvPdf: Blob; cvWord: Blob; atsPdf: Blob }> {
-  const cvPdf = buildCvPdfBlob(cv);
-  const cvWord = buildCvWordBlob(cv);
+): Promise<CvFileBlobs> {
+  const arDeliverable = isLanguageDeliverable(cv, "ar");
+  const enDeliverable = isLanguageDeliverable(cv, "en");
+
+  const cvPdfAr = arDeliverable
+    ? await buildCvPdfBlobForLanguage(cv, "ar")
+    : null;
+  const cvPdfEn = enDeliverable
+    ? await buildCvPdfBlobForLanguage(cv, "en")
+    : null;
+  const cvWordAr = arDeliverable ? buildCvWordBlob(cv, "ar") : null;
+  const cvWordEn = enDeliverable ? buildCvWordBlob(cv, "en") : null;
   const atsPdf = await buildAtsPdfBlobAsync(cv, atsResult);
 
-  if (cvPdf.size < 500) throw new Error("ملف PDF للسيرة فارغ.");
-  if (cvWord.size < 100) throw new Error("ملف Word للسيرة فارغ.");
+  if (!cvPdfAr && !cvPdfEn) {
+    throw new Error("لم تجتز أي نسخة الحد الأدنى لتوافق ATS (80%).");
+  }
+  if (cvWordAr && cvWordAr.size < 100) throw new Error("ملف Word للسيرة فارغ.");
+  if (cvWordEn && cvWordEn.size < 100) throw new Error("ملف Word للسيرة فارغ.");
   if (atsPdf.size < 500) throw new Error("ملف تقرير ATS فارغ.");
 
-  return { cvPdf, cvWord, atsPdf };
+  return { cvPdfAr, cvPdfEn, cvWordAr, cvWordEn, atsPdf };
 }
 
 export async function downloadAtsReportPdf(

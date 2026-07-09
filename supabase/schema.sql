@@ -88,6 +88,12 @@ alter table public.profiles add column if not exists ats_report_url text;
 alter table public.profiles add column if not exists cv_generated_at timestamptz;
 alter table public.profiles add column if not exists is_paid boolean default false;
 
+-- Dual-language engine: each language version is stored as an independent file
+alter table public.profiles add column if not exists cv_pdf_ar_url text;
+alter table public.profiles add column if not exists cv_pdf_en_url text;
+alter table public.profiles add column if not exists cv_word_ar_url text;
+alter table public.profiles add column if not exists cv_word_en_url text;
+
 alter table public.profiles enable row level security;
 
 drop policy if exists "Users can read own profile" on public.profiles;
