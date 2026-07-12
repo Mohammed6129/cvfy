@@ -271,7 +271,7 @@ function LanguageDownloadCard({
     <div className="rounded-2xl border border-white/15 bg-white/[0.06] p-4">
       <div className="mb-3 flex items-center justify-between">
         <span className="text-sm font-bold text-white">
-          {isArabic ? "🇸🇦 السيرة الذاتية بالعربية" : "🇺🇸 CV in English"}
+          {isArabic ? "السيرة الذاتية بالعربية" : "CV in English"}
         </span>
         {gate && (
           <span className="rounded-full bg-[#378ADD]/20 px-2 py-0.5 text-[10px] font-bold text-[#8FC4FF]">
@@ -292,8 +292,8 @@ function LanguageDownloadCard({
               ? "جاري التحميل..."
               : "Downloading..."
             : isArabic
-              ? "⬇ تحميل"
-              : "⬇ Download"}
+              ? "⬇ تحميل PDF"
+              : "⬇ Download PDF"}
         </button>
         <button
           type="button"

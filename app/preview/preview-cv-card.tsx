@@ -1,4 +1,5 @@
 import type { GeneratedCv } from "@/lib/cv-types";
+import { SINGLE_PLAN } from "@/lib/payment";
 
 function LockIcon() {
   return (
@@ -7,6 +8,48 @@ function LockIcon() {
       <path d="M7 10V7a4 4 0 018 0v3" stroke="#378ADD" strokeWidth="2" strokeLinecap="round" />
       <circle cx="11" cy="15" r="1.5" fill="white" />
     </svg>
+  );
+}
+
+// Show only the opening of the summary before payment (2-3 lines).
+function truncateSummary(summary: string): string {
+  const words = summary.split(/\s+/);
+  if (words.length <= 28) return summary;
+  return `${words.slice(0, 28).join(" ")}…`;
+}
+
+// Placeholder line standing in for locked text. The real content is never
+// rendered in the DOM before payment, so it cannot be extracted via
+// select-all/copy or the browser inspector.
+function SkeletonLine({ width, bold = false }: { width: string; bold?: boolean }) {
+  return (
+    <div
+      aria-hidden
+      style={{
+        height: bold ? "9px" : "7px",
+        width,
+        background: bold ? "#c3cbd5" : "#d8dde3",
+        borderRadius: "4px",
+        marginBottom: "6px",
+      }}
+    />
+  );
+}
+
+function LockedSection({
+  title,
+  lines,
+}: {
+  title: string;
+  lines: { width: string; bold?: boolean }[];
+}) {
+  return (
+    <div style={{ filter: "blur(2.5px)" }} aria-hidden>
+      <h2 style={cvSectionTitle}>{title}</h2>
+      {lines.map((line, i) => (
+        <SkeletonLine key={i} width={line.width} bold={line.bold} />
+      ))}
+    </div>
   );
 }
 
@@ -25,12 +68,10 @@ export default function PreviewCvCard({ cv, isPaid = false }: PreviewCvCardProps
       style={{
         boxShadow:
           "0 20px 50px rgba(0,0,0,0.35), 0 0 0 1px rgba(250,199,117,0.5), 0 0 26px rgba(250,199,117,0.22)",
+        userSelect: isPaid ? "auto" : "none",
+        WebkitUserSelect: isPaid ? "auto" : "none",
       }}
     >
-      <span className="absolute left-2.5 top-2.5 z-10 rounded-full px-2.5 py-1 text-[10px] font-extrabold text-[#142c54]" style={{ background: "linear-gradient(135deg, #FAC775, #F0A93E)" }}>
-        ★ AI مدعوم
-      </span>
-
       {/* ── Real CV document — matches buildCvHtml exactly ── */}
       <div
         dir="ltr"
@@ -54,16 +95,14 @@ export default function PreviewCvCard({ cv, isPaid = false }: PreviewCvCardProps
         {content.summary && (
           <>
             <h2 style={cvSectionTitle}>الملخص المهني / Professional Summary</h2>
-            <p style={cvText}>{content.summary}</p>
+            <p style={cvText}>
+              {isPaid ? content.summary : truncateSummary(content.summary)}
+            </p>
           </>
         )}
 
-        {/* ── Rest of the document: blurred if not paid ── */}
-        <div className="relative">
-          <div
-            className={`transition-all duration-300 ${isPaid ? "" : "pointer-events-none select-none blur-[3px]"}`}
-            aria-hidden={!isPaid}
-          >
+        {isPaid ? (
+          <>
             {experiences.length > 0 && (
               <>
                 <h2 style={cvSectionTitle}>الخبرات العملية / Work Experience</h2>
@@ -98,33 +137,56 @@ export default function PreviewCvCard({ cv, isPaid = false }: PreviewCvCardProps
                 <p style={cvText}>{content.skills.join(" • ")}</p>
               </>
             )}
-          </div>
-
-          {!isPaid && (
-            <div
-              className="absolute inset-x-0 bottom-0"
-              style={{
-                height: "70%",
-                backdropFilter: "blur(6px)",
-                WebkitMaskImage: "linear-gradient(to bottom, transparent, black 35%)",
-                maskImage: "linear-gradient(to bottom, transparent, black 35%)",
-                background: "rgba(255,255,255,0.35)",
-              }}
-              aria-hidden
+          </>
+        ) : (
+          /* Locked preview: layout shape only — actual data never enters the DOM */
+          <div className="relative">
+            <LockedSection
+              title="الخبرات العملية / Work Experience"
+              lines={[
+                { width: "62%", bold: true },
+                { width: "30%" },
+                { width: "100%" },
+                { width: "88%" },
+                { width: "55%", bold: true },
+                { width: "28%" },
+                { width: "94%" },
+                { width: "70%" },
+              ]}
             />
-          )}
-        </div>
+            <LockedSection
+              title="التعليم / Education"
+              lines={[
+                { width: "48%", bold: true },
+                { width: "64%" },
+              ]}
+            />
+            <LockedSection
+              title="المهارات / Skills"
+              lines={[
+                { width: "96%" },
+                { width: "58%" },
+              ]}
+            />
+          </div>
+        )}
       </div>
 
       {!isPaid && (
         <div
           className="absolute left-1/2 z-10 flex w-[86%] -translate-x-1/2 flex-col items-center gap-2.5 rounded-2xl bg-white p-5 text-center"
+          dir="rtl"
           style={{ bottom: "6%", boxShadow: "0 12px 30px rgba(0,0,0,0.25)" }}
         >
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E6F1FB]">
             <LockIcon />
           </span>
-          <h3 className="text-sm font-extrabold text-[#0C447C]">سيرتك الذاتية جاهزة، خطوة وحدة تفصلك عنها</h3>
+          <h3 className="text-sm font-extrabold text-[#0C447C]">
+            أكمل الدفع لعرض السيرة كاملة وتحميلها
+          </h3>
+          <span className="rounded-full bg-[#E6F1FB] px-4 py-1 text-xs font-extrabold text-[#185FA5]">
+            {SINGLE_PLAN.price} ريال — دفعة واحدة
+          </span>
         </div>
       )}
     </div>
