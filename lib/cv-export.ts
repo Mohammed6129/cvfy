@@ -123,8 +123,7 @@ function measureCvHeight(cv: GeneratedCv, content: GeneratedCvContent): number {
 
   let y = PAGE_MARGIN;
 
-  y += 8; // name
-  if (content.headline) y += linesHeight(content.headline, 11);
+  y += 9; // centered name
   y += LINE_HEIGHT; // contact line
   y += 3;
 
@@ -146,7 +145,8 @@ function measureCvHeight(cv: GeneratedCv, content: GeneratedCvContent): number {
 
   if (content.skills.length > 0) {
     y += sectionTitle();
-    y += content.skills.length * LINE_HEIGHT + 2;
+    // Two-column skill list — rows = half the items.
+    y += Math.ceil(content.skills.length / 2) * LINE_HEIGHT + 2;
   }
 
   if (content.experiences.length > 0) {
@@ -233,18 +233,22 @@ function renderCvPdfDoc(cv: GeneratedCv, content: GeneratedCvContent, scale: num
     y += lh;
   }
 
-  // Header: name bold, left aligned; single contact line under it.
+  // Header per the reference: centered bold name, centered contact line.
+  const centerX = pageWidth / 2;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(17 * scale);
-  doc.text(cv.name, PAGE_MARGIN, y);
+  doc.text(cv.name, centerX, y, { align: "center" });
   y += 7.5 * scale;
-
-  if (content.headline) addScaled(content.headline, 11, "bold");
 
   const contact = [cv.city, cv.phone, cv.email, cv.linkedIn]
     .filter(Boolean)
     .join(" | ");
-  if (contact) addScaled(contact, 9);
+  if (contact) {
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5 * scale);
+    doc.text(contact, centerX, y, { align: "center" });
+    y += lh;
+  }
 
   y += 3 * scale;
 
@@ -257,16 +261,27 @@ function renderCvPdfDoc(cv: GeneratedCv, content: GeneratedCvContent, scale: num
   if (content.education.length > 0) {
     addSection("EDUCATION");
     for (const edu of content.education) {
-      addTitleDateRow(edu.degree, edu.period);
-      if (edu.institution) addScaled(edu.institution, 10);
+      addScaled([edu.degree, edu.period].filter(Boolean).join(" "), 10);
+      if (edu.institution) addScaled(edu.institution, 10, "italic");
       y += 1 * scale;
     }
   }
 
   if (content.skills.length > 0) {
     addSection("SKILLS");
-    for (const skill of content.skills) {
-      addScaled(`- ${skill}`, 10);
+    // Two-column dash list per the reference.
+    const half = Math.ceil(content.skills.length / 2);
+    const colX = PAGE_MARGIN + maxWidth / 2 + 2;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10 * scale);
+    for (let i = 0; i < half; i++) {
+      if (y + lh > bottom) break;
+      doc.text(`- ${content.skills[i]}`, PAGE_MARGIN, y);
+      const rightSkill = content.skills[half + i];
+      if (rightSkill) {
+        doc.text(`- ${rightSkill}`, colX, y);
+      }
+      y += lh;
     }
     y += 1 * scale;
   }
@@ -286,8 +301,8 @@ function renderCvPdfDoc(cv: GeneratedCv, content: GeneratedCvContent, scale: num
   if (content.courses.length > 0) {
     addSection("COURSES & CERTIFICATIONS");
     for (const course of content.courses) {
-      addTitleDateRow(course.name, course.year);
-      if (course.provider) addScaled(course.provider, 9);
+      addScaled([course.name, course.year].filter(Boolean).join(" "), 10);
+      if (course.provider) addScaled(course.provider, 9, "italic");
       y += 1 * scale;
     }
   }
@@ -440,60 +455,67 @@ export function buildCvHtml(cv: GeneratedCv, language: CvLanguage): string {
 
   const section = (title: string, body: string) =>
     body
-      ? `<h2 style="font-family:${CV_FONT};color:#000;border-bottom:1px solid #000;padding-bottom:5px;margin:22px 0 10px;font-size:14px;font-weight:bold;">${escapeHtml(title)}</h2>${body}`
+      ? `<h2 style="font-family:${CV_FONT};color:#000;border-bottom:1px solid #000;padding-bottom:4px;margin:20px 0 10px;font-size:14px;font-weight:bold;">${escapeHtml(title)}</h2>${body}`
       : "";
 
-  // Job title left + dates far right on the same line (reference pattern).
+  // Reference pattern: bold job title left, dates flush right, same line.
   // A borderless single-row table keeps this alignment intact in both the
   // browser-rendered PDF and the Word import.
   const titleDateRow = (title: string, period: string) => `
       <table style="width:100%;border-collapse:collapse;border:none;" role="presentation"><tr>
         <td style="border:none;padding:0;font-weight:bold;color:#000;font-size:13.5px;font-family:${CV_FONT};">${escapeHtml(title)}</td>
-        <td style="border:none;padding:0;text-align:${dir === "rtl" ? "left" : "right"};color:#000;font-size:12.5px;white-space:nowrap;font-family:${CV_FONT};">${escapeHtml(period)}</td>
+        <td style="border:none;padding:0;text-align:${dir === "rtl" ? "left" : "right"};color:#000;font-size:13px;white-space:nowrap;font-family:${CV_FONT};">${escapeHtml(period)}</td>
       </tr></table>`;
 
   const bulletLines = (description: string) =>
     splitBullets(description)
       .map(
         (item) =>
-          `<p style="margin:3px 0 0;color:#000;line-height:1.5;font-size:13px;font-family:${CV_FONT};">- ${escapeHtml(item)}</p>`
+          `<p style="margin:3px 0 0;padding-${dir === "rtl" ? "right" : "left"}:18px;color:#000;line-height:1.45;font-size:13px;font-family:${CV_FONT};">- ${escapeHtml(item)}</p>`
       )
       .join("");
 
   const experiences = content.experiences
     .map(
       (exp) => `
-      <div style="margin-bottom:14px;">
+      <div style="margin-bottom:15px;">
         ${titleDateRow(exp.jobTitle, exp.period)}
-        ${exp.company ? `<p style="margin:2px 0 0;color:#000;font-size:13px;font-style:italic;font-family:${CV_FONT};">${escapeHtml(exp.company)}</p>` : ""}
+        ${exp.company ? `<p style="margin:1px 0 2px;color:#000;font-size:13px;font-style:italic;font-family:${CV_FONT};">${escapeHtml(exp.company)}</p>` : ""}
         ${exp.description ? bulletLines(exp.description) : ""}
       </div>`
     )
     .join("");
 
+  // Reference: degree + date inline on one line, institution in italic below.
   const education = content.education
     .map(
       (edu) => `
       <div style="margin-bottom:10px;">
-        ${titleDateRow(edu.degree, edu.period)}
-        ${edu.institution ? `<p style="margin:2px 0 0;color:#000;font-size:13px;font-family:${CV_FONT};">${escapeHtml(edu.institution)}</p>` : ""}
+        <p style="margin:0;color:#000;font-size:13px;font-family:${CV_FONT};">${escapeHtml(edu.degree)}${edu.period ? ` ${escapeHtml(edu.period)}` : ""}</p>
+        ${edu.institution ? `<p style="margin:1px 0 0;color:#000;font-size:13px;font-style:italic;font-family:${CV_FONT};">${escapeHtml(edu.institution)}</p>` : ""}
       </div>`
     )
     .join("");
 
-  const skills = content.skills
-    .map(
-      (skill) =>
-        `<p style="margin:3px 0 0;color:#000;line-height:1.5;font-size:13px;font-family:${CV_FONT};">- ${escapeHtml(skill)}</p>`
-    )
-    .join("");
+  // Reference: skills as a two-column dash list.
+  const skillItem = (skill: string) =>
+    `<p style="margin:3px 0 0;color:#000;line-height:1.45;font-size:13px;font-family:${CV_FONT};">- ${escapeHtml(skill)}</p>`;
+  const half = Math.ceil(content.skills.length / 2);
+  const skillsLeft = content.skills.slice(0, half).map(skillItem).join("");
+  const skillsRight = content.skills.slice(half).map(skillItem).join("");
+  const skills = content.skills.length
+    ? `<table style="width:100%;border-collapse:collapse;border:none;" role="presentation"><tr>
+        <td style="border:none;padding:0 8px 0 0;vertical-align:top;width:50%;">${skillsLeft}</td>
+        <td style="border:none;padding:0;vertical-align:top;width:50%;">${skillsRight}</td>
+      </tr></table>`
+    : "";
 
   const courses = content.courses
     .map(
       (course) => `
       <div style="margin-bottom:8px;">
-        ${titleDateRow(course.name, course.year)}
-        ${course.provider ? `<p style="margin:2px 0 0;color:#000;font-size:13px;font-family:${CV_FONT};">${escapeHtml(course.provider)}</p>` : ""}
+        <p style="margin:0;color:#000;font-size:13px;font-family:${CV_FONT};">${escapeHtml(course.name)}${course.year ? ` ${escapeHtml(course.year)}` : ""}</p>
+        ${course.provider ? `<p style="margin:1px 0 0;color:#000;font-size:13px;font-style:italic;font-family:${CV_FONT};">${escapeHtml(course.provider)}</p>` : ""}
       </div>`
     )
     .join("");
@@ -514,12 +536,11 @@ export function buildCvHtml(cv: GeneratedCv, language: CvLanguage): string {
   </style>
 </head>
 <body>
-  <header style="margin-bottom:18px;">
-    <h1 style="color:#000;margin:0 0 4px;font-size:20px;font-weight:bold;font-family:${CV_FONT};">${escapeHtml(cv.name)}</h1>
-    ${content.headline ? `<p style="font-size:13.5px;font-weight:600;margin:0 0 4px;font-family:${CV_FONT};">${escapeHtml(content.headline)}</p>` : ""}
-    <p style="margin:0;color:#000;font-size:12.5px;font-family:${CV_FONT};">${contactLine}</p>
+  <header style="text-align:center;margin-bottom:16px;">
+    <h1 style="color:#000;margin:0 0 5px;font-size:21px;font-weight:bold;font-family:${CV_FONT};">${escapeHtml(cv.name)}</h1>
+    <p style="margin:0;color:#000;font-size:13px;font-family:${CV_FONT};">${contactLine}</p>
   </header>
-  ${section(titles.summary, content.summary ? `<p style="margin:0;line-height:1.55;font-size:13px;font-family:${CV_FONT};">${escapeHtml(content.summary)}</p>` : "")}
+  ${section(titles.summary, content.summary ? `<p style="margin:0;line-height:1.5;font-size:13px;font-family:${CV_FONT};">${escapeHtml(content.summary)}</p>` : "")}
   ${section(titles.education, education)}
   ${section(titles.skills, skills)}
   ${section(titles.experience, experiences)}

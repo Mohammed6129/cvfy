@@ -137,15 +137,10 @@ export default function PreviewCvCard({ cv, isPaid = false }: PreviewCvCardProps
 
         {/* Text layer always above the watermark */}
         <div className="relative z-10">
-          <header style={{ marginBottom: "14px" }}>
-            <h1 style={{ margin: "0 0 3px", fontSize: "18px", fontWeight: "bold", color: "#000", textAlign: "left" }}>
+          <header style={{ marginBottom: "14px", textAlign: "center" }}>
+            <h1 style={{ margin: "0 0 4px", fontSize: "18px", fontWeight: "bold", color: "#000" }}>
               {cv.name}
             </h1>
-            {content.headline && (
-              <p style={{ fontSize: "11px", fontWeight: 600, margin: "0 0 3px", color: "#000" }}>
-                {content.headline}
-              </p>
-            )}
             <p style={{ margin: 0, fontSize: "9.5px", color: "#000" }}>
               {[cv.city, cv.phone, cv.email, cv.linkedIn].filter(Boolean).join(" | ")}
             </p>
@@ -167,8 +162,10 @@ export default function PreviewCvCard({ cv, isPaid = false }: PreviewCvCardProps
                   <h2 style={cvSectionTitle}>Education</h2>
                   {content.education.map((edu, index) => (
                     <div key={`${edu.degree}-${index}`} style={{ marginBottom: "8px" }}>
-                      <TitleDateRow title={edu.degree} period={edu.period} />
-                      {edu.institution && <p style={cvText}>{edu.institution}</p>}
+                      <p style={cvText}>{[edu.degree, edu.period].filter(Boolean).join(" ")}</p>
+                      {edu.institution && (
+                        <p style={{ ...cvText, fontStyle: "italic" }}>{edu.institution}</p>
+                      )}
                     </div>
                   ))}
                 </>
@@ -177,9 +174,11 @@ export default function PreviewCvCard({ cv, isPaid = false }: PreviewCvCardProps
               {content.skills.length > 0 && (
                 <>
                   <h2 style={cvSectionTitle}>Skills</h2>
-                  {content.skills.map((skill) => (
-                    <p key={skill} style={cvText}>- {skill}</p>
-                  ))}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: "12px" }}>
+                    {content.skills.map((skill) => (
+                      <p key={skill} style={cvText}>- {skill}</p>
+                    ))}
+                  </div>
                 </>
               )}
 

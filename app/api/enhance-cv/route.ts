@@ -60,7 +60,7 @@ function buildEnhancePrompt(
   const languageRules =
     language === "ar"
       ? `- Everything must be in formal professional Arabic (فصحى) ONLY — no English content anywhere (standard tool names like Excel may stay).
-- Write the summary in FIRST PERSON: "أعمل..."، "أمتلك..."، "لدي خبرة..." — NEVER third person.
+- The summary opens with the job title + years of experience (reference style): "مدير مشاريع بخبرة تتجاوز 5 سنوات في..."
 - Use strong Arabic action verbs: قاد، طوّر، حقّق، نفّذ، حسّن، أشرف، رفع، خفّض.`
       : `- Everything must be in formal professional English ONLY — no Arabic anywhere.
 - Lead every achievement with a strong past-tense verb: Led, Developed, Achieved, Implemented, Optimized, Managed, Delivered, Increased, Reduced.`;
@@ -72,8 +72,10 @@ Enhance this CV content by:
 2) Highlighting achievements with numbers and metrics already present in the data
 3) Better organizing the content
 4) Maximizing ATS compatibility: standard section semantics, fully linear text, uniform machine-parseable dates, role-relevant keywords in summary/experiences/skills
-5) STRICT bullet rule for every experience description: 3-4 bullets max separated by " • ", each bullet ONE short line (12 words max) starting with a strong past-tense verb — never long compound sentences; split or compress them
-6) summary: one short paragraph, 3-4 lines max
+5) Bullet rule for every experience description (reference style): 3-4 bullets max separated by " • ", each bullet one concise direct sentence (18 words max) starting with a strong past-tense verb and carrying role-relevant ATS keywords — never long compound sentences; split or compress them
+6) summary: one short paragraph (3-4 lines max) that OPENS with the job title + years of experience, e.g. "Project Manager with 5+ years in advertising and digital marketing..."
+7) periods in month-year format: "Feb 2024 – Present" / "فبراير 2024 – حتى الآن", consistent across the CV
+8) skills: 6-10 standard ATS keyword phrases (e.g. "Project Planning & Execution", "Client Relationship Management")
 ${feedbackBlock}
 Language rules:
 ${languageRules}

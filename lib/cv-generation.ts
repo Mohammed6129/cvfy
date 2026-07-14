@@ -68,15 +68,17 @@ ${ONE_PAGE_RULES}
 ### headline
 - استخدم **حرفياً** قيمة currentJobTitle من بيانات المستخدم — لا تغيّرها.
 ### summary
-- فقرة من 3–4 جمل بفصحى رسمية **بضمير المتكلم**: "أعمل..."، "أمتلك..."، "لدي خبرة...". ممنوع صيغة الغائب.
+- فقرة قصيرة من 2–3 جمل (3–4 أسطر كحد أقصى) بفصحى رسمية.
+- **يجب أن تبدأ الفقرة بالمسمى الوظيفي وسنوات الخبرة** بنمط الريفرنس، مثال: "مدير مشاريع بخبرة تتجاوز 5 سنوات في الإعلان والتسويق الرقمي..." — لأن المسمى لا يظهر في رأس السيرة، هذا مكانه.
 ### experiences
-- رتّب من الأحدث إلى الأقدم. period بصيغة موحدة "2020 — 2023" أو "2019 — حتى الآن".
+- رتّب من الأحدث إلى الأقدم.
+- period بصيغة شهر وسنة مثل الريفرنس: "فبراير 2024 – حتى الآن" أو "أكتوبر 2022 – فبراير 2024". صيغة موحدة في كل السيرة.
 - description: 3 إلى 4 نقاط إنجاز كحد أقصى مفصولة بـ " • ".
-- **قاعدة صارمة لكل نقطة**: سطر واحد قصير فقط — 12 كلمة كحد أقصى. تبدأ بفعل ماضٍ قوي. ممنوع الجمل المركبة الطويلة أو الوصف المتسلسل؛ إن كانت الفكرة طويلة قسّمها لنقطتين قصيرتين أو اختصرها.
+- **قاعدة كل نقطة (نمط الريفرنس)**: جملة واحدة موجزة ومباشرة — 18 كلمة كحد أقصى — تبدأ بفعل ماضٍ قوي وتنتهي بنقطة، وتتضمن كلمات مفتاحية من المجال. ممنوع الجمل المركبة الطويلة؛ قسّمها أو اختصرها.
 ### education
 - degree بصيغة رسمية (مثال: "بكالوريوس إدارة أعمال")، institution اسم الجهة، period سنوات الدراسة.
 ### skills
-- أسماء معيارية بدون تكرار، الأكثر صلة بالمجال أولاً.
+- 6 إلى 10 مهارات بصيغة عبارات مفتاحية معيارية يبحث عنها ATS (مثال: "تخطيط وتنفيذ المشاريع"، "إدارة علاقات العملاء"، "إعداد تقارير الأداء") — الأكثر صلة بالمجال أولاً، بدون تكرار.
 ### courses
 - احذف الدورات الفارغة أو التي كتب المستخدم "لا" لها.
 ### linkedIn (إن وُجد)
@@ -134,15 +136,17 @@ The CV must fit a single A4 page (210×297mm, 15mm margins, Times New Roman 10pt
 ### headline
 - Use a precise professional English rendering of the user's currentJobTitle.
 ### summary
-- 2-3 sentences, first person implied (no "I" repetition), focused on expertise, scope, and impact.
+- 2-3 sentences (3-4 lines max), focused on expertise, scope, and impact.
+- **MUST open with the job title + years of experience**, reference style: "Project Manager with 5+ years in advertising and digital marketing. Proven success in..." — the title does not appear in the header, so it lives here.
 ### experiences
-- Newest first. period in a consistent machine-parseable format like "2020 — 2023" or "2019 — Present".
+- Newest first.
+- period in month-year format exactly like the reference: "Feb 2024 – Present" or "Oct 2022 – Feb 2024". Consistent across the whole CV.
 - description: 3-4 bullets max, separated by " • ".
-- **Strict rule per bullet**: ONE short line only — 12 words max. Starts with a strong past-tense verb (Managed, Led, Oversaw, Delivered, Coordinated). NO long compound sentences (bad: "Organized and classified digital and print materials to optimize retrieval efficiency and streamline collection access" — split that into two short bullets or compress it). Quantify where the input allows.
+- **Rule per bullet (reference style)**: one concise direct sentence — 18 words max — starting with a strong past-tense verb (Managed, Led, Oversaw, Delivered, Coordinated), ending with a period, and carrying role-relevant ATS keywords. NO long compound sentences — split or compress them. Quantify where the input allows (e.g. "Led and delivered 35+ creative campaigns.").
 ### education
 - degree: formal degree + major (e.g. "B.Sc. Business Administration"), institution, period.
 ### skills
-- Standard industry keyword names (e.g. "Project Management", "Data Analysis", "Excel"), no duplicates, most relevant first.
+- 6-10 skills as standard ATS keyword phrases exactly like the reference (e.g. "Project Planning & Execution", "Client Relationship Management", "Cross-functional Team Collaboration", "Performance Reporting"), no duplicates, most relevant first.
 ### courses
 - Drop empty entries or ones the user marked as none.
 ### linkedIn (if present)
