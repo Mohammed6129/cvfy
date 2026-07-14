@@ -29,6 +29,24 @@ function sanitizeFilename(name: string): string {
   return name.replace(/\s+/g, "_").replace(/[^\w\u0600-\u06FF._-]/g, "") || "CVfy";
 }
 
+export type CvFileKind = "pdf-ar" | "pdf-en" | "word-ar" | "word-en" | "ats";
+
+export function cvFileName(name: string, kind: CvFileKind): string {
+  const base = sanitizeFilename(name);
+  switch (kind) {
+    case "pdf-ar":
+      return `${base}_CV_AR.pdf`;
+    case "pdf-en":
+      return `${base}_CV_EN.pdf`;
+    case "word-ar":
+      return `${base}_CV_AR.doc`;
+    case "word-en":
+      return `${base}_CV_EN.doc`;
+    case "ats":
+      return `${base}_ATS_Report.pdf`;
+  }
+}
+
 function escapeHtml(text: string): string {
   return text
     .replace(/&/g, "&amp;")

@@ -13,6 +13,14 @@ function formatDate(date: string) {
   }).format(new Date(date));
 }
 
+const FILE_LABELS: Record<FileKind, string> = {
+  pdfAr: "السيرة بالعربية PDF",
+  pdfEn: "CV in English PDF",
+  wordAr: "السيرة بالعربية Word",
+  wordEn: "CV in English Word",
+  ats: "تقرير ATS",
+};
+
 const DOWNLOAD_FILENAMES: Record<FileKind, string> = {
   pdfAr: "CV-AR.pdf",
   pdfEn: "CV-EN.pdf",
@@ -21,32 +29,16 @@ const DOWNLOAD_FILENAMES: Record<FileKind, string> = {
   ats: "ATS-Report.pdf",
 };
 
-async function downloadSignedUrl(url: string | null, filename: string) {
-  if (!url) return;
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error("تعذر تحميل الملف.");
-  }
-  const blob = await response.blob();
-  const blobUrl = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = blobUrl;
-  link.download = filename;
-  link.rel = "noopener";
-  link.target = "_self";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  // Revoking immediately races the download start on mobile browsers and
-  // makes them open the file in a tab instead — delay it.
-  window.setTimeout(() => URL.revokeObjectURL(blobUrl), 4000);
-}
+const FILE_KINDS: FileKind[] = ["pdfAr", "pdfEn", "wordAr", "wordEn", "ats"];
 
 export default function MyFilesSection() {
   const [files, setFiles] = useState<ProfileFilesResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [downloading, setDownloading] = useState<FileKind | null>(null);
+  // Blob object URLs prepared up front so every button is a plain
+  // <a download> anchor — the tap downloads instantly inside the user
+  // gesture, which is what keeps mobile browsers from opening a tab.
+  const [blobUrls, setBlobUrls] = useState<Partial<Record<FileKind, string>>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -66,20 +58,45 @@ export default function MyFilesSection() {
     void load();
   }, [load]);
 
-  const handleDownload = async (kind: FileKind, url: string | null) => {
-    setError(null);
-    setDownloading(kind);
-    try {
-      await downloadSignedUrl(url, DOWNLOAD_FILENAMES[kind]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "تعذر تحميل الملف.");
-    } finally {
-      setDownloading(null);
-    }
-  };
+  useEffect(() => {
+    if (!files) return;
+    let cancelled = false;
+    const created: string[] = [];
+
+    const prefetch = async () => {
+      const entries = await Promise.all(
+        FILE_KINDS.map(async (kind) => {
+          const signed = files.signedUrls[kind];
+          if (!signed) return [kind, undefined] as const;
+          try {
+            const response = await fetch(signed);
+            if (!response.ok) return [kind, undefined] as const;
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            created.push(url);
+            return [kind, url] as const;
+          } catch {
+            return [kind, undefined] as const;
+          }
+        })
+      );
+
+      if (cancelled) return;
+      setBlobUrls(Object.fromEntries(entries));
+    };
+
+    void prefetch();
+
+    return () => {
+      cancelled = true;
+      created.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [files]);
 
   const buttonClass =
-    "glass-btn-primary inline-flex w-full items-center justify-center px-4 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto";
+    "glass-btn-primary inline-flex w-full items-center justify-center px-4 py-3 text-sm sm:w-auto";
+  const disabledClass =
+    "glass-btn-primary inline-flex w-full cursor-not-allowed items-center justify-center px-4 py-3 text-sm opacity-50 sm:w-auto";
 
   return (
     <section className="glass-page-card p-6">
@@ -111,53 +128,42 @@ export default function MyFilesSection() {
           )}
 
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            <button
-              type="button"
-              onClick={() => void handleDownload("pdfAr", files.signedUrls.pdfAr)}
-              disabled={!files.signedUrls.pdfAr || downloading !== null}
-              className={buttonClass}
-            >
-              {downloading === "pdfAr" ? "جاري التحميل..." : "🇸🇦 السيرة بالعربية PDF"}
-            </button>
-            <button
-              type="button"
-              onClick={() => void handleDownload("pdfEn", files.signedUrls.pdfEn)}
-              disabled={!files.signedUrls.pdfEn || downloading !== null}
-              className={buttonClass}
-            >
-              {downloading === "pdfEn" ? "جاري التحميل..." : "🇺🇸 CV in English PDF"}
-            </button>
-            <button
-              type="button"
-              onClick={() => void handleDownload("wordAr", files.signedUrls.wordAr)}
-              disabled={!files.signedUrls.wordAr || downloading !== null}
-              className={buttonClass}
-            >
-              {downloading === "wordAr" ? "جاري التحميل..." : "🇸🇦 السيرة بالعربية Word"}
-            </button>
-            <button
-              type="button"
-              onClick={() => void handleDownload("wordEn", files.signedUrls.wordEn)}
-              disabled={!files.signedUrls.wordEn || downloading !== null}
-              className={buttonClass}
-            >
-              {downloading === "wordEn" ? "جاري التحميل..." : "🇺🇸 CV in English Word"}
-            </button>
-            <button
-              type="button"
-              onClick={() => void handleDownload("ats", files.signedUrls.ats)}
-              disabled={!files.signedUrls.ats || downloading !== null}
-              className={buttonClass}
-            >
-              {downloading === "ats" ? "جاري التحميل..." : "تحميل تقرير ATS"}
-            </button>
-          </div>
+            {FILE_KINDS.map((kind) => {
+              const available = Boolean(files.signedUrls[kind]);
+              const blobUrl = blobUrls[kind];
 
-          {error && (
-            <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {error}
-            </p>
-          )}
+              if (!available) {
+                return (
+                  <span key={kind} className={disabledClass}>
+                    {FILE_LABELS[kind]}
+                  </span>
+                );
+              }
+
+              if (!blobUrl) {
+                return (
+                  <span key={kind} className={disabledClass}>
+                    <span
+                      className="ml-2 h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent"
+                      aria-hidden
+                    />
+                    {FILE_LABELS[kind]}
+                  </span>
+                );
+              }
+
+              return (
+                <a
+                  key={kind}
+                  href={blobUrl}
+                  download={DOWNLOAD_FILENAMES[kind]}
+                  className={buttonClass}
+                >
+                  ⬇ {FILE_LABELS[kind]}
+                </a>
+              );
+            })}
+          </div>
         </div>
       )}
     </section>

@@ -11,12 +11,13 @@ import MoyasarPaymentForm from "./moyasar-payment-form";
 import type { AtsScoreResult, GeneratedCv } from "@/lib/cv-types";
 import { saveAtsResult } from "@/lib/cv-storage";
 import {
-  downloadAtsReportPdf,
-  downloadCvAsPdf,
-  downloadCvAsWord,
+  buildAtsPdfBlobAsync,
+  buildCvPdfBlobForLanguage,
+  buildCvWordBlob,
+  cvFileName,
   fetchAtsResult,
+  type CvFileKind,
 } from "@/lib/cv-export";
-import type { CvLanguage } from "@/lib/cv-types";
 import {
   PENDING_PLAN_KEY,
   SINGLE_PLAN,
@@ -37,8 +38,6 @@ type PaymentSectionProps = {
   onAtsResult?: (result: AtsScoreResult) => void;
   onPersistFiles?: () => Promise<void>;
 };
-
-type DownloadKind = "pdf-ar" | "pdf-en" | "word-ar" | "word-en" | "ats" | null;
 
 function StarIcon({ size = 20 }: { size?: number }) {
   return (
@@ -248,14 +247,104 @@ function PaymentMethodLogos() {
 
 const downloadButtonSecondary =
   "flex w-full items-center justify-center gap-2 rounded-[14px] border border-[#378ADD]/40 bg-white px-4 py-2.5 text-sm font-semibold text-[#378ADD] transition-colors hover:bg-[#E6F1FB] disabled:cursor-not-allowed disabled:opacity-60";
+type ReadyFileUrls = Partial<Record<CvFileKind, string>>;
+
+// Pre-building every file the moment the download section mounts is what
+// makes mobile downloads work: the buttons become plain <a download>
+// anchors pointing at ready blob URLs, so the tap downloads instantly
+// within the user gesture — browsers never fall back to opening a tab.
+function usePreparedCvFiles(
+  cv: GeneratedCv | null | undefined,
+  cvId: string | null | undefined,
+  atsResult: AtsScoreResult | null | undefined,
+  onAtsResult?: (result: AtsScoreResult) => void,
+  onPersistFiles?: () => Promise<void>
+) {
+  const [urls, setUrls] = useState<ReadyFileUrls>({});
+  const [prepError, setPrepError] = useState<string | null>(null);
+  const [retryToken, setRetryToken] = useState(0);
+
+  useEffect(() => {
+    if (!cv) return;
+    let cancelled = false;
+    const created: string[] = [];
+
+    const prepare = async () => {
+      setPrepError(null);
+      try {
+        const mk = (blob: Blob) => {
+          const url = URL.createObjectURL(blob);
+          created.push(url);
+          return url;
+        };
+
+        const [pdfAr, pdfEn] = await Promise.all([
+          buildCvPdfBlobForLanguage(cv, "ar"),
+          buildCvPdfBlobForLanguage(cv, "en"),
+        ]);
+        const wordAr = buildCvWordBlob(cv, "ar");
+        const wordEn = buildCvWordBlob(cv, "en");
+
+        if (cancelled) return;
+        setUrls({
+          "pdf-ar": mk(pdfAr),
+          "pdf-en": mk(pdfEn),
+          "word-ar": mk(wordAr),
+          "word-en": mk(wordEn),
+        });
+
+        let result = atsResult;
+        if (!result) {
+          result = await fetchAtsResult(cv);
+          if (cancelled) return;
+          onAtsResult?.(result);
+          if (cvId) {
+            void saveAtsResult(cvId, result);
+          }
+        }
+        const ats = await buildAtsPdfBlobAsync(cv, result);
+        if (cancelled) return;
+        setUrls((prev) => ({ ...prev, ats: mk(ats) }));
+
+        if (onPersistFiles) {
+          void onPersistFiles();
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setPrepError(
+            err instanceof Error ? err.message : "تعذر تجهيز الملفات للتحميل."
+          );
+        }
+      }
+    };
+
+    void prepare();
+
+    return () => {
+      cancelled = true;
+      created.forEach((url) => URL.revokeObjectURL(url));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cv, retryToken]);
+
+  return { urls, prepError, retry: () => setRetryToken((t) => t + 1) };
+}
+
+function DownloadIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <path d="M10 3v10M10 13l-3.5-3.5M10 13l3.5-3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M4 15v.5A1.5 1.5 0 0 0 5.5 17h9a1.5 1.5 0 0 0 1.5-1.5V15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
 function AtsReportCard({
   cv,
-  downloading,
-  onDownloadReport,
+  reportUrl,
 }: {
   cv: GeneratedCv;
-  downloading: DownloadKind;
-  onDownloadReport: () => void;
+  reportUrl: string | undefined;
 }) {
   const gates = [cv.atsGate?.ar, cv.atsGate?.en].filter(
     (g): g is NonNullable<typeof g> => Boolean(g)
@@ -293,97 +382,75 @@ function AtsReportCard({
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={onDownloadReport}
-        disabled={downloading !== null}
-        className={downloadButtonSecondary}
-      >
-        {downloading === "ats" ? "جاري التحميل..." : "⬇ تحميل تقرير ATS"}
-      </button>
+      {reportUrl ? (
+        <a
+          href={reportUrl}
+          download={cvFileName(cv.name, "ats")}
+          className={downloadButtonSecondary}
+        >
+          ⬇ تحميل تقرير ATS
+        </a>
+      ) : (
+        <span className={`${downloadButtonSecondary} pointer-events-none opacity-60`}>
+          <span
+            className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#378ADD] border-t-transparent"
+            aria-hidden
+          />
+          جاري تجهيز التقرير...
+        </span>
+      )}
     </div>
   );
 }
 
 function FileRow({
   label,
-  busy,
-  disabled,
-  onDownload,
+  url,
+  filename,
 }: {
   label: string;
-  busy: boolean;
-  disabled: boolean;
-  onDownload: () => void;
+  url: string | undefined;
+  filename: string;
 }) {
   return (
     <div className="flex items-center justify-between gap-3 border-b border-white/10 py-2 last:border-b-0">
       <span className="text-xs text-white/85">{label}</span>
-      <button
-        type="button"
-        onClick={onDownload}
-        disabled={disabled}
-        aria-label={`تحميل ${label}`}
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] bg-[#378ADD] text-white transition-colors hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {busy ? (
+      {url ? (
+        <a
+          href={url}
+          download={filename}
+          aria-label={`تحميل ${label}`}
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] bg-[#378ADD] text-white transition-colors hover:bg-[#2a6bb8]"
+        >
+          <DownloadIcon />
+        </a>
+      ) : (
+        <span
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] bg-[#378ADD]/50 text-white"
+          aria-label={`جاري تجهيز ${label}`}
+        >
           <span
             className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent"
             aria-hidden
           />
-        ) : (
-          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden>
-            <path d="M10 3v10M10 13l-3.5-3.5M10 13l3.5-3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M4 15v.5A1.5 1.5 0 0 0 5.5 17h9a1.5 1.5 0 0 0 1.5-1.5V15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-          </svg>
-        )}
-      </button>
+        </span>
+      )}
     </div>
   );
 }
 
-function FilesCard({
-  downloading,
-  onPdf,
-  onWord,
-}: {
-  downloading: DownloadKind;
-  onPdf: (language: CvLanguage) => void;
-  onWord: (language: CvLanguage) => void;
-}) {
-  const busyAny = downloading !== null;
-
+function FilesCard({ cv, urls }: { cv: GeneratedCv; urls: ReadyFileUrls }) {
   return (
     <div className="rounded-2xl border border-white/15 bg-white/[0.06] p-4">
       <p className="mb-3 text-sm font-bold text-white">لتحميل سيرتك الذاتية</p>
 
       <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-white/45">PDF</p>
-      <FileRow
-        label="عربي"
-        busy={downloading === "pdf-ar"}
-        disabled={busyAny}
-        onDownload={() => onPdf("ar")}
-      />
-      <FileRow
-        label="English"
-        busy={downloading === "pdf-en"}
-        disabled={busyAny}
-        onDownload={() => onPdf("en")}
-      />
+      <FileRow label="عربي" url={urls["pdf-ar"]} filename={cvFileName(cv.name, "pdf-ar")} />
+      <FileRow label="English" url={urls["pdf-en"]} filename={cvFileName(cv.name, "pdf-en")} />
 
       <p className="mb-1 mt-4 text-[10px] font-bold uppercase tracking-wide text-white/45">Word</p>
-      <FileRow
-        label="عربي"
-        busy={downloading === "word-ar"}
-        disabled={busyAny}
-        onDownload={() => onWord("ar")}
-      />
-      <FileRow
-        label="English"
-        busy={downloading === "word-en"}
-        disabled={busyAny}
-        onDownload={() => onWord("en")}
-      />
+      <FileRow label="عربي" url={urls["word-ar"]} filename={cvFileName(cv.name, "word-ar")} />
+      <FileRow label="English" url={urls["word-en"]} filename={cvFileName(cv.name, "word-en")} />
     </div>
   );
 }
@@ -403,82 +470,33 @@ function CvDownloadButtons({
   onPersistFiles?: () => Promise<void>;
   editHref: string;
 }) {
-  const [downloading, setDownloading] = useState<DownloadKind>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleCvPdf = async (language: CvLanguage) => {
-    if (!cv) return;
-    setDownloading(language === "ar" ? "pdf-ar" : "pdf-en");
-    setError(null);
-    try {
-      await downloadCvAsPdf(cv, language);
-      if (onPersistFiles) {
-        void onPersistFiles();
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "تعذر تحميل ملف PDF للسيرة.");
-    } finally {
-      setDownloading(null);
-    }
-  };
-
-  const handleCvWord = (language: CvLanguage) => {
-    if (!cv) return;
-    setError(null);
-    try {
-      downloadCvAsWord(cv, language);
-      if (onPersistFiles) {
-        void onPersistFiles();
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "تعذر تحميل ملف Word للسيرة.");
-    }
-  };
-
-  const handleAtsPdf = async () => {
-    if (!cv) return;
-    setDownloading("ats");
-    setError(null);
-    try {
-      let result = atsResult;
-      if (!result) {
-        result = await fetchAtsResult(cv);
-        onAtsResult?.(result);
-        if (cvId) {
-          void saveAtsResult(cvId, result);
-        }
-      }
-      await downloadAtsReportPdf(cv, result);
-      if (onPersistFiles) {
-        void onPersistFiles();
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "تعذر تحميل تقرير ATS.");
-    } finally {
-      setDownloading(null);
-    }
-  };
+  const { urls, prepError, retry } = usePreparedCvFiles(
+    cv,
+    cvId,
+    atsResult,
+    onAtsResult,
+    onPersistFiles
+  );
 
   return (
     <>
       {cv && (
         <>
-          <AtsReportCard
-            cv={cv}
-            downloading={downloading}
-            onDownloadReport={() => void handleAtsPdf()}
-          />
-          <FilesCard
-            downloading={downloading}
-            onPdf={(language) => void handleCvPdf(language)}
-            onWord={(language) => handleCvWord(language)}
-          />
+          <AtsReportCard cv={cv} reportUrl={urls.ats} />
+          <FilesCard cv={cv} urls={urls} />
         </>
       )}
 
-      {error && (
+      {prepError && (
         <div className="rounded-xl border border-[#FAC775]/40 bg-[#FFF8EC] px-4 py-3 text-center text-xs text-[#8A5A0A]">
-          {error}
+          {prepError}
+          <button
+            type="button"
+            onClick={retry}
+            className="mr-2 font-bold text-[#378ADD] underline"
+          >
+            إعادة المحاولة
+          </button>
         </div>
       )}
 
