@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import CvLaptopLoader from "@/app/components/cv-laptop-loader";
+import CvLaptopLoader, {
+  type LanguageProgress,
+  type LanguageStage,
+} from "@/app/components/cv-laptop-loader";
 import {
   CURRENT_CV_ID_KEY,
   STORAGE_KEY,
@@ -39,6 +42,10 @@ export default function EnhanceContent({ userName: _userName }: EnhanceContentPr
   const [loading, setLoading] = useState(true);
   const [enhancing, setEnhancing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<LanguageProgress>({
+    ar: "pending",
+    en: "pending",
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -105,30 +112,78 @@ export default function EnhanceContent({ userName: _userName }: EnhanceContentPr
     if (!cv || enhancing) return;
     setEnhancing(true);
     setError(null);
+    setProgress({ ar: "enhancing", en: "enhancing" });
 
     try {
       const response = await fetch("/api/enhance-cv", {
         method: "POST",
         headers: {
           "Content-Type": "application/json; charset=utf-8",
-          Accept: "application/json",
         },
         body: JSON.stringify({ ...cv, language: "both" }),
       });
 
-      const text = await response.text();
-      let result: GeneratedCv & { error?: string };
+      // Non-stream responses are validation/config errors (JSON body).
+      const contentType = response.headers.get("content-type") ?? "";
+      if (!response.ok || !contentType.includes("ndjson")) {
+        const data = (await response.json().catch(() => ({}))) as { error?: string };
+        setError(data.error || "تعذر تحسين السيرة الذاتية.");
+        setEnhancing(false);
+        return;
+      }
 
-      try {
-        result = JSON.parse(text);
-      } catch {
+      if (!response.body) {
         setError("استجابة غير صالحة من الخادم.");
         setEnhancing(false);
         return;
       }
 
-      if (!response.ok) {
-        setError(result.error || "تعذر تحسين السيرة الذاتية.");
+      // Read the live NDJSON progress stream line by line.
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let result: GeneratedCv | null = null;
+
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex = buffer.indexOf("\n");
+        while (newlineIndex !== -1) {
+          const line = buffer.slice(0, newlineIndex).trim();
+          buffer = buffer.slice(newlineIndex + 1);
+          newlineIndex = buffer.indexOf("\n");
+          if (!line) continue;
+
+          try {
+            const event = JSON.parse(line) as {
+              type: string;
+              lang?: "ar" | "en";
+              stage?: LanguageStage;
+              cv?: GeneratedCv;
+              error?: string;
+            };
+
+            if (event.type === "progress" && event.lang && event.stage) {
+              const lang = event.lang;
+              const stage = event.stage;
+              setProgress((prev) => ({ ...prev, [lang]: stage }));
+            } else if (event.type === "result" && event.cv) {
+              result = event.cv;
+            } else if (event.type === "error") {
+              setError(event.error || "تعذر تحسين السيرة الذاتية.");
+              setEnhancing(false);
+              return;
+            }
+          } catch {
+            // Skip malformed lines
+          }
+        }
+      }
+
+      if (!result) {
+        setError("استجابة غير صالحة من الخادم.");
         setEnhancing(false);
         return;
       }
@@ -187,6 +242,7 @@ export default function EnhanceContent({ userName: _userName }: EnhanceContentPr
       name={cv?.name}
       email={cv?.email}
       jobTitle={(cv?.contentEn ?? cv?.content)?.headline}
+      languageProgress={progress}
     />
   );
 }

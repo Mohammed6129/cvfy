@@ -246,64 +246,144 @@ function PaymentMethodLogos() {
   );
 }
 
-const downloadButtonPrimary =
-  "flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#378ADD] px-4 py-3.5 text-sm font-extrabold text-white transition-colors hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-60";
 const downloadButtonSecondary =
   "flex w-full items-center justify-center gap-2 rounded-[14px] border border-[#378ADD]/40 bg-white px-4 py-2.5 text-sm font-semibold text-[#378ADD] transition-colors hover:bg-[#E6F1FB] disabled:cursor-not-allowed disabled:opacity-60";
-function LanguageDownloadCard({
+function AtsReportCard({
   cv,
-  language,
   downloading,
-  onPdf,
-  onWord,
+  onDownloadReport,
 }: {
   cv: GeneratedCv;
-  language: CvLanguage;
   downloading: DownloadKind;
-  onPdf: () => void;
-  onWord: () => void;
+  onDownloadReport: () => void;
 }) {
-  const isArabic = language === "ar";
-  const gate = cv.atsGate?.[language];
-  const pdfKind: DownloadKind = isArabic ? "pdf-ar" : "pdf-en";
+  const gates = [cv.atsGate?.ar, cv.atsGate?.en].filter(
+    (g): g is NonNullable<typeof g> => Boolean(g)
+  );
+  const score = gates.length ? Math.min(...gates.map((g) => g.score)) : null;
 
   return (
     <div className="rounded-2xl border border-white/15 bg-white/[0.06] p-4">
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-sm font-bold text-white">
-          {isArabic ? "السيرة الذاتية بالعربية" : "CV in English"}
+        <span className="text-sm font-bold text-white">تقرير ATS</span>
+        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/15 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300">
+          ✓ مضمون التوافق قبل التسليم
         </span>
-        {gate && (
-          <span className="rounded-full bg-[#378ADD]/20 px-2 py-0.5 text-[10px] font-bold text-[#8FC4FF]">
-            ATS {gate.score}%
-          </span>
-        )}
       </div>
 
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={onPdf}
-          disabled={downloading !== null}
-          className={downloadButtonPrimary}
-        >
-          {downloading === pdfKind
-            ? isArabic
-              ? "جاري التحميل..."
-              : "Downloading..."
-            : isArabic
-              ? "⬇ تحميل PDF"
-              : "⬇ Download PDF"}
-        </button>
-        <button
-          type="button"
-          onClick={onWord}
-          disabled={downloading !== null}
-          className={`${downloadButtonSecondary} !w-auto shrink-0`}
-        >
-          Word
-        </button>
-      </div>
+      {score !== null && (
+        <div className="mb-4">
+          <div className="mb-1.5 flex items-baseline gap-2">
+            <span className="text-3xl font-extrabold leading-none text-white">
+              {score}%
+            </span>
+            <span className="text-[11px] text-white/55">
+              نسبة التوافق مع أنظمة ATS
+            </span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-white/15">
+            <div
+              className="h-full rounded-full"
+              style={{
+                width: `${score}%`,
+                background: score >= 80 ? "#34D399" : "#FAC775",
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={onDownloadReport}
+        disabled={downloading !== null}
+        className={downloadButtonSecondary}
+      >
+        {downloading === "ats" ? "جاري التحميل..." : "⬇ تحميل تقرير ATS"}
+      </button>
+    </div>
+  );
+}
+
+function FileRow({
+  label,
+  busy,
+  disabled,
+  onDownload,
+}: {
+  label: string;
+  busy: boolean;
+  disabled: boolean;
+  onDownload: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-b border-white/10 py-2 last:border-b-0">
+      <span className="text-xs text-white/85">{label}</span>
+      <button
+        type="button"
+        onClick={onDownload}
+        disabled={disabled}
+        aria-label={`تحميل ${label}`}
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] bg-[#378ADD] text-white transition-colors hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {busy ? (
+          <span
+            className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent"
+            aria-hidden
+          />
+        ) : (
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden>
+            <path d="M10 3v10M10 13l-3.5-3.5M10 13l3.5-3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M4 15v.5A1.5 1.5 0 0 0 5.5 17h9a1.5 1.5 0 0 0 1.5-1.5V15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+          </svg>
+        )}
+      </button>
+    </div>
+  );
+}
+
+function FilesCard({
+  downloading,
+  onPdf,
+  onWord,
+}: {
+  downloading: DownloadKind;
+  onPdf: (language: CvLanguage) => void;
+  onWord: (language: CvLanguage) => void;
+}) {
+  const busyAny = downloading !== null;
+
+  return (
+    <div className="rounded-2xl border border-white/15 bg-white/[0.06] p-4">
+      <p className="mb-3 text-sm font-bold text-white">لتحميل سيرتك الذاتية</p>
+
+      <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-white/45">PDF</p>
+      <FileRow
+        label="عربي"
+        busy={downloading === "pdf-ar"}
+        disabled={busyAny}
+        onDownload={() => onPdf("ar")}
+      />
+      <FileRow
+        label="English"
+        busy={downloading === "pdf-en"}
+        disabled={busyAny}
+        onDownload={() => onPdf("en")}
+      />
+
+      <p className="mb-1 mt-4 text-[10px] font-bold uppercase tracking-wide text-white/45">Word</p>
+      <FileRow
+        label="عربي"
+        busy={downloading === "word-ar"}
+        disabled={busyAny}
+        onDownload={() => onWord("ar")}
+      />
+      <FileRow
+        label="English"
+        busy={downloading === "word-en"}
+        disabled={busyAny}
+        onDownload={() => onWord("en")}
+      />
     </div>
   );
 }
@@ -381,35 +461,20 @@ function CvDownloadButtons({
 
   return (
     <>
-      {/* Two fully independent language downloads — each button reflects
-          only its own language's ATS-gate readiness. */}
       {cv && (
         <>
-          <LanguageDownloadCard
+          <AtsReportCard
             cv={cv}
-            language="ar"
             downloading={downloading}
-            onPdf={() => void handleCvPdf("ar")}
-            onWord={() => handleCvWord("ar")}
+            onDownloadReport={() => void handleAtsPdf()}
           />
-          <LanguageDownloadCard
-            cv={cv}
-            language="en"
+          <FilesCard
             downloading={downloading}
-            onPdf={() => void handleCvPdf("en")}
-            onWord={() => handleCvWord("en")}
+            onPdf={(language) => void handleCvPdf(language)}
+            onWord={(language) => handleCvWord(language)}
           />
         </>
       )}
-
-      <button
-        type="button"
-        onClick={() => void handleAtsPdf()}
-        disabled={!cv || downloading !== null}
-        className={downloadButtonSecondary}
-      >
-        {downloading === "ats" ? "جاري التحميل..." : "تقرير ATS"}
-      </button>
 
       {error && (
         <div className="rounded-xl border border-[#FAC775]/40 bg-[#FFF8EC] px-4 py-3 text-center text-xs text-[#8A5A0A]">

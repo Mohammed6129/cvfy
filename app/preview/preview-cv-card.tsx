@@ -44,11 +44,50 @@ function LockedSection({
   lines: { width: string; bold?: boolean }[];
 }) {
   return (
-    <div style={{ filter: "blur(2.5px)" }} aria-hidden>
+    <div aria-hidden>
       <h2 style={cvSectionTitle}>{title}</h2>
       {lines.map((line, i) => (
         <SkeletonLine key={i} width={line.width} bold={line.bold} />
       ))}
+    </div>
+  );
+}
+
+// Diagonal repeated CVfy watermark: any screenshot of the preview keeps
+// the mark visible, so the capture loses its commercial value.
+function WatermarkLayer() {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0 z-[5] overflow-hidden"
+    >
+      <div
+        style={{
+          position: "absolute",
+          inset: "-40%",
+          transform: "rotate(-30deg)",
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "48px",
+          alignContent: "space-around",
+          justifyContent: "space-around",
+        }}
+      >
+        {Array.from({ length: 24 }).map((_, i) => (
+          <span
+            key={i}
+            style={{
+              fontSize: "26px",
+              fontWeight: 800,
+              color: "rgba(20,44,84,0.07)",
+              whiteSpace: "nowrap",
+              fontFamily: "Arial, sans-serif",
+            }}
+          >
+            CVfy
+          </span>
+        ))}
+      </div>
     </div>
   );
 }
@@ -68,11 +107,12 @@ export default function PreviewCvCard({ cv, isPaid = false }: PreviewCvCardProps
       style={{
         boxShadow:
           "0 20px 50px rgba(0,0,0,0.35), 0 0 0 1px rgba(250,199,117,0.5), 0 0 26px rgba(250,199,117,0.22)",
-        userSelect: isPaid ? "auto" : "none",
-        WebkitUserSelect: isPaid ? "auto" : "none",
+        userSelect: "none",
+        WebkitUserSelect: "none",
       }}
     >
       {/* ── Real CV document — matches buildCvHtml exactly ── */}
+      <WatermarkLayer />
       <div
         dir="ltr"
         style={{
@@ -139,8 +179,18 @@ export default function PreviewCvCard({ cv, isPaid = false }: PreviewCvCardProps
             )}
           </>
         ) : (
-          /* Locked preview: layout shape only — actual data never enters the DOM */
-          <div className="relative">
+          /* Locked preview: layout shape only — actual data never enters
+             the DOM. A gradient fade (not a hard blur) dims the shape
+             toward the bottom. */
+          <div
+            className="relative"
+            style={{
+              WebkitMaskImage:
+                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.65) 40%, rgba(0,0,0,0.25) 75%, transparent 100%)",
+              maskImage:
+                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.65) 40%, rgba(0,0,0,0.25) 75%, transparent 100%)",
+            }}
+          >
             <LockedSection
               title="الخبرات العملية / Work Experience"
               lines={[

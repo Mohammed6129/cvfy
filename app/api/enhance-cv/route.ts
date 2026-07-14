@@ -1,7 +1,11 @@
 import Anthropic, { APIError } from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { getAnthropicApiKey } from "@/lib/anthropic-env";
-import { applyGuaranteedFallback, runAtsGate } from "@/lib/ats-gate";
+import {
+  applyGuaranteedFallback,
+  runAtsGate,
+  type GateProgressFn,
+} from "@/lib/ats-gate";
 import { CLAUDE_MODEL, extractCvContentJson } from "@/lib/cv-claude";
 import type {
   AtsGateInfo,
@@ -113,7 +117,8 @@ async function runLanguagePipeline(
   anthropic: Anthropic,
   cv: GeneratedCv,
   original: GeneratedCvContent,
-  language: CvLanguage
+  language: CvLanguage,
+  onProgress: GateProgressFn
 ): Promise<{ content: GeneratedCvContent; gate: AtsGateInfo }> {
   const contact = {
     name: cv.name,
@@ -125,8 +130,14 @@ async function runLanguagePipeline(
 
   const enhanced = await enhanceLanguageContent(anthropic, original, language);
 
-  return runAtsGate(anthropic, enhanced, contact, language, (improvements) =>
-    enhanceLanguageContent(anthropic, original, language, improvements)
+  return runAtsGate(
+    anthropic,
+    enhanced,
+    contact,
+    language,
+    (improvements) =>
+      enhanceLanguageContent(anthropic, original, language, improvements),
+    onProgress
   );
 }
 
@@ -157,73 +168,109 @@ export async function POST(request: Request) {
   }
 
   const anthropic = new Anthropic({ apiKey });
+  const inputCv = cv;
 
   console.log("[enhance-cv] Running independent AR/EN enhancement + ATS gates for:", cv.name);
 
-  // Two fully independent single-language pipelines. Each is enhanced,
-  // ATS-scored, and retried on its own — one language never waits for or
-  // affects the other.
-  const [arResult, enResult] = await Promise.allSettled([
-    runLanguagePipeline(anthropic, cv, cv.content, "ar"),
-    cv.contentEn
-      ? runLanguagePipeline(anthropic, cv, cv.contentEn, "en")
-      : Promise.reject(new Error("No English content to enhance")),
-  ]);
+  // Live NDJSON progress stream: each language pipeline reports its real
+  // stage the moment it changes, so the client can render per-language
+  // status instead of a frozen loading screen.
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    async start(controller) {
+      const send = (event: Record<string, unknown>) => {
+        try {
+          controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
+        } catch {
+          // Client disconnected — pipelines keep running server-side.
+        }
+      };
 
-  // A hard pipeline failure (AI unavailable, parse error, ...) still may
-  // never break the commercial 80%+ promise: the guaranteed rule-based
-  // template is applied to the last available content for that language.
-  let content: GeneratedCvContent;
-  let gateAr: AtsGateInfo;
-  if (arResult.status === "fulfilled") {
-    content = arResult.value.content;
-    gateAr = arResult.value.gate;
-  } else {
-    logError("Arabic pipeline failed — applying guaranteed template", arResult.reason);
-    const fallback = applyGuaranteedFallback(cv.content, "ar", 1);
-    content = fallback.content;
-    gateAr = fallback.gate;
-  }
+      const progressFor =
+        (lang: CvLanguage): GateProgressFn =>
+        (stage, info) =>
+          send({ type: "progress", lang, stage, ...info });
 
-  let contentEn: GeneratedCvContent;
-  let gateEn: AtsGateInfo;
-  if (enResult.status === "fulfilled") {
-    contentEn = enResult.value.content;
-    gateEn = enResult.value.gate;
-  } else {
-    logError("English pipeline failed — applying guaranteed template", enResult.reason);
-    const fallback = applyGuaranteedFallback(
-      cv.contentEn ?? cv.content,
-      "en",
-      1
-    );
-    contentEn = fallback.content;
-    gateEn = fallback.gate;
-  }
+      send({ type: "progress", lang: "ar", stage: "enhancing" });
+      send({ type: "progress", lang: "en", stage: "enhancing" });
 
-  const enhancedCv: GeneratedCv = {
-    ...cv,
-    content: {
-      ...content,
-      headline: cv.content.headline,
+      // Two fully independent single-language pipelines running in
+      // parallel. Each is enhanced, ATS-scored, and retried on its own —
+      // one language never waits for or affects the other.
+      const [arResult, enResult] = await Promise.allSettled([
+        runLanguagePipeline(anthropic, inputCv, inputCv.content, "ar", progressFor("ar")),
+        inputCv.contentEn
+          ? runLanguagePipeline(anthropic, inputCv, inputCv.contentEn, "en", progressFor("en"))
+          : Promise.reject(new Error("No English content to enhance")),
+      ]);
+
+      // A hard pipeline failure (AI unavailable, parse error, ...) still
+      // may never break the commercial 80%+ promise: the guaranteed
+      // rule-based template is applied to the last available content.
+      let content: GeneratedCvContent;
+      let gateAr: AtsGateInfo;
+      if (arResult.status === "fulfilled") {
+        content = arResult.value.content;
+        gateAr = arResult.value.gate;
+      } else {
+        logError("Arabic pipeline failed — applying guaranteed template", arResult.reason);
+        const fallback = applyGuaranteedFallback(inputCv.content, "ar", 1);
+        content = fallback.content;
+        gateAr = fallback.gate;
+        send({ type: "progress", lang: "ar", stage: "template" });
+      }
+
+      let contentEn: GeneratedCvContent;
+      let gateEn: AtsGateInfo;
+      if (enResult.status === "fulfilled") {
+        contentEn = enResult.value.content;
+        gateEn = enResult.value.gate;
+      } else {
+        logError("English pipeline failed — applying guaranteed template", enResult.reason);
+        const fallback = applyGuaranteedFallback(
+          inputCv.contentEn ?? inputCv.content,
+          "en",
+          1
+        );
+        contentEn = fallback.content;
+        gateEn = fallback.gate;
+        send({ type: "progress", lang: "en", stage: "template" });
+      }
+
+      const enhancedCv: GeneratedCv = {
+        ...inputCv,
+        content: {
+          ...content,
+          headline: inputCv.content.headline,
+        },
+        contentEn: {
+          ...contentEn,
+          headline: inputCv.contentEn?.headline ?? inputCv.content.headline,
+        },
+        atsGate: {
+          ar: gateAr,
+          en: gateEn,
+        },
+        linkedIn: inputCv.linkedIn,
+        aiEnhanced: true,
+        warning: undefined,
+        generatedWithFallback: false,
+      };
+
+      console.log("[enhance-cv] Pipelines complete", {
+        ar: gateAr,
+        en: gateEn,
+      });
+      send({ type: "result", cv: enhancedCv });
+      controller.close();
     },
-    contentEn: {
-      ...contentEn,
-      headline: cv.contentEn?.headline ?? cv.content.headline,
-    },
-    atsGate: {
-      ar: gateAr,
-      en: gateEn,
-    },
-    linkedIn: cv.linkedIn,
-    aiEnhanced: true,
-    warning: undefined,
-    generatedWithFallback: false,
-  };
-
-  console.log("[enhance-cv] Pipelines complete", {
-    ar: gateAr,
-    en: gateEn,
   });
-  return NextResponse.json(enhancedCv);
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "application/x-ndjson; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      "X-Accel-Buffering": "no",
+    },
+  });
 }

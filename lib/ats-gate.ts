@@ -13,6 +13,17 @@ import type {
 export const ATS_GATE_THRESHOLD = 80;
 export const ATS_GATE_MAX_ATTEMPTS = 2;
 
+export type GateProgressStage =
+  | "checking"
+  | "retrying"
+  | "template"
+  | "passed";
+
+export type GateProgressFn = (
+  stage: GateProgressStage,
+  info?: { attempt?: number; score?: number }
+) => void;
+
 export type AtsGateScore = {
   score: number;
   improvements: string[];
@@ -148,12 +159,14 @@ export async function runAtsGate(
   initialContent: GeneratedCvContent,
   contact: ContactInfo,
   language: CvLanguage,
-  regenerate: (improvements: string[]) => Promise<GeneratedCvContent>
+  regenerate: (improvements: string[]) => Promise<GeneratedCvContent>,
+  onProgress?: GateProgressFn
 ): Promise<{ content: GeneratedCvContent; gate: AtsGateInfo }> {
   let content = initialContent;
   let attempts = 1;
 
   for (;;) {
+    onProgress?.("checking", { attempt: attempts });
     let scored: AtsGateScore;
     try {
       try {
@@ -172,6 +185,7 @@ export async function runAtsGate(
         `[ats-gate] scoring unavailable (${language}):`,
         scoreError
       );
+      onProgress?.("template");
       return applyGuaranteedFallback(content, language, attempts);
     }
 
@@ -180,6 +194,7 @@ export async function runAtsGate(
     );
 
     if (scored.score >= ATS_GATE_THRESHOLD) {
+      onProgress?.("passed", { score: scored.score, attempt: attempts });
       return {
         content,
         gate: { score: scored.score, attempts, passed: true },
@@ -187,14 +202,17 @@ export async function runAtsGate(
     }
 
     if (attempts >= ATS_GATE_MAX_ATTEMPTS) {
+      onProgress?.("template");
       return applyGuaranteedFallback(content, language, attempts);
     }
 
     attempts += 1;
+    onProgress?.("retrying", { attempt: attempts });
     try {
       content = await regenerate(scored.improvements);
     } catch (regenError) {
       console.error(`[ats-gate] regeneration failed (${language}):`, regenError);
+      onProgress?.("template");
       return applyGuaranteedFallback(content, language, attempts - 1);
     }
   }

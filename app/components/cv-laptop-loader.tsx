@@ -2,11 +2,25 @@
 
 import { useEffect, useState } from "react";
 
+export type LanguageStage =
+  | "pending"
+  | "enhancing"
+  | "checking"
+  | "retrying"
+  | "template"
+  | "passed";
+
+export type LanguageProgress = {
+  ar: LanguageStage;
+  en: LanguageStage;
+};
+
 type CvLaptopLoaderProps = {
   mode: "generate" | "enhance";
   name?: string;
   email?: string;
   jobTitle?: string;
+  languageProgress?: LanguageProgress;
 };
 
 const SUBTITLES = {
@@ -40,7 +54,7 @@ function buildLines(mode: "generate" | "enhance", name?: string, email?: string,
     : generateLines;
 }
 
-export default function CvLaptopLoader({ mode, name, email, jobTitle }: CvLaptopLoaderProps) {
+export default function CvLaptopLoader({ mode, name, email, jobTitle, languageProgress }: CvLaptopLoaderProps) {
   const lines = buildLines(mode, name, email, jobTitle);
   const subtitle = SUBTITLES[mode];
 
@@ -204,47 +218,91 @@ export default function CvLaptopLoader({ mode, name, email, jobTitle }: CvLaptop
         />
       </div>
 
-      {mode === "enhance" && <EnhanceProgressSteps />}
+      {mode === "enhance" && languageProgress && (
+        <LiveLanguageProgress progress={languageProgress} />
+      )}
     </div>
   );
 }
 
-const ENHANCE_STEPS = [
-  { label: "فهم وتحليل بياناتك", delay: 0 },
-  { label: "صياغة احترافية بالعربي والإنجليزي", delay: 3000 },
-  { label: "تحسين كلمات ATS", delay: 7000 },
-  { label: "مراجعة الجودة النهائية", delay: 11000 },
-];
+// Live per-language pipeline status driven by real server events —
+// each language row reflects its own actual stage, including retries.
+const STAGE_LABELS: Record<"ar" | "en", Record<LanguageStage, string>> = {
+  ar: {
+    pending: "في الانتظار...",
+    enhancing: "جاري صياغة السيرة العربية...",
+    checking: "جاري فحص توافق ATS...",
+    retrying: "جاري تحسين إضافي (محاولة ثانية)...",
+    template: "السيرة العربية جاهزة",
+    passed: "السيرة العربية جاهزة",
+  },
+  en: {
+    pending: "في الانتظار...",
+    enhancing: "جاري صياغة السيرة الإنجليزية...",
+    checking: "جاري فحص توافق ATS...",
+    retrying: "جاري تحسين إضافي (محاولة ثانية)...",
+    template: "السيرة الإنجليزية جاهزة",
+    passed: "السيرة الإنجليزية جاهزة",
+  },
+};
 
-function EnhanceProgressSteps() {
-  const [activeStep, setActiveStep] = useState(0);
+const DONE_STAGES: LanguageStage[] = ["template", "passed"];
 
-  useEffect(() => {
-    const timers = ENHANCE_STEPS.slice(1).map((step, i) =>
-      window.setTimeout(() => setActiveStep(i + 1), step.delay)
-    );
-    return () => timers.forEach(clearTimeout);
-  }, []);
+function LanguageProgressRow({
+  title,
+  stage,
+}: {
+  title: string;
+  stage: LanguageStage;
+}) {
+  const done = DONE_STAGES.includes(stage);
+  const active = !done && stage !== "pending";
 
   return (
-    <div className="mt-5 space-y-2 text-right" dir="rtl">
-      {ENHANCE_STEPS.map((step, i) => (
-        <div
-          key={step.label}
-          className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs transition-all duration-500 ${
-            i < activeStep
-              ? "bg-[#378ADD]/10 text-white/55"
-              : i === activeStep
-              ? "bg-[#FAC775]/15 text-[#FAC775] font-semibold"
-              : "text-white/35"
-          }`}
-        >
-          <span className="shrink-0 text-base">
-            {i < activeStep ? "✓" : i === activeStep ? "⏳" : "○"}
+    <div
+      className={`flex items-center justify-between gap-3 rounded-xl px-3.5 py-3 text-xs transition-all duration-300 ${
+        done
+          ? "bg-[#378ADD]/10"
+          : active
+          ? "bg-[#FAC775]/10"
+          : "bg-white/[0.04]"
+      }`}
+    >
+      <span className="flex items-center gap-2">
+        {done ? (
+          <span className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[#378ADD] text-[10px] text-white">
+            ✓
           </span>
-          {step.label}
-        </div>
-      ))}
+        ) : active ? (
+          <span
+            className="h-[16px] w-[16px] animate-spin rounded-full border-2 border-[#FAC775] border-t-transparent"
+            aria-hidden
+          />
+        ) : (
+          <span className="h-[16px] w-[16px] rounded-full border-2 border-white/25" aria-hidden />
+        )}
+        <span className={`font-bold ${done ? "text-white/85" : active ? "text-[#FAC775]" : "text-white/40"}`}>
+          {title}
+        </span>
+      </span>
+      <span className={done ? "text-white/60" : active ? "text-[#FAC775]/90" : "text-white/35"}>
+        {done ? "✓ جاهزة" : null}
+      </span>
+    </div>
+  );
+}
+
+function LiveLanguageProgress({ progress }: { progress: LanguageProgress }) {
+  return (
+    <div className="mt-5 space-y-2 text-right" dir="rtl">
+      <LanguageProgressRow
+        title={STAGE_LABELS.ar[progress.ar]}
+        stage={progress.ar}
+      />
+      <LanguageProgressRow
+        title={STAGE_LABELS.en[progress.en]}
+        stage={progress.en}
+      />
     </div>
   );
 }
