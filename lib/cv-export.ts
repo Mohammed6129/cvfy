@@ -42,10 +42,14 @@ function triggerBlobDownload(blob: Blob, filename: string): void {
   const link = document.createElement("a");
   link.href = url;
   link.download = filename;
+  link.rel = "noopener";
+  link.target = "_self";
   document.body.appendChild(link);
   link.click();
   link.remove();
-  URL.revokeObjectURL(url);
+  // Revoking immediately races the download start on mobile browsers and
+  // makes them open the file in a tab instead — delay it.
+  window.setTimeout(() => URL.revokeObjectURL(url), 4000);
 }
 
 // Legacy helpers used by buildAtsPdfBlob (multi-page ATS report)

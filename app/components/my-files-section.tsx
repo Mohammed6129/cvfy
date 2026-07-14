@@ -32,10 +32,14 @@ async function downloadSignedUrl(url: string | null, filename: string) {
   const link = document.createElement("a");
   link.href = blobUrl;
   link.download = filename;
+  link.rel = "noopener";
+  link.target = "_self";
   document.body.appendChild(link);
   link.click();
   link.remove();
-  URL.revokeObjectURL(blobUrl);
+  // Revoking immediately races the download start on mobile browsers and
+  // makes them open the file in a tab instead — delay it.
+  window.setTimeout(() => URL.revokeObjectURL(blobUrl), 4000);
 }
 
 export default function MyFilesSection() {

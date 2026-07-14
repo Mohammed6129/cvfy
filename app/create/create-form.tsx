@@ -139,6 +139,12 @@ export default function CreateForm() {
 
   const progress = (step / TOTAL_STEPS) * 100;
 
+  // Every step transition (next/back) and the switch to the generating
+  // screen must land the user at the top of the new view instantly.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [step, generating]);
+
   useEffect(() => {
     const editId = searchParams.get("edit");
     if (!editId) return;
