@@ -71,7 +71,8 @@ ${ONE_PAGE_RULES}
 - فقرة من 3–4 جمل بفصحى رسمية **بضمير المتكلم**: "أعمل..."، "أمتلك..."، "لدي خبرة...". ممنوع صيغة الغائب.
 ### experiences
 - رتّب من الأحدث إلى الأقدم. period بصيغة موحدة "2020 — 2023" أو "2019 — حتى الآن".
-- description: 3 نقاط إنجاز كحد أقصى مفصولة بـ " • "، كل نقطة تبدأ بفعل قوي.
+- description: 3 إلى 4 نقاط إنجاز كحد أقصى مفصولة بـ " • ".
+- **قاعدة صارمة لكل نقطة**: سطر واحد قصير فقط — 12 كلمة كحد أقصى. تبدأ بفعل ماضٍ قوي. ممنوع الجمل المركبة الطويلة أو الوصف المتسلسل؛ إن كانت الفكرة طويلة قسّمها لنقطتين قصيرتين أو اختصرها.
 ### education
 - degree بصيغة رسمية (مثال: "بكالوريوس إدارة أعمال")، institution اسم الجهة، period سنوات الدراسة.
 ### skills
@@ -136,7 +137,8 @@ The CV must fit a single A4 page (210×297mm, 15mm margins, Times New Roman 10pt
 - 2-3 sentences, first person implied (no "I" repetition), focused on expertise, scope, and impact.
 ### experiences
 - Newest first. period in a consistent machine-parseable format like "2020 — 2023" or "2019 — Present".
-- description: up to 3 bullets separated by " • ", each starting with an achievement verb, quantified where the input allows.
+- description: 3-4 bullets max, separated by " • ".
+- **Strict rule per bullet**: ONE short line only — 12 words max. Starts with a strong past-tense verb (Managed, Led, Oversaw, Delivered, Coordinated). NO long compound sentences (bad: "Organized and classified digital and print materials to optimize retrieval efficiency and streamline collection access" — split that into two short bullets or compress it). Quantify where the input allows.
 ### education
 - degree: formal degree + major (e.g. "B.Sc. Business Administration"), institution, period.
 ### skills

@@ -72,6 +72,8 @@ Enhance this CV content by:
 2) Highlighting achievements with numbers and metrics already present in the data
 3) Better organizing the content
 4) Maximizing ATS compatibility: standard section semantics, fully linear text, uniform machine-parseable dates, role-relevant keywords in summary/experiences/skills
+5) STRICT bullet rule for every experience description: 3-4 bullets max separated by " • ", each bullet ONE short line (12 words max) starting with a strong past-tense verb — never long compound sentences; split or compress them
+6) summary: one short paragraph, 3-4 lines max
 ${feedbackBlock}
 Language rules:
 ${languageRules}

@@ -1,3 +1,4 @@
+import { splitBullets } from "@/lib/cv-export";
 import type { GeneratedCv } from "@/lib/cv-types";
 import { SINGLE_PLAN } from "@/lib/payment";
 
@@ -11,7 +12,7 @@ function LockIcon() {
   );
 }
 
-// Show only the opening of the summary before payment (2-3 lines).
+// Show only the opening of the summary before payment.
 function truncateSummary(summary: string): string {
   const words = summary.split(/\s+/);
   if (words.length <= 28) return summary;
@@ -30,7 +31,7 @@ function SkeletonLine({ width, bold = false }: { width: string; bold?: boolean }
         width,
         background: bold ? "#c3cbd5" : "#d8dde3",
         borderRadius: "4px",
-        marginBottom: "6px",
+        marginBottom: "7px",
       }}
     />
   );
@@ -53,33 +54,33 @@ function LockedSection({
   );
 }
 
-// Diagonal repeated CVfy watermark: any screenshot of the preview keeps
-// the mark visible, so the capture loses its commercial value.
+// Very light diagonal CVfy watermark, always BEHIND the text layer —
+// screenshots keep the mark, reading is never obstructed.
 function WatermarkLayer() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-0 z-[5] overflow-hidden"
+      className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
     >
       <div
         style={{
           position: "absolute",
-          inset: "-40%",
+          inset: "-30%",
           transform: "rotate(-30deg)",
           display: "flex",
           flexWrap: "wrap",
-          gap: "48px",
+          gap: "110px",
           alignContent: "space-around",
           justifyContent: "space-around",
         }}
       >
-        {Array.from({ length: 24 }).map((_, i) => (
+        {Array.from({ length: 9 }).map((_, i) => (
           <span
             key={i}
             style={{
-              fontSize: "26px",
+              fontSize: "30px",
               fontWeight: 800,
-              color: "rgba(20,44,84,0.07)",
+              color: "rgba(20,44,84,0.05)",
               whiteSpace: "nowrap",
               fontFamily: "Arial, sans-serif",
             }}
@@ -92,6 +93,17 @@ function WatermarkLayer() {
   );
 }
 
+function TitleDateRow({ title, period }: { title: string; period?: string }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "8px" }}>
+      <p style={{ margin: 0, fontWeight: "bold", color: "#000", fontSize: "10.5px" }}>{title}</p>
+      {period && (
+        <p style={{ margin: 0, color: "#000", fontSize: "9.5px", whiteSpace: "nowrap" }}>{period}</p>
+      )}
+    </div>
+  );
+}
+
 type PreviewCvCardProps = {
   cv: GeneratedCv;
   isPaid?: boolean;
@@ -99,132 +111,141 @@ type PreviewCvCardProps = {
 
 export default function PreviewCvCard({ cv, isPaid = false }: PreviewCvCardProps) {
   const content = cv.contentEn ?? cv.content;
-  const experiences = content.experiences.slice(0, 2);
+  const experiences = content.experiences.slice(0, 3);
 
   return (
     <div
       className="relative ms-auto w-full max-w-[420px] overflow-hidden rounded-[10px]"
       style={{
-        boxShadow:
-          "0 20px 50px rgba(0,0,0,0.35), 0 0 0 1px rgba(250,199,117,0.5), 0 0 26px rgba(250,199,117,0.22)",
+        boxShadow: "0 20px 50px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.2)",
         userSelect: "none",
         WebkitUserSelect: "none",
       }}
     >
-      {/* ── Real CV document — matches buildCvHtml exactly ── */}
-      <WatermarkLayer />
+      {/* ── Document card: clean black-on-white, matches the exported files ── */}
       <div
         dir="ltr"
+        className="relative"
         style={{
           background: "#fff",
           color: "#000",
-          fontFamily: '"Times New Roman", Times, serif',
-          padding: "22px",
+          fontFamily: 'Arial, "Helvetica Neue", Helvetica, sans-serif',
+          padding: "24px",
         }}
       >
-        <header style={{ textAlign: "center", borderBottom: "1px solid #000", paddingBottom: "14px", marginBottom: "14px" }}>
-          <h1 style={{ margin: "0 0 6px", fontSize: "19px", color: "#000" }}>{cv.name}</h1>
-          {content.headline && (
-            <p style={{ fontSize: "11.5px", fontWeight: 600, margin: "0 0 8px", color: "#000" }}>{content.headline}</p>
-          )}
-          <p style={{ margin: 0, fontSize: "10px", color: "#000" }}>
-            {[cv.email, cv.phone, cv.city].filter(Boolean).join(" · ")}
-          </p>
-        </header>
+        <WatermarkLayer />
 
-        {content.summary && (
-          <>
-            <h2 style={cvSectionTitle}>الملخص المهني / Professional Summary</h2>
-            <p style={cvText}>
-              {isPaid ? content.summary : truncateSummary(content.summary)}
+        {/* Text layer always above the watermark */}
+        <div className="relative z-10">
+          <header style={{ marginBottom: "14px" }}>
+            <h1 style={{ margin: "0 0 3px", fontSize: "18px", fontWeight: "bold", color: "#000", textAlign: "left" }}>
+              {cv.name}
+            </h1>
+            {content.headline && (
+              <p style={{ fontSize: "11px", fontWeight: 600, margin: "0 0 3px", color: "#000" }}>
+                {content.headline}
+              </p>
+            )}
+            <p style={{ margin: 0, fontSize: "9.5px", color: "#000" }}>
+              {[cv.city, cv.phone, cv.email, cv.linkedIn].filter(Boolean).join(" | ")}
             </p>
-          </>
-        )}
+          </header>
 
-        {isPaid ? (
-          <>
-            {experiences.length > 0 && (
-              <>
-                <h2 style={cvSectionTitle}>الخبرات العملية / Work Experience</h2>
-                {experiences.map((exp, index) => (
-                  <div key={`${exp.jobTitle}-${index}`} style={{ marginBottom: "10px" }}>
-                    <p style={{ margin: 0, fontWeight: "bold", color: "#000", fontSize: "10.5px" }}>
-                      {exp.jobTitle}
-                      {exp.company ? ` — ${exp.company}` : ""}
-                    </p>
-                    {exp.period && <p style={{ margin: "2px 0", fontSize: "9.5px", color: "#000" }}>{exp.period}</p>}
-                    {exp.description && <p style={cvText}>{exp.description}</p>}
-                  </div>
-                ))}
-              </>
-            )}
+          {content.summary && (
+            <>
+              <h2 style={cvSectionTitle}>Profile</h2>
+              <p style={cvText}>
+                {isPaid ? content.summary : truncateSummary(content.summary)}
+              </p>
+            </>
+          )}
 
-            {content.education.length > 0 && (
-              <>
-                <h2 style={cvSectionTitle}>التعليم / Education</h2>
-                <p style={cvText}>
-                  <strong>{content.education[0].degree}</strong>
-                </p>
-                <p style={cvText}>
-                  {[content.education[0].institution, content.education[0].period].filter(Boolean).join(" · ")}
-                </p>
-              </>
-            )}
+          {isPaid ? (
+            <>
+              {content.education.length > 0 && (
+                <>
+                  <h2 style={cvSectionTitle}>Education</h2>
+                  {content.education.map((edu, index) => (
+                    <div key={`${edu.degree}-${index}`} style={{ marginBottom: "8px" }}>
+                      <TitleDateRow title={edu.degree} period={edu.period} />
+                      {edu.institution && <p style={cvText}>{edu.institution}</p>}
+                    </div>
+                  ))}
+                </>
+              )}
 
-            {content.skills.length > 0 && (
-              <>
-                <h2 style={cvSectionTitle}>المهارات / Skills</h2>
-                <p style={cvText}>{content.skills.join(" • ")}</p>
-              </>
-            )}
-          </>
-        ) : (
-          /* Locked preview: layout shape only — actual data never enters
-             the DOM. A gradient fade (not a hard blur) dims the shape
-             toward the bottom. */
-          <div
-            className="relative"
-            style={{
-              WebkitMaskImage:
-                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.65) 40%, rgba(0,0,0,0.25) 75%, transparent 100%)",
-              maskImage:
-                "linear-gradient(to bottom, black 0%, rgba(0,0,0,0.65) 40%, rgba(0,0,0,0.25) 75%, transparent 100%)",
-            }}
-          >
-            <LockedSection
-              title="الخبرات العملية / Work Experience"
-              lines={[
-                { width: "62%", bold: true },
-                { width: "30%" },
-                { width: "100%" },
-                { width: "88%" },
-                { width: "55%", bold: true },
-                { width: "28%" },
-                { width: "94%" },
-                { width: "70%" },
-              ]}
-            />
-            <LockedSection
-              title="التعليم / Education"
-              lines={[
-                { width: "48%", bold: true },
-                { width: "64%" },
-              ]}
-            />
-            <LockedSection
-              title="المهارات / Skills"
-              lines={[
-                { width: "96%" },
-                { width: "58%" },
-              ]}
-            />
-          </div>
-        )}
+              {content.skills.length > 0 && (
+                <>
+                  <h2 style={cvSectionTitle}>Skills</h2>
+                  {content.skills.map((skill) => (
+                    <p key={skill} style={cvText}>- {skill}</p>
+                  ))}
+                </>
+              )}
+
+              {experiences.length > 0 && (
+                <>
+                  <h2 style={cvSectionTitle}>Work Experience</h2>
+                  {experiences.map((exp, index) => (
+                    <div key={`${exp.jobTitle}-${index}`} style={{ marginBottom: "10px" }}>
+                      <TitleDateRow title={exp.jobTitle} period={exp.period} />
+                      {exp.company && (
+                        <p style={{ ...cvText, fontStyle: "italic" }}>{exp.company}</p>
+                      )}
+                      {splitBullets(exp.description).map((bullet, i) => (
+                        <p key={i} style={cvText}>- {bullet}</p>
+                      ))}
+                    </div>
+                  ))}
+                </>
+              )}
+            </>
+          ) : (
+            /* Locked preview (~70% of the card): layout shape only — the
+               actual data never enters the DOM — with a real render-level
+               blur on top of the skeleton shape. */
+            <div aria-hidden style={{ filter: "blur(5px)", opacity: 0.85 }}>
+              <LockedSection
+                title="Education"
+                lines={[
+                  { width: "52%", bold: true },
+                  { width: "64%" },
+                ]}
+              />
+              <LockedSection
+                title="Skills"
+                lines={[
+                  { width: "38%" },
+                  { width: "46%" },
+                  { width: "33%" },
+                  { width: "42%" },
+                  { width: "36%" },
+                  { width: "48%" },
+                ]}
+              />
+              <LockedSection
+                title="Work Experience"
+                lines={[
+                  { width: "62%", bold: true },
+                  { width: "40%" },
+                  { width: "92%" },
+                  { width: "85%" },
+                  { width: "78%" },
+                  { width: "55%", bold: true },
+                  { width: "36%" },
+                  { width: "90%" },
+                  { width: "82%" },
+                  { width: "74%" },
+                ]}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {!isPaid && (
         <div
-          className="absolute left-1/2 z-10 flex w-[86%] -translate-x-1/2 flex-col items-center gap-2.5 rounded-2xl bg-white p-5 text-center"
+          className="absolute left-1/2 z-20 flex w-[86%] -translate-x-1/2 flex-col items-center gap-2.5 rounded-2xl bg-white p-5 text-center"
           dir="rtl"
           style={{ bottom: "6%", boxShadow: "0 12px 30px rgba(0,0,0,0.25)" }}
         >
@@ -246,15 +267,15 @@ export default function PreviewCvCard({ cv, isPaid = false }: PreviewCvCardProps
 const cvSectionTitle: React.CSSProperties = {
   color: "#000",
   borderBottom: "1px solid #000",
-  paddingBottom: "5px",
-  margin: "14px 0 8px",
-  fontSize: "10.5px",
+  paddingBottom: "4px",
+  margin: "14px 0 7px",
+  fontSize: "11px",
   fontWeight: "bold",
 };
 
 const cvText: React.CSSProperties = {
-  margin: "0 0 5px",
+  margin: "2px 0 0",
   color: "#000",
   lineHeight: 1.5,
-  fontSize: "10.5px",
+  fontSize: "10px",
 };

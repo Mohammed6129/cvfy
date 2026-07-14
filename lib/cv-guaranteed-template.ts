@@ -12,7 +12,8 @@ import type { CvLanguage, GeneratedCvContent } from "@/lib/cv-types";
 export const GUARANTEED_TEMPLATE_SCORE = 90;
 
 const MAX_EXPERIENCES = 3;
-const MAX_BULLETS = 3;
+const MAX_BULLETS = 4;
+const MAX_BULLET_WORDS = 14;
 const MAX_SKILLS = 12;
 const MAX_COURSES = 3;
 const MAX_SUMMARY_WORDS = 70;
@@ -68,11 +69,12 @@ export function normalizePeriod(period: string, language: CvLanguage): string {
   return hasPresent ? presentLabel : cleaned;
 }
 
-// Rebuild a description as clean " • "-separated linear bullets.
+// Rebuild a description as clean " • "-separated linear bullets,
+// each capped to one short line (reference style).
 function normalizeBullets(description: string): string {
   const parts = description
     .split(/[•\n;؛]|(?:\s-\s)/)
-    .map((part) => sanitizeText(part))
+    .map((part) => truncateWords(sanitizeText(part), MAX_BULLET_WORDS))
     .filter(Boolean)
     .slice(0, MAX_BULLETS);
 
