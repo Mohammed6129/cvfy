@@ -46,7 +46,7 @@ export function mapPhoneAuthError(message: string): string {
     normalized.includes("phone provider") ||
     normalized.includes("sms")
   ) {
-    return "خدمة الرسائل غير مفعّلة. فعّل Phone Auth في Supabase.";
+    return "الدخول برقم الجوال غير متاح حالياً. استخدم البريد أو Google.";
   }
 
   return "تعذر إكمال تسجيل الدخول برقم الجوال. يرجى المحاولة مرة أخرى.";

@@ -1,56 +1,64 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import GlassPageLayout from "@/app/components/glass-page-layout";
-import HomeProblemSolution from "@/app/components/home-problem-solution";
+import ProsePage from "@/app/components/prose-page";
 
 export const metadata: Metadata = {
-  title: "ما هو ATS؟ — CVfy",
-  description:
-    "شرح مبسط لنظام ATS ولماذا سيرتك الذاتية الاحترافية بالأبيض والأسود أفضل.",
+  title: "وش هو ATS؟",
+  description: "شرح مبسط لأنظمة تتبع المتقدمين ATS: كيف تقرأ سيرتك، وليش بعض السير ما توصل للمسؤول، وكيف تجهّز سيرتك لها.",
 };
-
-const BW_REASONS = [
-  "الصندوق الذكي يقرأ النص فقط — لا يفهم الألوان والتصاميم",
-  "السيرة الرسمية (Times New Roman، أبيض وأسود) أوضح للقراءة",
-  "الشركات والجهات تفضّل النسخة الإنجليزية الاحترافية",
-];
 
 export default function AboutAtsPage() {
   return (
-    <GlassPageLayout mainClassName="py-12 md:py-16">
-      <HomeProblemSolution />
-      <div className="glass-page-card mx-auto mt-8 max-w-3xl px-6 py-10 sm:px-8 sm:py-12">
-        <h1 className="mb-6 text-3xl font-extrabold text-white sm:text-4xl">
-          ما هو <span className="text-[#378ADD]">ATS</span>؟
-        </h1>
+    <ProsePage
+      title="وش هو ATS، وليش يهمك؟"
+      lead="لما تقدّم على وظيفة في شركة كبيرة، أول من «يقرأ» سيرتك غالباً برنامج مو إنسان. هذا البرنامج اسمه ATS."
+    >
+      <h2>الفكرة ببساطة</h2>
+      <p>
+        ATS اختصار Applicant Tracking System، يعني نظام تتبع المتقدمين. الشركات تستخدمه عشان تستقبل مئات الطلبات
+        وترتبها. أشهر الأنظمة عندنا في السعودية: SAP SuccessFactors و Oracle و Workday، وأغلب بوابات التوظيف
+        للشركات الكبيرة والبنوك مبنية عليها.
+      </p>
+      <p>
+        النظام يسوي شيئين: <strong>يقرأ ملفك</strong> ويحوّله لبيانات (اسمك، خبراتك، تواريخك، مهاراتك)،
+        وبعدين <strong>يخلّي المسؤول يبحث ويفلتر</strong> بكلمات معيّنة، مثل «محاسب» أو «SAP» أو «5 سنوات».
+        إذا النظام ما قدر يقرأ ملفك صح، أو ما لقى الكلمات اللي يبحث عنها المسؤول، سيرتك ما تطلع له.
+      </p>
 
-        <p className="mb-10 text-base leading-8 text-white/75">
-          تخيّل صندوقاً ذكياً عند الشركة يقرأ آلاف السير بسرعة. يبحث عن كلمات
-          مثل مسمّاك الوظيفي وتواريخك ومهاراتك. إذا فهم سيرتك، يرفعها للموظف.
-          إذا ما فهمها — قد تُتجاهل حتى لو أنت مؤهل!
-        </p>
+      <h2>ليش بعض السير ما توصل؟</h2>
+      <ul>
+        <li><strong>ملف على شكل صورة:</strong> سيرة مصممة في برنامج تصميم ومحفوظة كصورة داخل PDF. تطلع حلوة، بس النظام يشوف صفحة فاضية.</li>
+        <li><strong>أعمدة وجداول ومربعات نص:</strong> النظام يقرأ من فوق لتحت، فيلخبط ترتيب الكلام.</li>
+        <li><strong>عناوين غريبة:</strong> «رحلتي» بدل «الخبرات العملية». النظام يدوّر على العناوين المعروفة.</li>
+        <li><strong>كلمات غير كلمات الإعلان:</strong> الإعلان يقول «Recruitment» وأنت كاتب «Hiring». المعنى واحد، بس البحث حرفي.</li>
+        <li><strong>تواريخ ناقصة أو بصيغ مختلفة:</strong> النظام يحسب سنوات خبرتك من التواريخ.</li>
+      </ul>
 
-        <div className="glass-page-card-sm p-6 sm:p-8">
-          <h2 className="mb-4 text-xl font-extrabold text-white sm:text-2xl">
-            لماذا السيرة بالأبيض والأسود أفضل؟
-          </h2>
-          <ul className="space-y-3 text-sm leading-relaxed text-white/80 sm:text-base">
-            {BW_REASONS.map((reason) => (
-              <li key={reason} className="flex gap-2">
-                <span className="shrink-0 font-bold text-[#FAC775]">✓</span>
-                <span>{reason}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+      <h2>كيف تجهّز سيرتك؟</h2>
+      <ul>
+        <li>عمود واحد، خط عادي، بدون صور ولا أيقونات ولا جداول.</li>
+        <li>عناوين قياسية: الملخص المهني، الخبرات العملية، التعليم، المهارات.</li>
+        <li>استخدم نفس كلمات إعلان الوظيفة للمهارات اللي عندك فعلاً.</li>
+        <li>اكتب إنجازات بأرقام، مو قائمة مهام.</li>
+        <li>للتقديم بالعربي على بوابات التوظيف، ارفع ملف Word — يُقرأ أدق من PDF العربي.</li>
+      </ul>
 
-        <Link
-          href="/create"
-          className="glass-btn-primary mt-10 px-8 py-3.5 text-base shadow-[0_4px_20px_rgba(255,255,255,0.2)]"
-        >
-          ابدأ الآن
-        </Link>
-      </div>
-    </GlassPageLayout>
+      <h2>عربي ولا إنجليزي؟</h2>
+      <p>
+        أغلب هالأنظمة مبنية أصلاً للإنجليزي وتقرأه أدق. عشان كذا الشركات الكبيرة والبنوك تطلب السيرة بالإنجليزي غالباً.
+        العربي مناسب للجهات الحكومية وكثير من الشركات المحلية. الأضمن يكون عندك الثنتين وتقدّم باللي يطلبه الإعلان.
+      </p>
+
+      <h2>وش يسوي CVfy في هذا كله؟</h2>
+      <p>
+        نكتب سيرتك بقالب نصي بعمود واحد وعناوين قياسية، ونستخدم كلمات إعلان الوظيفة وين ما تنطبق عليك، ونعطيك
+        تقرير يوريك بالاسم أي كلمات موجودة في سيرتك وأيها ناقص. وبكل صراحة: ما فيه أحد يقدر يضمن لك تعدّي أي نظام
+        أو تنقبل في وظيفة — اللي نقدر عليه إن سيرتك ما تنرفض بسبب شكل الملف أو صياغته.
+      </p>
+
+      <p className="pt-4">
+        <Link href="/create" className="btn btn-primary btn-lg">ابدأ سيرتك مجاناً</Link>
+      </p>
+    </ProsePage>
   );
 }

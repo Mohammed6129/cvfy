@@ -1,376 +1,224 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import PhoneOtpForm from "@/app/login/phone-otp-form";
-import { GLASS_INPUT_CLASS } from "@/app/components/home-glass-shell";
-import { DEFAULT_POST_AUTH_PATH, getAuthCallbackUrl, mapAuthError } from "@/lib/auth";
+import { mapAuthError } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/client";
 
 type AuthMode = "login" | "signup";
-type LoginMethod = "email" | "phone";
+type Method = "email" | "phone";
 
 function GoogleIcon() {
   return (
     <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden>
-      <path
-        fill="#4285F4"
-        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
-      />
-      <path
-        fill="#34A853"
-        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-      />
-      <path
-        fill="#EA4335"
-        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-      />
-    </svg>
-  );
-}
-
-function AppleIcon() {
-  return (
-    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
+      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
     </svg>
   );
 }
 
 type LoginFormProps = {
-  initialMode?: AuthMode;
-  authError?: string | null;
-  authErrorDescription?: string | null;
-  nextPath?: string;
+  nextPath: string;
+  authError: string | null;
+  authErrorDescription: string | null;
+  mock: boolean;
 };
 
-function getInitialAuthError(
-  authError?: string | null,
-  authErrorDescription?: string | null
-): string | null {
-  if (authError === "auth_callback_error") {
-    return "فشل إكمال تسجيل الدخول. يرجى المحاولة مرة أخرى.";
-  }
-
-  if (authError === "oauth_error") {
-    return authErrorDescription
-      ? mapAuthError(authErrorDescription)
-      : "تم إلغاء تسجيل الدخول أو فشلت المصادقة.";
-  }
-
+function initialError(code: string | null, description: string | null): string | null {
+  if (code === "auth_callback_error") return "ما اكتمل تسجيل الدخول. جرّب مرة ثانية.";
+  if (code === "oauth_error") return description ? mapAuthError(description) : "انلغى تسجيل الدخول أو فشل التحقق.";
   return null;
 }
 
-export default function LoginForm({
-  initialMode = "login",
-  authError,
-  authErrorDescription,
-  nextPath = DEFAULT_POST_AUTH_PATH,
-}: LoginFormProps) {
+export default function LoginForm({ nextPath, authError, authErrorDescription, mock }: LoginFormProps) {
   const router = useRouter();
-  const supabase = createClient();
-
-  const [mode, setMode] = useState<AuthMode>(initialMode);
-  const [loginMethod, setLoginMethod] = useState<LoginMethod>("email");
+  const fromBuilder = nextPath.startsWith("/create");
+  // People arriving from the builder are almost always new: start on sign-up.
+  const [mode, setMode] = useState<AuthMode>(fromBuilder ? "signup" : "login");
+  const [method, setMethod] = useState<Method>("email");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(
-    getInitialAuthError(authError, authErrorDescription)
-  );
+  const [error, setError] = useState<string | null>(initialError(authError, authErrorDescription));
 
-  const handleEmailAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const callbackUrl = () => `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`;
+
+  const done = () => {
+    router.push(nextPath);
+    router.refresh();
+  };
+
+  const reset = () => {
     setError(null);
     setMessage(null);
+  };
+
+  const handleEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    reset();
+    const supabase = createClient();
 
     if (mode === "login") {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInError) {
-        setError("البريد الإلكتروني أو كلمة المرور غير صحيحة.");
+        setError("البريد أو كلمة المرور غير صحيحة.");
         setLoading(false);
         return;
       }
-
-      router.push(nextPath);
-      router.refresh();
-      return;
+      return done();
     }
 
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
+      // After confirming by email the user lands back where they left off.
+      options: { emailRedirectTo: callbackUrl() },
     });
-
     if (signUpError) {
-      setError(signUpError.message);
+      setError(
+        /already registered/i.test(signUpError.message)
+          ? "هذا البريد مسجّل من قبل. سجّل دخولك بدل إنشاء حساب."
+          : "ما قدرنا ننشئ الحساب. تأكد من البريد، وكلمة المرور 6 خانات على الأقل."
+      );
       setLoading(false);
       return;
     }
+    if (data.session) return done();
 
-    if (data.session) {
-      router.push(nextPath);
-      router.refresh();
-      return;
-    }
-
-    setMessage(
-      "تم إنشاء حسابك بنجاح! تحقق من بريدك الإلكتروني لتأكيد الحساب."
-    );
+    setMessage("أرسلنا لك رابط تأكيد على بريدك. افتحه من نفس هذا الجهاز وبنرجّعك تكمل من وين وقفت.");
     setLoading(false);
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogle = async () => {
     setLoading(true);
-    setError(null);
-
-    const redirectTo =
-      typeof window !== "undefined"
-        ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`
-        : getAuthCallbackUrl(nextPath);
-
+    reset();
+    const supabase = createClient();
     const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: {
-        redirectTo,
-        queryParams: {
-          access_type: "offline",
-          prompt: "consent",
-        },
-      },
+      options: { redirectTo: callbackUrl(), queryParams: { prompt: "select_account" } },
     });
-
     if (oauthError) {
       setError(mapAuthError(oauthError.message));
       setLoading(false);
       return;
     }
-
-    if (data.url) {
-      window.location.assign(data.url);
-      return;
-    }
-
-    setError("تعذر بدء تسجيل الدخول عبر Google.");
+    if (data.url) return window.location.assign(data.url);
+    setError("ما قدرنا نبدأ الدخول عبر Google.");
     setLoading(false);
   };
 
+  const handleMock = async () => {
+    setLoading(true);
+    await fetch("/api/dev/login", { method: "POST" });
+    done();
+  };
+
+  const tab = (id: Method, label: string) => (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={method === id}
+      onClick={() => { setMethod(id); reset(); }}
+      className={`min-h-11 flex-1 rounded-[0.625rem] text-[0.9375rem] transition-colors ${
+        method === id ? "bg-paper font-medium text-ink shadow-sm" : "text-graphite hover:text-ink"
+      }`}
+    >
+      {label}
+    </button>
+  );
+
   return (
     <div className="w-full max-w-md">
-      <div className="mb-8 text-center">
-        <h1 className="mb-2 text-3xl font-extrabold text-white">
-          {mode === "login" ? "تسجيل الدخول" : "إنشاء حساب جديد"}
-        </h1>
-        <p className="text-white/70">
-          {mode === "login"
-            ? "مرحباً بعودتك! سجّل دخولك لمتابعة بناء سيرتك الذاتية."
-            : "أنشئ حسابك وابدأ في بناء هويتك المهنية اليوم."}
-        </p>
-      </div>
-
-      <div className="glass-page-card p-6 sm:p-8">
-        {error && (
-          <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
-          </div>
-        )}
-
-        {message && (
-          <div className="mb-5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-            {message}
-          </div>
-        )}
-
-        <div className="mb-6 flex rounded-xl bg-white/10 p-1">
-          <button
-            type="button"
-            onClick={() => {
-              setLoginMethod("email");
-              setError(null);
-              setMessage(null);
-            }}
-            className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition-all ${
-              loginMethod === "email"
-                ? "bg-white text-[#0C447C] shadow-sm"
-                : "text-white/70 hover:text-white"
-            }`}
-          >
-            البريد الإلكتروني
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setLoginMethod("phone");
-              setError(null);
-              setMessage(null);
-            }}
-            className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition-all ${
-              loginMethod === "phone"
-                ? "bg-white text-[#0C447C] shadow-sm"
-                : "text-white/70 hover:text-white"
-            }`}
-          >
-            رقم الجوال
-          </button>
-        </div>
-
-        {loginMethod === "phone" ? (
-          <PhoneOtpForm
-            nextPath={nextPath}
-            loading={loading}
-            setLoading={setLoading}
-            onError={setError}
-            onMessage={setMessage}
-          />
-        ) : (
-        <form className="space-y-5" onSubmit={handleEmailAuth}>
-          <div>
-            <label
-              htmlFor="email"
-              className="mb-2 block text-sm font-semibold text-white/85"
-            >
-              البريد الإلكتروني
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="example@email.com"
-              dir="ltr"
-              disabled={loading}
-              className={GLASS_INPUT_CLASS + " text-left disabled:opacity-60"}
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="password"
-              className="mb-2 block text-sm font-semibold text-white/85"
-            >
-              كلمة المرور
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete={
-                mode === "login" ? "current-password" : "new-password"
-              }
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              dir="ltr"
-              disabled={loading}
-              className={GLASS_INPUT_CLASS + " text-left disabled:opacity-60"}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="glass-btn-primary w-full py-3.5 text-base disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {loading
-              ? "جاري التحميل..."
-              : mode === "login"
-                ? "تسجيل الدخول"
-                : "إنشاء حساب"}
-          </button>
-        </form>
-        )}
-
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/20" />
-          </div>
-          <div className="relative flex justify-center">
-            <span className="bg-transparent px-4 text-sm text-white/55">أو</span>
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <button
-            type="button"
-            onClick={handleGoogleLogin}
-            disabled={loading}
-            className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/25 bg-white/10 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <GoogleIcon />
-            تسجيل الدخول بواسطة Google
-          </button>
-
-          <button
-            type="button"
-            disabled
-            className="flex w-full cursor-not-allowed items-center justify-center gap-3 rounded-xl border border-slate-900 bg-slate-900 py-3 text-sm font-semibold text-white opacity-60"
-          >
-            <AppleIcon />
-            تسجيل الدخول بواسطة Apple
-          </button>
-        </div>
-      </div>
-
-      {loginMethod === "email" && (
-      <p className="mt-8 text-center text-sm text-white/70">
-        {mode === "login" ? (
-          <>
-            ليس لديك حساب؟{" "}
-            <button
-              type="button"
-              onClick={() => {
-                setMode("signup");
-                setError(null);
-                setMessage(null);
-              }}
-              className="font-semibold text-[#FAC775] transition-colors hover:text-white"
-            >
-              إنشاء حساب جديد
-            </button>
-          </>
-        ) : (
-          <>
-            لديك حساب بالفعل؟{" "}
-            <button
-              type="button"
-              onClick={() => {
-                setMode("login");
-                setError(null);
-                setMessage(null);
-              }}
-              className="font-semibold text-[#FAC775] transition-colors hover:text-white"
-            >
-              تسجيل الدخول
-            </button>
-          </>
-        )}
+      <h1 className="t-h2">{fromBuilder ? "سجّل عشان نحفظ سيرتك" : mode === "login" ? "سجّل دخولك" : "أنشئ حسابك"}</h1>
+      <p className="t-body mt-1">
+        {fromBuilder
+          ? "آخر خطوة قبل لا نكتب سيرتك. اللي عبّيته محفوظ وبنكمل من وين وقفت."
+          : "عشان نحفظ سيرتك وترجع لها من أي جهاز."}
       </p>
-      )}
 
-      <p className="mt-4 text-center">
-        <Link
-          href="/"
-          className="text-sm text-white/55 transition-colors hover:text-[#FAC775]"
-        >
-          العودة إلى الصفحة الرئيسية
-        </Link>
-      </p>
+      <div className="card mt-6 p-5 sm:p-7">
+        {error && <p className="note note-bad mb-4" role="alert">{error}</p>}
+        {message && <p className="note note-ok mb-4" role="status">{message}</p>}
+
+        {mock && (
+          <button type="button" onClick={handleMock} disabled={loading} className="btn btn-marker btn-block mb-3">
+            دخول تجريبي (بيئة التطوير)
+          </button>
+        )}
+
+        <button type="button" onClick={handleGoogle} disabled={loading} className="btn btn-ghost btn-lg btn-block">
+          <GoogleIcon />
+          كمّل بحساب Google
+        </button>
+
+        <div className="my-5 flex items-center gap-3 text-sm text-mute" aria-hidden>
+          <span className="h-px flex-1 bg-rule" />
+          أو
+          <span className="h-px flex-1 bg-rule" />
+        </div>
+
+        <div role="tablist" aria-label="طريقة الدخول" className="mb-5 flex gap-1 rounded-[var(--radius-control)] bg-desk p-1">
+          {tab("email", "البريد الإلكتروني")}
+          {tab("phone", "رقم الجوال")}
+        </div>
+
+        {method === "phone" ? (
+          <PhoneOtpForm nextPath={nextPath} loading={loading} setLoading={setLoading} onError={setError} onMessage={setMessage} />
+        ) : (
+          <form className="space-y-4" onSubmit={handleEmail}>
+            <div>
+              <label htmlFor="email" className="label">البريد الإلكتروني</label>
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
+                inputMode="email"
+                required
+                dir="ltr"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@email.com"
+                disabled={loading}
+                className="field text-left"
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="label">كلمة المرور</label>
+              <input
+                id="password"
+                type="password"
+                autoComplete={mode === "login" ? "current-password" : "new-password"}
+                required
+                minLength={6}
+                dir="ltr"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+                className="field text-left"
+              />
+              {mode === "signup" && <p className="hint">6 خانات على الأقل.</p>}
+            </div>
+            <button type="submit" disabled={loading} className="btn btn-primary btn-lg btn-block">
+              {loading ? <span className="spinner" /> : mode === "login" ? "دخول" : "أنشئ الحساب"}
+            </button>
+            <p className="text-center text-[0.9375rem] text-graphite">
+              {mode === "login" ? "ما عندك حساب؟" : "عندك حساب؟"}{" "}
+              <button
+                type="button"
+                className="link"
+                onClick={() => { setMode(mode === "login" ? "signup" : "login"); reset(); }}
+              >
+                {mode === "login" ? "أنشئ حساب جديد" : "سجّل دخولك"}
+              </button>
+            </p>
+          </form>
+        )}
+      </div>
     </div>
   );
 }

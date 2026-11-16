@@ -1,77 +1,47 @@
-import type { Metadata } from "next";
-import { Baloo_Bhaijaan_2, Noto_Serif } from "next/font/google";
-import { GlobalBackgroundBlobs } from "./components/glass-background-blobs";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-const balooBhaijaan = Baloo_Bhaijaan_2({
-  variable: "--font-baloo-bhaijaan",
-  subsets: ["arabic", "latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  display: "swap",
-  preload: true,
-});
-
-const notoSerif = Noto_Serif({
-  variable: "--font-noto-serif",
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  display: "swap",
-  preload: false,
-});
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://cvfy-rosy.vercel.app";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://cvfy-rosy.vercel.app"
-  ),
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "CVfy — هويتك المهنية",
-    template: "%s | CVfy",
+    default: "CVfy — سيرة ذاتية مطابقة للوظيفة، بالعربي والإنجليزي",
+    template: "%s — CVfy",
   },
   description:
-    "أنشئ سيرتك الذاتية الاحترافية في دقائق. قوالب ATS رسمية، تحسين بالذكاء الاصطناعي، وتصدير فوري لسوق العمل السعودي.",
-  icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/favicon.ico",
-  },
-  keywords: [
-    "سيرة ذاتية",
-    "CV",
-    "السعودية",
-    "ATS",
-    "ذكاء اصطناعي",
-    "وظائف",
-  ],
+    "اكتب خبراتك بأسلوبك العادي، وCVfy يحوّلها لسيرة ذاتية احترافية بالعربي والإنجليزي، مطابقة لإعلان الوظيفة وجاهزة لأنظمة الفرز ATS. المعاينة مجانية.",
+  keywords: ["سيرة ذاتية", "CV", "ATS", "السعودية", "وظائف", "سيرة ذاتية بالانجليزي", "كتابة سيرة ذاتية"],
   openGraph: {
-    locale: "ar_SA",
     type: "website",
+    locale: "ar_SA",
     siteName: "CVfy",
+    title: "CVfy — سولف لنا عن شغلك، ونكتبها لك سيرة على مقاس الوظيفة",
+    description: "سيرة ذاتية بالعربي والإنجليزي مطابقة لإعلان الوظيفة. المعاينة مجانية.",
   },
+  twitter: { card: "summary" },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
+  width: "device-width",
+  initialScale: 1,
+};
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="ar"
-      dir="rtl"
-      data-scroll-behavior="smooth"
-      className={`${balooBhaijaan.variable} ${notoSerif.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col font-sans text-white antialiased">
+    <html lang="ar" dir="rtl" data-scroll-behavior="smooth">
+      <head>
+        <link rel="preload" href="/fonts/readex-pro-arabic.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+      </head>
+      <body className="antialiased">
         <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[9999] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-[#0C447C] focus:shadow-lg"
+          href="#main"
+          className="btn btn-primary btn-sm sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-[100]"
         >
-          انتقل للمحتوى الرئيسي
+          انتقل للمحتوى
         </a>
-        <GlobalBackgroundBlobs />
-        <div id="main-content" className="relative z-[1] flex flex-1 flex-col">
-          {children}
-        </div>
+        {children}
       </body>
     </html>
   );

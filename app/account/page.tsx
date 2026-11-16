@@ -1,53 +1,47 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import GlassPageLayout from "@/app/components/glass-page-layout";
-import MyFilesSection from "@/app/components/my-files-section";
-import { createClient } from "@/lib/supabase/server";
-import { getUserProfile } from "@/lib/user";
+import { signOut } from "@/app/auth/actions";
+import PageShell from "@/app/components/page-shell";
+import { getSessionUser } from "@/lib/server/session";
 
 export const metadata: Metadata = {
-  title: "معلومات الحساب — CVfy",
-  description: "إدارة معلومات حسابك في CVfy.",
+  title: "حسابي",
+  robots: { index: false },
 };
 
 export default async function AccountPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login?next=/account");
-  }
-
-  const profile = getUserProfile(user);
+  const user = await getSessionUser();
+  if (!user) redirect("/login?next=/account");
 
   return (
-    <GlassPageLayout mainClassName="px-4 py-8 sm:px-6 sm:py-12">
-      <div className="mx-auto w-full max-w-2xl">
-        <h1 className="mb-6 text-2xl font-extrabold text-white">
-          معلومات الحساب
-        </h1>
+    <PageShell>
+      <div className="wrap wrap-narrow py-10 md:py-14">
+        <h1 className="t-h2">حسابي</h1>
 
-        <div className="space-y-6">
-          <div className="glass-page-card p-6">
-            <div>
-              <p className="mb-1 text-sm font-semibold text-white/60">الاسم</p>
-              <p className="text-base font-bold text-white">{profile.name}</p>
-            </div>
-            <div className="mt-6">
-              <p className="mb-1 text-sm font-semibold text-white/60">
-                البريد الإلكتروني
-              </p>
-              <p className="text-base text-white" dir="ltr">
-                {profile.email ?? "—"}
-              </p>
-            </div>
+        <dl className="card mt-8 divide-y divide-rule">
+          <div className="flex items-center justify-between gap-4 p-5">
+            <dt className="text-graphite">الاسم</dt>
+            <dd className="font-medium">{user.name}</dd>
           </div>
+          <div className="flex items-center justify-between gap-4 p-5">
+            <dt className="text-graphite">البريد الإلكتروني</dt>
+            <dd className="font-medium" dir="ltr">{user.email ?? "—"}</dd>
+          </div>
+        </dl>
 
-          <MyFilesSection />
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link href="/my-cvs" className="btn btn-primary">سيري الذاتية</Link>
+          <form action={signOut}>
+            <button type="submit" className="btn btn-ghost">تسجيل الخروج</button>
+          </form>
         </div>
+
+        <p className="t-small mt-10">
+          تبغى تحذف حسابك وكل بياناتك؟ راسلنا من بريدك المسجّل على{" "}
+          <a href="mailto:support@cvfy.sa" className="link" dir="ltr">support@cvfy.sa</a> ونحذفه لك.
+        </p>
       </div>
-    </GlassPageLayout>
+    </PageShell>
   );
 }

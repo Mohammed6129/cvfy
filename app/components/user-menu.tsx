@@ -4,142 +4,81 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { signOut } from "@/app/auth/actions";
-import { CURRENT_CV_ID_KEY, STORAGE_KEY } from "@/lib/cv-storage";
+import { ChevronIcon } from "./icons";
 
-type UserMenuProps = {
-  name: string;
-  avatarUrl: string | null;
-  variant?: "default" | "glass";
-};
+type UserMenuProps = { name: string; avatarUrl: string | null };
 
-function normalizeGoogleAvatarUrl(url: string): string {
-  if (url.includes("googleusercontent.com") && !url.includes("=s")) {
-    return `${url}=s96-c`;
-  }
-  return url;
-}
-
-function UserAvatar({
-  name,
-  avatarUrl,
-  glass = false,
-}: UserMenuProps & { glass?: boolean }) {
-  if (avatarUrl) {
-    const src = normalizeGoogleAvatarUrl(avatarUrl);
-    return (
-      <Image
-        src={src}
-        alt={name}
-        width={36}
-        height={36}
-        className={`h-9 w-9 rounded-full object-cover ${glass ? "border-2 border-white/35" : "border-2 border-[#378ADD]/20"}`}
-        referrerPolicy="no-referrer"
-      />
-    );
-  }
-
-  return (
-    <span
-      className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold ${
-        glass
-          ? "border-2 border-white/35 bg-white/15 text-white"
-          : "border-2 border-[#378ADD]/20 bg-[#e8f2fc] text-[#378ADD]"
-      }`}
-    >
-      {name.charAt(0).toUpperCase()}
-    </span>
-  );
-}
-
-export default function UserMenu({ name, avatarUrl, variant = "default" }: UserMenuProps) {
-  const isGlass = variant === "glass";
+export default function UserMenu({ name, avatarUrl }: UserMenuProps) {
   const [open, setOpen] = useState(false);
-  const [isPending, startTransition] = useTransition();
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [pending, startTransition] = useTransition();
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+    if (!open) return;
+    const close = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", esc);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", esc);
+    };
+  }, [open]);
 
-  const handleSignOut = () => {
-    sessionStorage.removeItem(STORAGE_KEY);
-    sessionStorage.removeItem(CURRENT_CV_ID_KEY);
-    sessionStorage.removeItem("cvfy-payment-paid");
-    sessionStorage.removeItem("cvfy-payment-plan");
-    sessionStorage.removeItem("cvfy-payment-pending-plan");
-    setOpen(false);
-    startTransition(async () => {
-      await signOut();
-    });
-  };
+  const item = "block w-full px-4 py-2.5 text-start text-[0.9375rem] text-ink hover:bg-desk";
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div className="relative" ref={ref}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={
-          isGlass
-            ? "glass-surface-cta flex items-center gap-2 rounded-full px-2 py-1.5 transition-opacity hover:opacity-90 sm:px-3"
-            : "flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1.5 transition-colors hover:border-[#378ADD]/40 sm:px-3"
-        }
         aria-expanded={open}
         aria-haspopup="menu"
+        className="flex min-h-11 items-center gap-2 rounded-full border border-rule bg-paper py-1 pe-3 ps-1 hover:border-ink"
       >
-        <UserAvatar name={name} avatarUrl={avatarUrl} glass={isGlass} />
-        <span
-          className={`hidden max-w-[100px] truncate text-sm font-semibold md:inline ${
-            isGlass ? "text-white" : "text-slate-700"
-          }`}
-        >
-          {name}
-        </span>
-        <svg
-          className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""} ${isGlass ? "text-white/80" : "text-slate-500"}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
+        {avatarUrl ? (
+          <Image
+            src={avatarUrl}
+            alt=""
+            width={32}
+            height={32}
+            className="h-8 w-8 rounded-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-marker text-sm font-semibold">
+            {name.charAt(0)}
+          </span>
+        )}
+        <span className="hidden max-w-28 truncate text-sm sm:inline">{name}</span>
+        <ChevronIcon size={14} className={`text-mute transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (
         <div
           role="menu"
-          className="absolute left-0 top-full z-50 mt-2 w-52 overflow-hidden rounded-xl border border-slate-100 bg-white py-1 shadow-xl shadow-slate-200/60"
+          className="absolute end-0 top-full z-50 mt-2 w-52 overflow-hidden rounded-[var(--radius-control)] border border-rule bg-paper py-1 shadow-[var(--shadow-pop)]"
         >
-          <Link
-            href="/my-cvs"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className="block px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-[#e8f2fc] hover:text-[#378ADD]"
-          >
-            سيرتي الذاتية
+          <Link href="/my-cvs" role="menuitem" className={item} onClick={() => setOpen(false)}>
+            سيري الذاتية
           </Link>
-          <Link
-            href="/account"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className="block px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-[#e8f2fc] hover:text-[#378ADD]"
-          >
-            معلومات الحساب
+          <Link href="/create?new=1" role="menuitem" className={item} onClick={() => setOpen(false)}>
+            سيرة جديدة
           </Link>
-          <hr className="my-1 border-slate-100" />
+          <Link href="/account" role="menuitem" className={item} onClick={() => setOpen(false)}>
+            حسابي
+          </Link>
+          <hr className="my-1 border-rule" />
           <button
             type="button"
             role="menuitem"
-            onClick={handleSignOut}
-            disabled={isPending}
-            className="block w-full px-4 py-3 text-right text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
+            disabled={pending}
+            className={`${item} text-bad`}
+            onClick={() => startTransition(async () => void (await signOut()))}
           >
-            {isPending ? "جاري الخروج..." : "تسجيل الخروج"}
+            {pending ? "جاري الخروج…" : "تسجيل الخروج"}
           </button>
         </div>
       )}

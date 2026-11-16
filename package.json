@@ -1,21 +1,22 @@
 {
   "name": "cvfy",
-  "version": "0.1.0",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "create-test-user": "npx ts-node -P scripts/tsconfig.json scripts/create-test-user.ts"
+    "create-test-user": "npx ts-node -P scripts/tsconfig.json scripts/create-test-user.ts",
+    "dev:mock": "CVFY_MOCK=1 next dev"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.102.0",
     "@napi-rs/canvas": "^0.1.80",
+    "@react-pdf/renderer": "^4.9.0",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.107.0",
-    "html2pdf.js": "^0.14.0",
-    "jspdf": "^4.2.1",
+    "docx": "^9.15.4",
     "mammoth": "^1.12.0",
     "next": "16.2.7",
     "pdf-parse": "^2.4.5",

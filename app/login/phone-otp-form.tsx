@@ -2,12 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { formatSaudiPhone, mapPhoneAuthError } from "@/lib/phone";
-
-import { GLASS_INPUT_CLASS } from "@/app/components/home-glass-shell";
-
-const inputClass = GLASS_INPUT_CLASS;
+import { createClient } from "@/lib/supabase/client";
 
 type PhoneOtpFormProps = {
   nextPath: string;
@@ -17,111 +13,55 @@ type PhoneOtpFormProps = {
   onMessage: (message: string | null) => void;
 };
 
-export default function PhoneOtpForm({
-  nextPath,
-  loading,
-  setLoading,
-  onError,
-  onMessage,
-}: PhoneOtpFormProps) {
+export default function PhoneOtpForm({ nextPath, loading, setLoading, onError, onMessage }: PhoneOtpFormProps) {
   const router = useRouter();
-  const supabase = createClient();
-
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [formattedPhone, setFormattedPhone] = useState<string | null>(null);
+  const [sentTo, setSentTo] = useState<string | null>(null);
 
-  const handleSendOtp = async (e: React.FormEvent) => {
+  const sendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     onError(null);
     onMessage(null);
 
-    const fullPhone = formatSaudiPhone(phone);
-    if (!fullPhone) {
-      onError("يرجى إدخال رقم جوال سعودي صحيح (مثال: 501234567).");
-      return;
-    }
+    const full = formatSaudiPhone(phone);
+    if (!full) return onError("اكتب رقم جوال سعودي صحيح، مثال: 0501234567");
 
     setLoading(true);
-
-    const { error } = await supabase.auth.signInWithOtp({
-      phone: fullPhone,
-    });
-
-    if (error) {
-      onError(mapPhoneAuthError(error.message));
-      setLoading(false);
-      return;
-    }
-
-    setFormattedPhone(fullPhone);
-    setOtpSent(true);
-    onMessage("تم إرسال رمز التحقق إلى جوالك.");
+    const { error } = await createClient().auth.signInWithOtp({ phone: full });
     setLoading(false);
+    if (error) return onError(mapPhoneAuthError(error.message));
+
+    setSentTo(full);
+    onMessage("أرسلنا لك رمز التحقق برسالة نصية.");
   };
 
-  const handleVerifyOtp = async (e: React.FormEvent) => {
+  const verifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     onError(null);
     onMessage(null);
-
-    if (!formattedPhone) {
-      onError("يرجى إرسال رمز التحقق أولاً.");
-      return;
-    }
-
-    if (otp.trim().length < 4) {
-      onError("يرجى إدخال رمز التحقق.");
-      return;
-    }
+    if (!sentTo) return;
+    if (otp.trim().length < 4) return onError("اكتب رمز التحقق.");
 
     setLoading(true);
-
-    const { error } = await supabase.auth.verifyOtp({
-      phone: formattedPhone,
-      token: otp.trim(),
-      type: "sms",
-    });
-
+    const { error } = await createClient().auth.verifyOtp({ phone: sentTo, token: otp.trim(), type: "sms" });
     if (error) {
-      onError(mapPhoneAuthError(error.message));
       setLoading(false);
-      return;
+      return onError(mapPhoneAuthError(error.message));
     }
-
     router.push(nextPath);
     router.refresh();
   };
 
-  const handleChangeNumber = () => {
-    setOtpSent(false);
-    setOtp("");
-    setFormattedPhone(null);
-    onError(null);
-    onMessage(null);
-  };
-
-  if (!otpSent) {
+  if (!sentTo) {
     return (
-      <form className="space-y-5" onSubmit={handleSendOtp}>
+      <form className="space-y-4" onSubmit={sendOtp}>
         <div>
-          <label
-            htmlFor="phone"
-            className="mb-2 block text-sm font-semibold text-white/85"
-          >
-            رقم الجوال
-          </label>
-          <div
-            dir="ltr"
-            className="flex overflow-hidden rounded-xl border border-slate-200 bg-white transition-colors focus-within:border-[#378ADD] focus-within:ring-2 focus-within:ring-[#378ADD]/20"
-          >
-            <span className="flex items-center border-r border-slate-200 bg-[#e8f2fc] px-4 text-sm font-bold text-[#378ADD]">
-              +966
-            </span>
+          <label htmlFor="phone" className="label">رقم الجوال</label>
+          <div dir="ltr" className="field flex items-center gap-2 p-0 focus-within:border-pen focus-within:shadow-[0_0_0_3px_var(--color-pen-soft)]">
+            <span className="border-e border-rule px-3 text-graphite">+966</span>
             <input
               id="phone"
-              name="phone"
               type="tel"
               inputMode="numeric"
               autoComplete="tel-national"
@@ -130,73 +70,47 @@ export default function PhoneOtpForm({
               onChange={(e) => setPhone(e.target.value)}
               placeholder="5xxxxxxxx"
               disabled={loading}
-              className="flex-1 px-4 py-3 text-left text-slate-900 outline-none placeholder:text-slate-400 disabled:opacity-60"
+              className="min-h-[2.875rem] flex-1 bg-transparent pe-3 text-base outline-none"
             />
           </div>
-          <p className="mt-2 text-xs text-slate-500">
-            أدخل رقمك بدون الصفر الأول (مثال: 501234567)
-          </p>
         </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-full bg-[#378ADD] py-3.5 text-base font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {loading ? "جاري الإرسال..." : "إرسال رمز التحقق"}
+        <button type="submit" disabled={loading} className="btn btn-primary btn-lg btn-block">
+          {loading ? <span className="spinner" /> : "أرسل رمز التحقق"}
         </button>
       </form>
     );
   }
 
   return (
-    <form className="space-y-5" onSubmit={handleVerifyOtp}>
-      <div className="rounded-xl border border-[#378ADD]/20 bg-[#e8f2fc] px-4 py-3 text-sm text-[#378ADD]">
-        تم إرسال الرمز إلى{" "}
-        <span dir="ltr" className="font-bold">
-          {formattedPhone}
-        </span>
-      </div>
-
+    <form className="space-y-4" onSubmit={verifyOtp}>
       <div>
-        <label
-          htmlFor="otp"
-          className="mb-2 block text-sm font-semibold text-slate-700"
-        >
-          رمز التحقق
+        <label htmlFor="otp" className="label">
+          رمز التحقق المرسل إلى <bdi dir="ltr">{sentTo}</bdi>
         </label>
         <input
           id="otp"
-          name="otp"
           type="text"
           inputMode="numeric"
           autoComplete="one-time-code"
           required
           maxLength={6}
+          dir="ltr"
           value={otp}
           onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-          placeholder="123456"
-          dir="ltr"
           disabled={loading}
-          className={`${inputClass} text-center text-lg tracking-[0.3em]`}
+          className="field text-center text-xl tracking-[0.4em]"
         />
       </div>
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full rounded-full bg-[#378ADD] py-3.5 text-base font-semibold text-white shadow-md shadow-[#378ADD]/25 transition-colors hover:bg-[#2a6bb8] disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {loading ? "جاري التحقق..." : "تأكيد وتسجيل الدخول"}
+      <button type="submit" disabled={loading} className="btn btn-primary btn-lg btn-block">
+        {loading ? <span className="spinner" /> : "تأكيد ودخول"}
       </button>
-
       <button
         type="button"
-        onClick={handleChangeNumber}
         disabled={loading}
-        className="w-full text-sm font-semibold text-slate-500 transition-colors hover:text-[#378ADD] disabled:opacity-60"
+        className="btn btn-quiet btn-block"
+        onClick={() => { setSentTo(null); setOtp(""); onError(null); onMessage(null); }}
       >
-        تغيير رقم الجوال
+        غيّر الرقم
       </button>
     </form>
   );

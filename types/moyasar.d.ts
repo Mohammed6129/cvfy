@@ -40,6 +40,7 @@ type MoyasarInitConfig = {
   show_footer?: boolean;
   country?: string;
   payment_options?: MoyasarPaymentOptions;
+  metadata?: Record<string, string>;
   apple_pay?: MoyasarApplePayConfig;
   google_pay?: MoyasarGooglePayConfig;
   on_completed?: (payment: MoyasarPayment) => Promise<void> | void;

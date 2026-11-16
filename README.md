@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CVfy
 
-## Getting Started
+منصة تكتب السيرة الذاتية بالعربي والإنجليزي لسوق العمل السعودي: المستخدم يكتب بأسلوبه، يجاوب على كم سؤال، ويستلم سيرة مطابقة لإعلان الوظيفة مع فحص ATS وملفات PDF و Word.
 
-First, run the development server:
+Next.js 16 (App Router) · Supabase (دخول + قاعدة بيانات) · Anthropic (الكتابة) · Moyasar (الدفع) · Vercel.
+
+## رحلة المستخدم
+
+1. `/` الصفحة الرئيسية.
+2. `/create` النموذج (5 خطوات) — **بدون تسجيل دخول**. المسودة تنحفظ في المتصفح.
+3. عند «اكتب سيرتي» يُطلب تسجيل الدخول، ثم:
+   - `POST /api/cv/interview` يحفظ البيانات، يستخرج كلمات الوظيفة المفتاحية ويرجّع 3–5 أسئلة.
+   - `POST /api/cv/generate` يكتب السيرة باللغة الأساسية ويفحصها.
+4. `/preview?cv=…` معاينة (جزء منها مخفي) + تقرير ATS + الدفع.
+5. بعد الدفع: `POST /api/payments/verify` يتحقق من ميسر، ثم `POST /api/cv/[id]/complete` يكتب اللغة الثانية ورسالة التقديم ونصوص LinkedIn (الباقة الكاملة).
+6. التحميل: `GET /api/cv/[id]/file?lang=en|ar&format=pdf|docx|report` — الملف يتولّد على السيرفر وقت الطلب، وللسيرة المدفوعة فقط.
+
+## أين أغيّر ماذا
+
+| أبغى أغيّر | الملف |
+| --- | --- |
+| الأسعار والباقات وحدود إعادة الإنشاء | `lib/pricing.ts` |
+| تعليمات كتابة السيرة (الـprompt) | `lib/ai/write.ts` |
+| أسئلة المقابلة والكلمات المفتاحية | `lib/ai/interview.ts` |
+| الموديلات المستخدمة | `lib/ai/client.ts` أو متغيرات البيئة |
+| قواعد فحص ATS وأوزانها | `lib/ats/check.ts` |
+| شكل ملف PDF / Word | `lib/files/pdf.tsx` / `lib/files/docx.ts` |
+| شكل السيرة على الشاشة | `app/components/cv-sheet.tsx` |
+| الألوان والخطوط والأزرار | `app/globals.css` |
+| حقول النموذج والتحقق منها | `lib/cv/form.ts` و `app/create/steps.tsx` |
+| ما يظهر قبل الدفع | `lib/server/view.ts` (`redactDoc`) |
+
+## التشغيل محلياً
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev:mock        # بدون أي مفاتيح: ردود AI جاهزة، تخزين في الذاكرة، دخول ودفع تجريبي
+# أو
+cp .env.example .env.local && npm run dev   # بالمفاتيح الحقيقية
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## متغيرات البيئة (Vercel)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+الموجودة سابقاً: `NEXT_PUBLIC_SUPABASE_URL`، `NEXT_PUBLIC_SUPABASE_ANON_KEY`، `NEXT_PUBLIC_SITE_URL`، `ANTHROPIC_API_KEY`، `NEXT_PUBLIC_MOYASAR_PUBLISHABLE_KEY`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**مطلوبة مع هذا الإصدار:**
 
-## Learn More
+- `MOYASAR_SECRET_KEY` — المفتاح السري من لوحة ميسر. بدونه الدفع يُقبل بدون تحقق.
+- `SUPABASE_SERVICE_ROLE_KEY` — بدونه حماية المحتوى قبل الدفع تبقى من جهة الواجهة فقط.
 
-To learn more about Next.js, take a look at the following resources:
+بعد إضافتهم ونشر الإصدار، شغّل مرة وحدة في Supabase SQL Editor:
+`supabase/migrations/2026-11-lock-down-cvs.sql`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## ملاحظات مهمة
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **الحماية قبل الدفع:** السيرفر يرسل للمتصفح نسخة فيها نص بديل مكان الأسطر المخفية، فالنص الحقيقي غير موجود في الصفحة ولا في الشبكة.
+- **التحقق من الدفع:** السيرفر يسأل ميسر عن العملية ويطابق الحالة والمبلغ ورقم السيرة قبل الفتح. رقم العملية لا يُستخدم إلا لسيرة وحدة.
+- **PDF العربي:** نص حقيقي بخط Readex Pro مضمّن. كل عملية توليد تبدأ بخطوط مقروءة من جديد (انظر التعليق في `lib/files/pdf.tsx`) — لا تحذف هذا الجزء.
+- **التكلفة:** كل طلب API فيه استدعاء واحد للموديل (حد Vercel 60 ثانية). قبل الدفع: أسئلة + سيرة بلغة وحدة فقط.
+- **السير القديمة** (قبل نوفمبر 2026) تُعرض وتُحمَّل بالقالب الجديد لكن لا تُعدَّل.

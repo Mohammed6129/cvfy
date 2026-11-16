@@ -30,24 +30,19 @@ export function getMoyasarPublishableKey(): string | undefined {
 
 export function getMoyasarEnvironmentError(): string | null {
   if (typeof window !== "undefined" && !isMoyasarHttpsEnvironment()) {
-    return "الدفع متاح على الموقع المباشر فقط";
+    return "الدفع يشتغل على الموقع المباشر فقط (HTTPS).";
   }
 
   const key = process.env.NEXT_PUBLIC_MOYASAR_PUBLISHABLE_KEY?.trim();
   if (isPlaceholderKey(key) || !key) {
-    return "مفتاح الدفع غير مُهيّأ. أضف NEXT_PUBLIC_MOYASAR_PUBLISHABLE_KEY إلى .env.local ثم أعد تشغيل الخادم.";
+    return "الدفع غير مفعّل في هذي البيئة.";
   }
 
   if (!isValidMoyasarKey(key)) {
-    return "مفتاح Moyasar غير صالح. استخدم pk_test_ أو pk_live_ من لوحة Moyasar.";
+    return "الدفع غير مفعّل في هذي البيئة.";
   }
 
   return null;
-}
-
-export function getMoyasarCallbackUrl(): string {
-  if (typeof window === "undefined") return "/preview";
-  return `${window.location.origin}/preview`;
 }
 
 export function loadMoyasarAssets(): Promise<void> {

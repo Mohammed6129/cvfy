@@ -1,25 +1,36 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
-import GlassPageLayout from "@/app/components/glass-page-layout";
-import LoadingSpinner from "@/app/components/loading-spinner";
-import ErrorBoundary from "@/app/components/error-boundary";
-import CvPreview from "./cv-preview";
+import { redirect } from "next/navigation";
+import PageShell from "@/app/components/page-shell";
+import { isMockMode } from "@/lib/ai/client";
+import { getSessionUser } from "@/lib/server/session";
+import PreviewClient from "./preview-client";
 
 export const metadata: Metadata = {
-  title: "معاينة السيرة الذاتية — CVfy",
-  description: "معاينة سيرتك الذاتية المُنشأة بواسطة CVfy.",
+  title: "معاينة سيرتك",
+  robots: { index: false },
 };
 
-export default function PreviewPage() {
+type Props = {
+  searchParams: Promise<{ cv?: string; id?: string; status?: string; message?: string; plan?: string }>;
+};
+
+export default async function PreviewPage({ searchParams }: Props) {
+  const [params, user] = await Promise.all([searchParams, getSessionUser()]);
+
+  if (!params.cv) redirect("/my-cvs");
+  if (!user) {
+    const query = new URLSearchParams(params as Record<string, string>).toString();
+    redirect(`/login?next=${encodeURIComponent(`/preview?${query}`)}`);
+  }
+
+  // Moyasar sends the shopper back with ?id=<payment>&status=<paid|failed>.
+  const payment = params.id
+    ? { id: params.id, status: params.status ?? "", message: params.message ?? "", plan: params.plan ?? "" }
+    : null;
+
   return (
-    <GlassPageLayout mainClassName="px-6 pb-10 pt-8">
-      <div className="mx-auto w-full max-w-[1100px]">
-        <ErrorBoundary fallbackHref="/create" fallbackLabel="العودة لإنشاء السيرة">
-          <Suspense fallback={<LoadingSpinner label="جاري تحميل المعاينة..." />}>
-            <CvPreview />
-          </Suspense>
-        </ErrorBoundary>
-      </div>
-    </GlassPageLayout>
+    <PageShell variant="focus" desk footer={false}>
+      <PreviewClient cvId={params.cv} userId={user.id} mock={isMockMode()} payment={payment} />
+    </PageShell>
   );
 }

@@ -1,39 +1,42 @@
 import type { Metadata } from "next";
-import GlassPageLayout from "@/app/components/glass-page-layout";
+import ProsePage from "@/app/components/prose-page";
 
 export const metadata: Metadata = {
-  title: "سياسة الخصوصية — CVfy",
-  description: "سياسة خصوصية منصة CVfy وكيفية التعامل مع بياناتك.",
+  title: "الخصوصية",
+  description: "كيف يتعامل CVfy مع بياناتك.",
 };
 
 export default function PrivacyPage() {
   return (
-    <GlassPageLayout mainClassName="px-4 py-10 sm:px-6 sm:py-14">
-      <div className="glass-page-card mx-auto max-w-3xl px-6 py-10 sm:px-8">
-        <h1 className="mb-6 text-3xl font-extrabold text-white">
-          سياسة الخصوصية
-        </h1>
-        <div className="space-y-4 text-white/80">
-          <p>
-            نحن في CVfy نحترم خصوصيتك ونلتزم بحماية بياناتك الشخصية وفقاً
-            لأنظمة المملكة العربية السعودية.
-          </p>
-          <p>
-            نجمع فقط البيانات اللازمة لإنشاء سيرتك الذاتية: الاسم، البريد
-            الإلكتروني، رقم الجوال، ومعلوماتك المهنية. لا نبيع بياناتك لأطراف
-            ثالثة.
-          </p>
-          <p>
-            نستخدم مزودي خدمات موثوقين (مثل Supabase للتخزين الآمن وAnthropic
-            للذكاء الاصطناعي) مع تشفير البيانات أثناء النقل والتخزين.
-          </p>
-          <p>
-            يمكنك حذف سيرك الذاتية من صفحة سيرتي الذاتية أو طلب حذف حسابك
-            بالتواصل معنا عبر البريد الإلكتروني.
-          </p>
-          <p className="text-sm text-white/55">آخر تحديث: يونيو 2026</p>
-        </div>
-      </div>
-    </GlassPageLayout>
+    <ProsePage title="الخصوصية" lead="سيرتك فيها بياناتك الشخصية، فهذا بالضبط اللي نسويه فيها.">
+      <h2>وش نجمع</h2>
+      <ul>
+        <li>اللي تكتبه في النموذج: اسمك، بريدك، جوالك، مدينتك، خبراتك، تعليمك ومهاراتك.</li>
+        <li>ملف سيرتك القديمة إذا رفعته — نستخرج منه النص ولا نحتفظ بالملف نفسه.</li>
+        <li>بيانات تسجيل الدخول (البريد أو رقم الجوال أو حساب Google).</li>
+      </ul>
+
+      <h2>ليش نجمعها</h2>
+      <p>لغرض واحد: نكتب سيرتك ونحفظها في حسابك عشان ترجع لها وتعدّلها. ما نبيع بياناتك ولا نشاركها لأغراض تسويقية.</p>
+
+      <h2>مع مين تمر بياناتك</h2>
+      <ul>
+        <li><strong>Supabase:</strong> قاعدة البيانات وتسجيل الدخول.</li>
+        <li><strong>Anthropic:</strong> نموذج الذكاء الاصطناعي اللي يصيغ السيرة. يستلم محتوى سيرتك لمعالجته.</li>
+        <li><strong>ميسر (Moyasar):</strong> معالجة الدفع. بيانات البطاقة تروح لهم مباشرة ولا تمر علينا.</li>
+        <li><strong>Vercel:</strong> استضافة الموقع.</li>
+      </ul>
+
+      <h2>تحكّمك في بياناتك</h2>
+      <p>
+        تقدر تحذف أي سيرة من صفحة «سيري الذاتية». ولحذف حسابك وكل بياناتك نهائياً، راسلنا من بريدك المسجّل
+        على <a className="link" dir="ltr" href="mailto:support@cvfy.sa">support@cvfy.sa</a>.
+      </p>
+
+      <h2>الحماية</h2>
+      <p>الاتصال بالموقع مشفّر، وسيرتك ما يقدر يفتحها إلا حسابك.</p>
+
+      <p className="text-[0.875rem] text-mute">آخر تحديث: نوفمبر 2026</p>
+    </ProsePage>
   );
 }

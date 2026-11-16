@@ -1,50 +1,39 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import GlassPageLayout from "@/app/components/glass-page-layout";
+import PageShell from "@/app/components/page-shell";
+import { isMockMode } from "@/lib/ai/client";
+import { getSessionUser } from "@/lib/server/session";
 import LoginForm from "./login-form";
-import { DEFAULT_POST_AUTH_PATH } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
-
-function getPostLoginPath(next?: string): string {
-  if (next && next.startsWith("/") && !next.startsWith("//")) {
-    return next;
-  }
-  return DEFAULT_POST_AUTH_PATH;
-}
 
 export const metadata: Metadata = {
-  title: "تسجيل الدخول — CVfy",
-  description: "سجّل دخولك إلى CVfy لإدارة سيرتك الذاتية الاحترافية.",
+  title: "تسجيل الدخول",
+  robots: { index: false },
 };
 
-type LoginPageProps = {
-  searchParams: Promise<{
-    mode?: string;
-    error?: string;
-    error_description?: string;
-    next?: string;
-  }>;
+function safeNext(next?: string): string {
+  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/my-cvs";
+}
+
+type Props = {
+  searchParams: Promise<{ error?: string; error_description?: string; next?: string }>;
 };
 
-export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const params = await searchParams;
-  const initialMode = params.mode === "signup" ? "signup" : "login";
+export default async function LoginPage({ searchParams }: Props) {
+  const [params, user] = await Promise.all([searchParams, getSessionUser()]);
+  const nextPath = safeNext(params.next);
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (user && !params.error) {
-    redirect(getPostLoginPath(params.next));
-  }
+  if (user && !params.error) redirect(nextPath);
 
   return (
-    <GlassPageLayout mainClassName="flex items-center justify-center px-4 py-12 sm:px-6">
-      <LoginForm
-        initialMode={initialMode}
-        nextPath={getPostLoginPath(params.next)}
-      />
-    </GlassPageLayout>
+    <PageShell variant="focus" footer={false}>
+      <div className="wrap flex justify-center py-10 md:py-16">
+        <LoginForm
+          nextPath={nextPath}
+          authError={params.error ?? null}
+          authErrorDescription={params.error_description ?? null}
+          mock={isMockMode()}
+        />
+      </div>
+    </PageShell>
   );
 }

@@ -1,33 +1,31 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { Suspense } from "react";
-import GlassPageLayout from "@/app/components/glass-page-layout";
-import LoadingSpinner from "@/app/components/loading-spinner";
-import CreateForm from "./create-form";
-import { createClient } from "@/lib/supabase/server";
+import PageShell from "@/app/components/page-shell";
+import { getSessionUser } from "@/lib/server/session";
+import Wizard from "./wizard";
 
 export const metadata: Metadata = {
-  title: "إنشاء السيرة الذاتية — CVfy",
-  description: "أنشئ سيرتك الذاتية خطوة بخطوة مع CVfy.",
+  title: "أنشئ سيرتك",
+  description: "عبّي بياناتك بأسلوبك وشوف سيرتك مكتوبة ومفحوصة قبل لا تدفع.",
 };
 
-export default async function CreatePage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+type Props = {
+  searchParams: Promise<{ edit?: string; resume?: string; new?: string }>;
+};
 
-  if (!user) {
-    redirect("/login?next=/create");
-  }
+export default async function CreatePage({ searchParams }: Props) {
+  const [params, user] = await Promise.all([searchParams, getSessionUser()]);
 
   return (
-    <GlassPageLayout mainClassName="px-4 py-8 sm:px-6 sm:py-12">
-      <div className="mx-auto w-full max-w-3xl">
-        <Suspense fallback={<LoadingSpinner label="جاري التحميل..." />}>
-          <CreateForm />
-        </Suspense>
+    <PageShell variant="focus" footer={false}>
+      <div className="wrap py-8 md:py-12">
+        <Wizard
+          signedIn={Boolean(user)}
+          email={user?.email ?? null}
+          editId={params.edit ?? null}
+          resume={params.resume === "1"}
+          fresh={params.new === "1"}
+        />
       </div>
-    </GlassPageLayout>
+    </PageShell>
   );
 }
