@@ -98,6 +98,8 @@ export default function PreviewClient({ cvId, userId, mock, payment }: PreviewCl
           setPayMessage({ kind: "ok", text: "تم الدفع. ملفاتك جاهزة للتحميل." });
           completed.current = false;
           await load();
+          // Bring the confirmation and the download list into view.
+          window.scrollTo({ top: 0, behavior: "smooth" });
         } else {
           setPayMessage({ kind: "bad", text: json.error || "ما قدرنا نتأكد من الدفع." });
         }
