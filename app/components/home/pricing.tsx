@@ -76,7 +76,7 @@ export default function Pricing() {
 
         <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
           <PaymentMarks />
-          <p className="t-small">الأسعار شاملة ضريبة القيمة المضافة.</p>
+          <p className="t-small">السعر اللي تشوفه هو اللي تدفعه، بدون رسوم إضافية.</p>
         </div>
       </div>
     </section>

@@ -3,7 +3,8 @@ import type { PlanId } from "@/lib/cv/types";
 /**
  * Single source of truth for prices. Change a number here and it updates
  * everywhere: landing page, paywall, Moyasar amount and server-side checks.
- * Prices are in SAR and already include VAT.
+ * Prices are in SAR and are the final amount charged (if the business is
+ * VAT-registered, they are VAT-inclusive).
  */
 export type Plan = {
   id: PlanId;
