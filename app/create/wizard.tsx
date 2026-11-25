@@ -3,76 +3,66 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BackIcon, FileIcon, NextIcon } from "@/app/components/icons";
-import { IlluBlank, IlluQuestions, IlluUpload, IlluWriting } from "@/app/components/illustrations";
+import UploadCv from "@/app/components/upload-cv";
+import { BackIcon, NextIcon, PenIcon } from "@/app/components/icons";
+import { IlluWriting } from "@/app/components/illustrations";
 import {
   cleanForm,
+  DEGREES,
   emptyForm,
   FORM_STEPS,
+  formatPeriod,
+  nameKey,
+  stepForField,
+  pinToEmptyCards,
   validateForm,
   validateStep,
   type FormErrors,
 } from "@/lib/cv/form";
-import type { CvForm, InterviewQuestion } from "@/lib/cv/types";
-import { EducationStep, ExperienceStep, PersonalStep, SkillsStep, TargetStep } from "./steps";
+import type { CvForm } from "@/lib/cv/types";
+import { fetchAsGuest } from "@/lib/guest";
+import { readDraft, writeDraft } from "./draft";
+import { AboutStep, ExperienceStep, TargetStep } from "./steps";
 
-const DRAFT_KEY = "cvfy:draft:v2";
-const STEP_LABELS = ["الوظيفة", "بياناتك", "الخبرات", "التعليم", "المهارات"];
+const STEP_LABELS = ["الوظيفة", "بياناتك", "خبراتك"];
 
-type Draft = {
-  form: CvForm;
-  step: number;
-  cvId: string | null;
-  /** Set when the user was sent to sign in right before generation. */
-  pending: boolean;
-};
-
-type Stage = "loading" | "start" | "form" | "reading" | "interview" | "writing";
+type Stage = "loading" | "form" | "review" | "writing";
 
 type WizardProps = {
-  signedIn: boolean;
-  email: string | null;
   editId: string | null;
   resume: boolean;
   fresh: boolean;
+  review: boolean;
+  email: string | null;
+  mock: boolean;
 };
-
-function readDraft(): Draft | null {
-  try {
-    const raw = localStorage.getItem(DRAFT_KEY);
-    if (!raw) return null;
-    const draft = JSON.parse(raw) as Draft;
-    return draft?.form?.v === 2 ? draft : null;
-  } catch {
-    return null;
-  }
-}
-
-function writeDraft(draft: Draft | null) {
-  try {
-    if (draft) localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-    else localStorage.removeItem(DRAFT_KEY);
-  } catch {
-    // Private mode or full storage: the form still works, it just won't survive a reload.
-  }
-}
 
 function hasContent(form: CvForm): boolean {
   return Boolean(
     form.target.jobTitle.trim() ||
       form.personal.nameAr.trim() ||
+      form.personal.nameEn.trim() ||
       form.experience.some((x) => x.title.trim() || x.description.trim())
   );
 }
 
 const WRITING_LINES = [
+  "نقرأ الوظيفة ونطلّع كلماتها المفتاحية…",
   "نرتّب خبراتك حسب أهميتها للوظيفة…",
   "نصيغ إنجازاتك بالأرقام اللي ذكرتها…",
-  "نضيف الكلمات المفتاحية اللي تنطبق عليك…",
   "نفحص السيرة على معايير ATS…",
 ];
 
-export default function Wizard({ signedIn, email, editId, resume, fresh }: WizardProps) {
+/** Bottom action bar: pinned to the thumb on phones, inline on larger screens. */
+function ActionBar({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="no-print fixed inset-x-0 bottom-0 z-30 border-t border-rule bg-paper/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md sm:static sm:mt-8 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+      <div className="mx-auto flex max-w-xl items-center gap-3">{children}</div>
+    </div>
+  );
+}
+
+export default function Wizard({ editId, resume, fresh, review, email, mock }: WizardProps) {
   const router = useRouter();
   const [stage, setStage] = useState<Stage>("loading");
   const [form, setForm] = useState<CvForm>(emptyForm);
@@ -80,13 +70,11 @@ export default function Wizard({ signedIn, email, editId, resume, fresh }: Wizar
   const [cvId, setCvId] = useState<string | null>(editId);
   const [errors, setErrors] = useState<FormErrors>({});
   const [notice, setNotice] = useState<string | null>(null);
+  const [restored, setRestored] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
-  const [savedDraft, setSavedDraft] = useState<Draft | null>(null);
-  const [questions, setQuestions] = useState<InterviewQuestion[]>([]);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [uploading, setUploading] = useState(false);
   const [lineIndex, setLineIndex] = useState(0);
-  const fileRef = useRef<HTMLInputElement>(null);
+  /** Editing one screen from the review summary: "done" goes back to the summary. */
+  const [fromReview, setFromReview] = useState(false);
   const topRef = useRef<HTMLDivElement>(null);
   const started = useRef(false);
   /** Set once we hand off to sign-in, so a late autosave cannot clear the "pending" flag. */
@@ -97,19 +85,44 @@ export default function Wizard({ signedIn, email, editId, resume, fresh }: Wizar
     [router]
   );
 
-  /* ── Generation ── */
+  /* ── Writing: save + profile the job, then write. One screen, no questions in between. ── */
 
-  const generate = useCallback(
-    async (id: string, given: Record<string, string>) => {
+  const write = useCallback(
+    async (current: CvForm, id: string | null) => {
       setStage("writing");
       setFailure(null);
+      setLineIndex(0);
       try {
-        const res = await fetch("/api/cv/generate", {
+        const prepared = await fetchAsGuest(mock, "/api/cv/prepare", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id, answers: given }),
+          body: JSON.stringify({ form: current, id }),
         });
-        if (res.status === 401) return goLogin("/create?resume=1");
+        if (prepared.status === 401) {
+          // Guest sessions are switched off on this deployment: fall back to signing in first.
+          leaving.current = true;
+          writeDraft({ form: current, step: FORM_STEPS.length - 1, cvId: id, pending: true });
+          return goLogin("/create?resume=1");
+        }
+        const prep = (await prepared.json().catch(() => ({}))) as { id?: string; error?: string; fields?: FormErrors };
+        if (prepared.status === 422 && prep.fields) {
+          setErrors(prep.fields);
+          setStep(stepForField(Object.keys(prep.fields)[0] ?? ""));
+          setStage("form");
+          return;
+        }
+        if (!prepared.ok || !prep.id) {
+          setFailure(prep.error || "ما قدرنا نكمل هالمرة.");
+          return;
+        }
+        setCvId(prep.id);
+        writeDraft({ form: current, step: FORM_STEPS.length - 1, cvId: prep.id, pending: false });
+
+        const res = await fetchAsGuest(mock, "/api/cv/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: prep.id }),
+        });
         const data = (await res.json().catch(() => ({}))) as { id?: string; error?: string };
         if (!res.ok || !data.id) {
           setFailure(data.error || "ما قدرنا نكتب السيرة هالمرة.");
@@ -121,58 +134,10 @@ export default function Wizard({ signedIn, email, editId, resume, fresh }: Wizar
         setFailure("انقطع الاتصال. تأكد من الإنترنت وجرّب مرة ثانية.");
       }
     },
-    [goLogin, router]
+    [goLogin, mock, router]
   );
 
-  const startInterview = useCallback(
-    async (current: CvForm, id: string | null) => {
-      setStage("reading");
-      setFailure(null);
-      try {
-        const res = await fetch("/api/cv/interview", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ form: current, id }),
-        });
-        if (res.status === 401) {
-          leaving.current = true;
-          writeDraft({ form: current, step: FORM_STEPS.length - 1, cvId: id, pending: true });
-          return goLogin("/create?resume=1");
-        }
-        const data = (await res.json().catch(() => ({}))) as {
-          id?: string;
-          questions?: InterviewQuestion[];
-          answers?: Record<string, string>;
-          error?: string;
-          fields?: FormErrors;
-        };
-        if (res.status === 422 && data.fields) {
-          setErrors(data.fields);
-          const firstKey = Object.keys(data.fields)[0] ?? "";
-          const idx = FORM_STEPS.findIndex((s) => firstKey.startsWith(s));
-          setStep(idx >= 0 ? idx : 0);
-          setStage("form");
-          return;
-        }
-        if (!res.ok || !data.id) {
-          setFailure(data.error || "ما قدرنا نكمل هالمرة.");
-          return;
-        }
-        setCvId(data.id);
-        writeDraft({ form: current, step: FORM_STEPS.length - 1, cvId: data.id, pending: false });
-        const qs = data.questions ?? [];
-        if (qs.length === 0) return generate(data.id, {});
-        setQuestions(qs);
-        setAnswers(data.answers ?? {});
-        setStage("interview");
-      } catch {
-        setFailure("انقطع الاتصال. تأكد من الإنترنت وجرّب مرة ثانية.");
-      }
-    },
-    [generate, goLogin]
-  );
-
-  /* ── Boot: edit an existing CV, resume after sign-in, or offer the saved draft ── */
+  /* ── Boot: edit an existing CV, resume after sign-in, review an upload, or restore the draft ── */
 
   useEffect(() => {
     if (started.current) return;
@@ -200,37 +165,51 @@ export default function Wizard({ signedIn, email, editId, resume, fresh }: Wizar
       if (fresh) writeDraft(null);
       const draft = fresh ? null : readDraft();
 
-      if (draft && resume && draft.pending && signedIn) {
+      if (draft && resume && draft.pending) {
         setForm(draft.form);
         setStep(draft.step);
         setCvId(draft.cvId);
-        void startInterview(cleanForm(draft.form), draft.cvId);
+        void write(cleanForm(draft.form), draft.cvId);
         return;
       }
 
-      if (draft && hasContent(draft.form)) setSavedDraft(draft);
-      setStage("start");
+      if (draft && (review || draft.review)) {
+        setForm(withEmail(draft.form, email));
+        setCvId(null);
+        setStage("review");
+        return;
+      }
+
+      if (draft && hasContent(draft.form)) {
+        setForm(draft.form);
+        setStep(Math.min(draft.step, FORM_STEPS.length - 1));
+        setCvId(draft.cvId);
+        setRestored(true);
+      } else {
+        setForm(withEmail(emptyForm(), email));
+      }
+      setStage("form");
     };
 
     void boot();
-  }, [editId, fresh, resume, signedIn, goLogin, startInterview]);
+  }, [editId, fresh, resume, review, email, goLogin, write]);
 
   // Save as the user types, so a closed tab never costs them their work.
   useEffect(() => {
-    if (stage !== "form") return;
+    if (stage !== "form" && stage !== "review") return;
     const timer = setTimeout(() => {
-      if (!leaving.current) writeDraft({ form, step, cvId, pending: false });
+      if (!leaving.current) writeDraft({ form, step, cvId, pending: false, review: stage === "review" });
     }, 400);
     return () => clearTimeout(timer);
   }, [form, step, cvId, stage]);
 
   useEffect(() => {
-    if (stage !== "writing" && stage !== "reading") return;
-    const timer = setInterval(() => setLineIndex((i) => (i + 1) % WRITING_LINES.length), 3200);
+    if (stage !== "writing") return;
+    const timer = setInterval(() => setLineIndex((i) => Math.min(i + 1, WRITING_LINES.length - 1)), 5000);
     return () => clearInterval(timer);
   }, [stage]);
 
-  // Each new step or screen starts at the top (instant, not animated).
+  // Each new step or screen starts at the top.
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [step, stage]);
@@ -240,71 +219,54 @@ export default function Wizard({ signedIn, email, editId, resume, fresh }: Wizar
     setErrors((prev) => (Object.keys(prev).length ? {} : prev));
   }, []);
 
-  const beginForm = (initial: CvForm, at = 0) => {
-    const withEmail =
-      email && !initial.personal.email ? { ...initial, personal: { ...initial.personal, email } } : initial;
-    setForm(withEmail);
-    setStep(at);
-    setStage("form");
-  };
-
   const showErrors = (found: FormErrors) => {
     setErrors(found);
     requestAnimationFrame(() => {
       const first = Object.keys(found)[0];
       const node = first ? document.querySelector(`[data-field="${first}"]`) : null;
-      (node ?? topRef.current)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (node) node.scrollIntoView({ behavior: "smooth", block: "center" });
+      else topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   };
 
+  const submit = () => {
+    const cleaned = cleanForm(form);
+    const all = pinToEmptyCards(validateForm(cleaned), form);
+    if (Object.keys(all).length > 0) {
+      const at = stepForField(Object.keys(all)[0]);
+      if (stage === "review") setFromReview(true);
+      setStep(at);
+      setStage("form");
+      return showErrors(Object.fromEntries(Object.entries(all).filter(([k]) => stepForField(k) === at)));
+    }
+    void write(cleaned, cvId);
+  };
+
   const next = () => {
-    const found = validateStep(FORM_STEPS[step], cleanForm(form));
+    const found = pinToEmptyCards(validateStep(FORM_STEPS[step], cleanForm(form)), form);
     if (Object.keys(found).length > 0) return showErrors(found);
     setErrors({});
+    setRestored(false);
 
+    if (fromReview) {
+      setFromReview(false);
+      setStage("review");
+      return;
+    }
     if (step < FORM_STEPS.length - 1) {
       setStep(step + 1);
       return;
     }
-
-    const cleaned = cleanForm(form);
-    const all = validateForm(cleaned);
-    if (Object.keys(all).length > 0) {
-      const firstKey = Object.keys(all)[0];
-      const idx = FORM_STEPS.findIndex((s) => firstKey.startsWith(s));
-      setStep(idx >= 0 ? idx : 0);
-      return showErrors(all);
-    }
-
-    if (!signedIn) {
-      leaving.current = true;
-      writeDraft({ form: cleaned, step, cvId, pending: true });
-      return goLogin("/create?resume=1");
-    }
-    void startInterview(cleaned, cvId);
+    submit();
   };
 
-  const upload = async (file: File) => {
-    setUploading(true);
-    setNotice(null);
-    try {
-      const body = new FormData();
-      body.append("file", file);
-      const res = await fetch("/api/cv/parse", { method: "POST", body });
-      if (res.status === 401) return goLogin("/create");
-      const data = (await res.json().catch(() => ({}))) as { form?: CvForm; error?: string };
-      if (!res.ok || !data.form) {
-        setNotice(data.error || "ما قدرنا نقرأ الملف. تقدر تعبّي بياناتك يدوياً.");
-        return;
-      }
-      setNotice("عبّينا بياناتك من سيرتك القديمة. راجعها وكمّل الناقص — وزوّد الأرقام وين ما تقدر.");
-      beginForm(data.form);
-    } catch {
-      setNotice("انقطع الاتصال أثناء رفع الملف. جرّب مرة ثانية.");
-    } finally {
-      setUploading(false);
-      if (fileRef.current) fileRef.current.value = "";
-    }
+  const startOver = () => {
+    writeDraft(null);
+    setForm(withEmail(emptyForm(), email));
+    setStep(0);
+    setCvId(null);
+    setRestored(false);
+    setErrors({});
   };
 
   /* ── Screens ── */
@@ -318,84 +280,17 @@ export default function Wizard({ signedIn, email, editId, resume, fresh }: Wizar
     );
   }
 
-  if (stage === "start") {
+  if (stage === "writing") {
     return (
-      <div ref={topRef} className="mx-auto max-w-2xl">
-        <h1 className="t-h2">كيف تبغى تبدأ؟</h1>
-        <p className="t-body mt-1">في الحالتين تشوف سيرتك مكتوبة قبل لا تدفع أي شي.</p>
-
-        {notice && <p className="note note-warn mt-5" role="status">{notice}</p>}
-
-        {savedDraft && (
-          <div className="mt-6 flex flex-col gap-3 rounded-[var(--radius-card)] bg-marker-soft p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="font-medium">عندك سيرة ما كمّلتها</p>
-              <p className="t-small">{savedDraft.form.target.jobTitle || savedDraft.form.personal.nameAr || "مسودة محفوظة على جهازك"}</p>
-            </div>
-            <button type="button" className="btn btn-primary" onClick={() => { setCvId(savedDraft.cvId); beginForm(savedDraft.form, savedDraft.step); }}>
-              كمّل من وين وقفت
-            </button>
-          </div>
-        )}
-
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => { setCvId(null); beginForm(emptyForm()); }}
-            className="card p-6 text-start transition-colors hover:border-ink"
-          >
-            <IlluBlank className="h-28 w-28" />
-            <span className="t-h3 mt-4 block">أبدأ من الصفر</span>
-            <span className="t-small mt-1 block">خمس خطوات قصيرة، تكتب فيها بأسلوبك العادي.</span>
-          </button>
-
-          <button
-            type="button"
-            disabled={uploading}
-            onClick={() => (signedIn ? fileRef.current?.click() : goLogin("/create"))}
-            className="card p-6 text-start transition-colors hover:border-ink disabled:opacity-60"
-          >
-            <IlluUpload className="h-28 w-28" />
-            <span className="t-h3 mt-4 flex items-center gap-2">
-              {uploading && <span className="spinner" />}
-              {uploading ? "نقرأ سيرتك…" : "عندي سيرة قديمة"}
-            </span>
-            <span className="t-small mt-1 block">
-              ارفعها (PDF أو Word) ونعبّي بياناتك عنك، وأنت تراجع.
-              {!signedIn && " تحتاج تسجّل دخول أول."}
-            </span>
-          </button>
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) void upload(file);
-            }}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  if (stage === "reading" || stage === "writing") {
-    const reading = stage === "reading";
-    return (
-      <div ref={topRef} className="mx-auto flex min-h-[55vh] max-w-lg flex-col items-center justify-center text-center">
+      <div ref={topRef} className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center text-center">
         {failure ? (
           <>
             <p className="note note-bad w-full" role="alert">{failure}</p>
-            <div className="mt-5 flex flex-wrap justify-center gap-3">
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => (reading || !cvId ? void startInterview(cleanForm(form), cvId) : void generate(cvId, answers))}
-              >
+            <div className="mt-5 flex w-full flex-col gap-3">
+              <button type="button" className="btn btn-primary btn-lg btn-block" onClick={() => void write(cleanForm(form), cvId)}>
                 جرّب مرة ثانية
               </button>
-              <button type="button" className="btn btn-ghost" onClick={() => { setFailure(null); setStage("form"); }}>
+              <button type="button" className="btn btn-ghost btn-block" onClick={() => { setFailure(null); setStage("form"); }}>
                 ارجع لبياناتي
               </button>
             </div>
@@ -403,63 +298,32 @@ export default function Wizard({ signedIn, email, editId, resume, fresh }: Wizar
           </>
         ) : (
           <div role="status" aria-live="polite">
-            <IlluWriting tile="none" className="mx-auto h-48 w-48" />
-            <h1 className="t-h2 mt-4">{reading ? "نقرأ بياناتك" : "نكتب سيرتك"}</h1>
-            <p className="t-body mt-2 min-h-8">
-              {reading ? "نحدد الكلمات المفتاحية للوظيفة ونجهّز لك كم سؤال…" : WRITING_LINES[lineIndex]}
-            </p>
-            <p className="t-small mt-4">{reading ? "ثواني معدودة." : "تاخذ تقريباً نص دقيقة. خلّ الصفحة مفتوحة."}</p>
+            <IlluWriting tile="none" className="mx-auto h-40 w-40" />
+            <h1 className="t-h2 mt-4">نكتب سيرتك</h1>
+            <p className="t-body mt-2 min-h-8">{WRITING_LINES[lineIndex]}</p>
+            <p className="t-small mt-4">تاخذ أقل من دقيقة. خلّ الصفحة مفتوحة.</p>
           </div>
         )}
       </div>
     );
   }
 
-  if (stage === "interview" && cvId) {
-    const answered = questions.filter((q) => (answers[q.id] ?? "").trim()).length;
+  if (stage === "review") {
     return (
-      <div ref={topRef} className="mx-auto max-w-2xl">
-        <div className="flex items-start gap-4">
-          <IlluQuestions className="hidden h-24 w-24 shrink-0 sm:block" />
-          <div>
-            <h1 className="t-h2">كم سؤال قبل لا نكتب</h1>
-            <p className="t-body mt-1">
-              هذي الأسئلة هي اللي تفرّق سيرتك عن غيرها. جاوب بسطر واحد، واللي ما تعرف جوابه اتركه فاضي.
-            </p>
-          </div>
-        </div>
-
-        <ol className="mt-7 space-y-5">
-          {questions.map((q, i) => (
-            <li key={q.id} className="card p-4 sm:p-6">
-              <label htmlFor={q.id} className="flex gap-3 font-medium leading-relaxed">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-marker text-sm">{i + 1}</span>
-                <span>{q.question}</span>
-              </label>
-              <textarea
-                id={q.id}
-                rows={2}
-                value={answers[q.id] ?? ""}
-                onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
-                placeholder={q.example ? `مثال: ${q.example}` : ""}
-                dir="auto"
-                className="field t-hand mt-3 min-h-[4.5rem] leading-[2]"
-              />
-            </li>
-          ))}
-        </ol>
-
-        <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <button type="button" className="btn btn-quiet" onClick={() => setStage("form")}>
-            <BackIcon size={16} />
-            ارجع لبياناتي
-          </button>
-          <button type="button" className="btn btn-primary btn-lg" onClick={() => void generate(cvId, answers)}>
-            {answered > 0 ? "اكتب سيرتي" : "اكتبها بدون إجابات"}
-            <NextIcon size={18} />
-          </button>
-        </div>
-      </div>
+      <ReviewScreen
+        form={form}
+        update={update}
+        errors={errors}
+        topRef={topRef}
+        onEdit={(at) => {
+          setFromReview(true);
+          setStep(at);
+          setStage("form");
+          const all = validateForm(cleanForm(form));
+          setErrors(Object.fromEntries(Object.entries(all).filter(([k]) => stepForField(k) === at)));
+        }}
+        onWrite={submit}
+      />
     );
   }
 
@@ -467,69 +331,207 @@ export default function Wizard({ signedIn, email, editId, resume, fresh }: Wizar
 
   const stepProps = { form, update, errors };
   const last = step === FORM_STEPS.length - 1;
+  const isNew = !cvId;
 
   return (
-    <div ref={topRef} className="mx-auto max-w-2xl scroll-mt-24">
-      <nav aria-label="خطوات إنشاء السيرة" className="mb-8">
+    <div ref={topRef} className="mx-auto max-w-xl scroll-mt-24 pb-28 sm:pb-0">
+      <nav aria-label="خطوات إنشاء السيرة" className="mb-6">
+        <p className="mb-2 text-[0.8125rem] text-mute">
+          {fromReview ? "تعديل من الملخص" : `الخطوة ${step + 1} من ${FORM_STEPS.length}: ${STEP_LABELS[step]}`}
+        </p>
         <ol className="flex gap-1.5">
           {STEP_LABELS.map((label, i) => (
             <li key={label} className="flex-1">
               <button
                 type="button"
-                disabled={i > step}
+                disabled={i > step || fromReview}
                 onClick={() => i < step && setStep(i)}
+                aria-label={label}
                 aria-current={i === step ? "step" : undefined}
-                className="group block w-full text-start disabled:cursor-default"
+                className="block w-full py-1 disabled:cursor-default"
               >
                 <span className={`block h-1.5 rounded-full ${i < step ? "bg-ink" : i === step ? "bg-marker" : "bg-rule"}`} />
-                <span className={`mt-2 hidden text-[0.8125rem] sm:block ${i === step ? "font-medium text-ink" : "text-mute"}`}>
-                  {label}
-                </span>
               </button>
             </li>
           ))}
         </ol>
-        <p className="mt-2 text-[0.8125rem] text-mute sm:hidden">
-          الخطوة {step + 1} من {FORM_STEPS.length}: {STEP_LABELS[step]}
-        </p>
       </nav>
 
-      {notice && <p className="note note-info mb-6" role="status">{notice}</p>}
+      {notice && <p className="note note-info mb-5" role="status">{notice}</p>}
+
+      {(step === 0 || restored) && isNew && !fromReview && (
+        <div className="mb-6 flex items-center justify-between gap-3 rounded-[var(--radius-card)] bg-desk py-3 ps-4 pe-3">
+          <div className="min-w-0">
+            <p className="text-[0.9375rem] font-medium">{restored ? "كمّلنا لك من وين وقفت" : "عندك سيرة قديمة؟"}</p>
+            <p className="t-small">{restored ? "بياناتك محفوظة على جهازك." : "ارفعها ونعبّي عنك."}</p>
+          </div>
+          {restored ? (
+            <button type="button" className="btn btn-ghost btn-sm shrink-0 bg-paper" onClick={startOver}>
+              ابدأ من جديد
+            </button>
+          ) : (
+            <UploadCv
+              mock={mock}
+              className="btn btn-ghost btn-sm shrink-0 bg-paper"
+              onParsed={(parsed) => {
+                setForm(withEmail(parsed, email));
+                setCvId(null);
+                setStage("review");
+              }}
+            >
+              ارفع ملفك
+            </UploadCv>
+          )}
+        </div>
+      )}
 
       {step === 0 && <TargetStep {...stepProps} />}
-      {step === 1 && <PersonalStep {...stepProps} />}
+      {step === 1 && <AboutStep {...stepProps} />}
       {step === 2 && <ExperienceStep {...stepProps} />}
-      {step === 3 && <EducationStep {...stepProps} />}
-      {step === 4 && <SkillsStep {...stepProps} />}
 
       {Object.keys(errors).length > 0 && (
         <p className="note note-bad mt-6" role="alert">فيه حقول تحتاج تعديل فوق.</p>
       )}
 
-      <div className="mt-8 flex items-center justify-between gap-3 border-t border-rule pt-6">
-        {step > 0 ? (
-          <button type="button" className="btn btn-ghost" onClick={() => { setErrors({}); setStep(step - 1); }}>
-            <BackIcon size={16} />
-            السابق
-          </button>
-        ) : (
-          <button type="button" className="btn btn-quiet" onClick={() => setStage("start")}>
-            <FileIcon size={16} />
-            ارفع سيرة قديمة
-          </button>
-        )}
-        <button type="button" className="btn btn-primary btn-lg" onClick={next}>
-          {last ? "اكتب سيرتي" : "التالي"}
-          <NextIcon size={18} />
-        </button>
-      </div>
-
-      {last && (
-        <p className="t-small mt-4 text-center">
-          {signedIn ? "المعاينة مجانية. " : "بنطلب منك تسجيل دخول سريع عشان نحفظ سيرتك. المعاينة مجانية. "}
-          باستمرارك توافق على <Link href="/terms" className="link">الشروط</Link> و<Link href="/privacy" className="link">الخصوصية</Link>.
+      {last && !fromReview && (
+        <p className="t-small mt-6">
+          المعاينة مجانية، وما تحتاج تسجّل دخول عشان تشوفها. باستمرارك توافق على{" "}
+          <Link href="/terms" className="link">الشروط</Link> و<Link href="/privacy" className="link">الخصوصية</Link>.
         </p>
       )}
+
+      <ActionBar>
+        {step > 0 && !fromReview && (
+          <button
+            type="button"
+            className="btn btn-ghost shrink-0"
+            onClick={() => { setErrors({}); setRestored(false); setStep(step - 1); }}
+            aria-label="الخطوة السابقة"
+          >
+            <BackIcon size={18} />
+            <span className="hidden sm:inline">السابق</span>
+          </button>
+        )}
+        <button type="button" className="btn btn-primary btn-lg flex-1" onClick={next}>
+          {fromReview ? "تم" : last ? "اكتب سيرتي" : "التالي"}
+          {!fromReview && <NextIcon size={18} />}
+        </button>
+      </ActionBar>
+    </div>
+  );
+}
+
+function withEmail(form: CvForm, email: string | null): CvForm {
+  return email && !form.personal.email ? { ...form, personal: { ...form.personal, email } } : form;
+}
+
+/* ───────────── After an upload: one summary screen, then write ───────────── */
+
+function ReviewSection({
+  title,
+  at,
+  issue,
+  onEdit,
+  children,
+}: {
+  title: string;
+  at: number;
+  issue: boolean;
+  onEdit: (step: number) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="card p-4 sm:p-5">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="t-h3">{title}</h2>
+        <button type="button" className="btn btn-quiet btn-sm text-pen" onClick={() => onEdit(at)}>
+          <PenIcon size={15} />
+          عدّل
+        </button>
+      </div>
+      <div className="mt-2 space-y-1 text-[0.9375rem] text-graphite">{children}</div>
+      {issue && (
+        <button type="button" onClick={() => onEdit(at)} className="note note-warn mt-3 block w-full text-start">
+          فيه شي ناقص هنا — اضغط وكمّله
+        </button>
+      )}
+    </section>
+  );
+}
+
+function ReviewScreen({
+  form,
+  update,
+  errors,
+  topRef,
+  onEdit,
+  onWrite,
+}: {
+  form: CvForm;
+  update: (fn: (f: CvForm) => CvForm) => void;
+  errors: FormErrors;
+  topRef: React.RefObject<HTMLDivElement | null>;
+  onEdit: (step: number) => void;
+  onWrite: () => void;
+}) {
+  const cleaned = cleanForm(form);
+  const issues = validateForm(cleaned);
+  const keys = Object.keys(issues);
+  const issue = {
+    personal: keys.some((k) => k.startsWith("personal")),
+    education: keys.some((k) => k.startsWith("education")),
+    experience: keys.some((k) => stepForField(k) === 2),
+  };
+  const p = form.personal;
+  const name = p[nameKey(form.primaryLang)];
+  const degree = (id: string) => DEGREES.find((d) => d.id === id)?.ar ?? "";
+
+  return (
+    <div ref={topRef} className="mx-auto max-w-xl pb-28 sm:pb-0">
+      <h1 className="t-h2">قرينا سيرتك</h1>
+      <p className="t-body mt-1">حدّد الوظيفة، وراجع اللي طلّعناه. إذا تمام، نكتبها لك.</p>
+
+      <div className="mt-6 space-y-5">
+        <TargetStep form={form} update={update} errors={errors} intro={false} />
+
+        <ReviewSection title="بياناتك" at={1} issue={issue.personal} onEdit={onEdit}>
+          <p className="font-medium text-ink">{name || <span className="text-bad">الاسم ناقص</span>}</p>
+          <p dir="ltr" className="text-end">{[p.phone, p.email].filter(Boolean).join(" · ") || "—"}</p>
+          <p>{p.city.trim() || <span className="text-bad">المدينة ناقصة</span>}</p>
+        </ReviewSection>
+
+        <ReviewSection title="تعليمك" at={1} issue={issue.education} onEdit={onEdit}>
+          {cleaned.education.length === 0 ? (
+            <p className="text-bad">ما لقينا مؤهل دراسي</p>
+          ) : (
+            cleaned.education.map((e) => (
+              <p key={e.id}>
+                {[degree(e.level), e.major].filter(Boolean).join(" ")} — {e.institution} {e.year && `(${e.year})`}
+              </p>
+            ))
+          )}
+        </ReviewSection>
+
+        <ReviewSection title="خبراتك" at={2} issue={issue.experience} onEdit={onEdit}>
+          {cleaned.experience.length === 0 ? (
+            <p>ما لقينا خبرات</p>
+          ) : (
+            cleaned.experience.map((x) => (
+              <p key={x.id}>
+                <span className="font-medium text-ink">{x.title}</span> — {x.company}{" "}
+                <span className="text-mute">{formatPeriod(x.start, x.end, x.current, "ar")}</span>
+              </p>
+            ))
+          )}
+        </ReviewSection>
+      </div>
+
+      <ActionBar>
+        <button type="button" className="btn btn-primary btn-lg flex-1" onClick={onWrite}>
+          اكتب سيرتي
+          <NextIcon size={18} />
+        </button>
+      </ActionBar>
     </div>
   );
 }

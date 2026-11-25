@@ -226,8 +226,31 @@ export function needsWorkHistory(level: CareerLevel): boolean {
 
 export type FormErrors = Record<string, string>;
 
-export const FORM_STEPS = ["target", "personal", "experience", "education", "skills"] as const;
+/**
+ * Three short screens: the job (and CV language), you (contact + education),
+ * your experience. Skills are not asked for — the writer derives them from the
+ * experience and the job ad, and they can be added under "extras".
+ */
+export const FORM_STEPS = ["target", "about", "experience"] as const;
 export type FormStep = (typeof FORM_STEPS)[number];
+
+/** Which screen a validation key belongs to, so errors can send the user to the right place. */
+export function stepForField(key: string): number {
+  if (key.startsWith("target")) return 0;
+  if (key.startsWith("personal") || key.startsWith("education")) return 1;
+  return 2;
+}
+
+const ARABIC_LETTERS = /[\u0600-\u06FF]/;
+
+export function hasArabic(text: string): boolean {
+  return ARABIC_LETTERS.test(text);
+}
+
+/** The name field that belongs to a CV language. */
+export function nameKey(lang: CvLang): "nameAr" | "nameEn" {
+  return lang === "ar" ? "nameAr" : "nameEn";
+}
 
 export function validateStep(step: FormStep, form: CvForm): FormErrors {
   const e: FormErrors = {};
@@ -236,15 +259,29 @@ export function validateStep(step: FormStep, form: CvForm): FormErrors {
     if (form.target.jobTitle.trim().length < 2) e["target.jobTitle"] = "اكتب الوظيفة اللي تبغى تقدّم عليها";
   }
 
-  if (step === "personal") {
+  if (step === "about") {
     const p = form.personal;
-    if (p.nameAr.trim().length < 3) e["personal.nameAr"] = "اكتب اسمك الثلاثي";
-    if (p.nameEn.trim().length < 3) e["personal.nameEn"] = "اكتب اسمك بالإنجليزي مثل ما هو في الجواز";
-    else if (/[؀-ۿ]/.test(p.nameEn)) e["personal.nameEn"] = "هذا الحقل بالحروف الإنجليزية";
-    if (!isValidEmail(p.email)) e["personal.email"] = "البريد الإلكتروني غير صحيح";
-    if (!isValidPhone(p.phone)) e["personal.phone"] = "رقم الجوال غير صحيح، مثال: 0501234567";
+    const lang = form.primaryLang;
+    const name = p[nameKey(lang)].trim();
+    if (name.length < 3) e["personal.name"] = lang === "ar" ? "اكتب اسمك" : "اكتب اسمك بالإنجليزي";
+    else if (lang === "en" && hasArabic(name)) e["personal.name"] = "اكتب الاسم بحروف إنجليزية";
+    else if (lang === "ar" && !hasArabic(name)) e["personal.name"] = "اكتب الاسم بالعربي";
+    const other = p[nameKey(lang === "ar" ? "en" : "ar")].trim();
+    if (other && lang === "ar" && hasArabic(other)) e["personal.otherName"] = "اكتب الاسم بحروف إنجليزية";
+    if (!p.phone.trim()) e["personal.phone"] = "اكتب رقم جوالك";
+    else if (!isValidPhone(p.phone)) e["personal.phone"] = "الرقم غير صحيح، مثال: 0501234567";
+    if (!p.email.trim()) e["personal.email"] = "اكتب إيميلك";
+    else if (!isValidEmail(p.email)) e["personal.email"] = "الإيميل غير صحيح، مثال: name@gmail.com";
     if (!p.city.trim()) e["personal.city"] = "اختر مدينتك";
     if (!isValidLinkedIn(p.linkedIn)) e["personal.linkedIn"] = "الرابط يكون بهذا الشكل: linkedin.com/in/username";
+
+    const filled = form.education.filter((x) => x.major.trim() || x.institution.trim());
+    if (filled.length === 0) e["education"] = "أضف مؤهلك الدراسي";
+    for (const x of filled) {
+      if (!x.institution.trim()) e[`education.${x.id}.institution`] = "اسم الجامعة أو المدرسة مطلوب";
+      if (x.level !== "highschool" && !x.major.trim()) e[`education.${x.id}.major`] = "التخصص مطلوب";
+      if (!x.year) e[`education.${x.id}.year`] = "اختر سنة التخرج";
+    }
   }
 
   if (step === "experience") {
@@ -255,10 +292,10 @@ export function validateStep(step: FormStep, form: CvForm): FormErrors {
     for (const x of filled) {
       if (!x.title.trim()) e[`experience.${x.id}.title`] = "المسمى مطلوب";
       if (!x.company.trim()) e[`experience.${x.id}.company`] = "اسم الجهة مطلوب";
-      if (!x.start) e[`experience.${x.id}.start`] = "حدّد تاريخ البداية";
-      if (!x.current && !x.end) e[`experience.${x.id}.end`] = "حدّد تاريخ النهاية أو اختر «على رأس العمل»";
-      if (x.start && x.end && !x.current && x.end < x.start) {
-        e[`experience.${x.id}.end`] = "تاريخ النهاية قبل البداية";
+      if (!x.start) e[`experience.${x.id}.start`] = "اختر سنة البداية";
+      if (!x.current && !x.end) e[`experience.${x.id}.end`] = "اختر سنة النهاية أو «لسا فيها»";
+      if (x.start && x.end && !x.current && x.end.slice(0, 4) < x.start.slice(0, 4)) {
+        e[`experience.${x.id}.end`] = "سنة النهاية قبل البداية";
       }
       if (x.description.trim().length < 15) {
         e[`experience.${x.id}.description`] = "اكتب جملتين على الأقل عن اللي كنت تسويه";
@@ -266,21 +303,62 @@ export function validateStep(step: FormStep, form: CvForm): FormErrors {
     }
   }
 
-  if (step === "education") {
-    const filled = form.education.filter((x) => x.major.trim() || x.institution.trim());
-    if (filled.length === 0) e["education"] = "أضف مؤهلك الدراسي";
-    for (const x of filled) {
-      if (!x.institution.trim()) e[`education.${x.id}.institution`] = "اسم الجهة التعليمية مطلوب";
-      if (x.level !== "highschool" && !x.major.trim()) e[`education.${x.id}.major`] = "التخصص مطلوب";
-      if (!x.year) e[`education.${x.id}.year`] = "اختر سنة التخرج";
-    }
-  }
-
-  if (step === "skills") {
-    if (form.skills.length < 3) e["skills"] = "أضف 3 مهارات على الأقل";
-  }
-
   return e;
+}
+
+/**
+ * Validation runs on the cleaned form, where an untouched card is dropped and
+ * the error becomes "add at least one". The user is looking at that empty
+ * card, so mark its fields instead.
+ */
+export function pinToEmptyCards(found: FormErrors, raw: CvForm): FormErrors {
+  const out: FormErrors = { ...found };
+
+  const edu = raw.education[0];
+  if (out["education"] && edu) {
+    delete out["education"];
+    if (edu.level !== "highschool") out[`education.${edu.id}.major`] = "اكتب تخصصك";
+    out[`education.${edu.id}.institution`] = edu.level === "highschool" ? "اكتب اسم المدرسة" : "اكتب اسم الجامعة أو الكلية";
+    if (!edu.year) out[`education.${edu.id}.year`] = "اختر سنة التخرج";
+  }
+
+  const job = raw.experience[0];
+  if (out["experience"] && job) {
+    out[`experience.${job.id}.title`] = "اكتب المسمى";
+    out[`experience.${job.id}.company`] = "اكتب اسم الجهة";
+    if (!job.start) out[`experience.${job.id}.start`] = "اختر سنة البداية";
+    out[`experience.${job.id}.description`] = "اكتب جملتين عن اللي كنت تسويه";
+  }
+
+  return out;
+}
+
+/* ───────────── Inferred, not asked ───────────── */
+
+const TRAINING_TITLE = /متدرب|تدريب|تعاوني|تمهير|intern|trainee|co-?op|apprentic/i;
+const VOLUNTEER_TITLE = /تطوع|متطوع|volunteer/i;
+
+/** Job, training or volunteering — read from the title instead of asking. */
+export function inferKind(title: string, given: FormExperience["kind"] | undefined): FormExperience["kind"] {
+  if (TRAINING_TITLE.test(title)) return "training";
+  if (VOLUNTEER_TITLE.test(title)) return "volunteer";
+  return given === "training" || given === "volunteer" ? given : "job";
+}
+
+/**
+ * The form only asks "do you have work experience?". The exact stage comes
+ * from the dates: years of real jobs, or — without experience — whether the
+ * graduation year is still ahead.
+ */
+export function inferLevel(level: CareerLevel, experience: FormExperience[], education: FormEducation[]): CareerLevel {
+  if (level === "student" || level === "fresh") {
+    const latest = Math.max(0, ...education.map((e) => Number(e.year) || 0));
+    return latest > new Date().getFullYear() ? "student" : "fresh";
+  }
+  const months = totalExperienceMonths(experience);
+  if (months < 48) return "junior";
+  if (months < 96) return "mid";
+  return "senior";
 }
 
 /** Trim, drop empty rows, normalize contact fields. Safe to run on untrusted input. */
@@ -291,12 +369,40 @@ export function cleanForm(input: CvForm): CvForm {
   const degreeIds = DEGREES.map((d) => d.id);
   const langIds = LANGUAGE_LEVELS.map((l) => l.id);
 
+  const experience: FormExperience[] = arr<FormExperience>(input.experience)
+    .filter((x) => s(x?.title) || s(x?.company) || s(x?.description))
+    .slice(0, 8)
+    .map((x) => ({
+      id: s(x.id, 20) || newId(),
+      kind: inferKind(s(x.title, 120), x.kind),
+      title: s(x.title, 120),
+      company: s(x.company, 120),
+      start: /^\d{4}(-\d{2})?$/.test(s(x.start)) ? s(x.start) : "",
+      end: x.current ? "" : /^\d{4}(-\d{2})?$/.test(s(x.end)) ? s(x.end) : "",
+      current: Boolean(x.current),
+      description: s(x.description, 2500),
+    }));
+
+  const education: FormEducation[] = arr<FormEducation>(input.education)
+    .filter((x) => s(x?.major) || s(x?.institution))
+    .slice(0, 4)
+    .map((x) => ({
+      id: s(x.id, 20) || newId(),
+      level: degreeIds.includes(x.level) ? x.level : "bachelor",
+      major: s(x.major, 120),
+      institution: s(x.institution, 120),
+      year: /^\d{4}$/.test(s(x.year)) ? s(x.year) : "",
+      gpa: s(x.gpa, 20),
+    }));
+
+  const givenLevel: CareerLevel = levelIds.includes(input.target?.level) ? input.target.level : "junior";
+
   return {
     v: 2,
     primaryLang: input.primaryLang === "ar" ? "ar" : "en",
     target: {
       jobTitle: s(input.target?.jobTitle, 120),
-      level: levelIds.includes(input.target?.level) ? input.target.level : "junior",
+      level: inferLevel(givenLevel, experience, education),
       jobAd: s(input.target?.jobAd, 6000),
     },
     personal: {
@@ -308,30 +414,8 @@ export function cleanForm(input: CvForm): CvForm {
       nationality: input.personal?.nationality === "resident" ? "resident" : input.personal?.nationality === "" ? "" : "saudi",
       linkedIn: normalizeLinkedIn(s(input.personal?.linkedIn, 160)),
     },
-    experience: arr<FormExperience>(input.experience)
-      .filter((x) => s(x?.title) || s(x?.company) || s(x?.description))
-      .slice(0, 8)
-      .map((x) => ({
-        id: s(x.id, 20) || newId(),
-        kind: x.kind === "training" || x.kind === "volunteer" ? x.kind : "job",
-        title: s(x.title, 120),
-        company: s(x.company, 120),
-        start: /^\d{4}(-\d{2})?$/.test(s(x.start)) ? s(x.start) : "",
-        end: x.current ? "" : /^\d{4}(-\d{2})?$/.test(s(x.end)) ? s(x.end) : "",
-        current: Boolean(x.current),
-        description: s(x.description, 2500),
-      })),
-    education: arr<FormEducation>(input.education)
-      .filter((x) => s(x?.major) || s(x?.institution))
-      .slice(0, 4)
-      .map((x) => ({
-        id: s(x.id, 20) || newId(),
-        level: degreeIds.includes(x.level) ? x.level : "bachelor",
-        major: s(x.major, 120),
-        institution: s(x.institution, 120),
-        year: /^\d{4}$/.test(s(x.year)) ? s(x.year) : "",
-        gpa: s(x.gpa, 20),
-      })),
+    experience,
+    education,
     projects: arr<FormProject>(input.projects)
       .filter((x) => s(x?.name) || s(x?.description))
       .slice(0, 4)

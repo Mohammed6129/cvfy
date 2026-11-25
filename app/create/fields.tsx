@@ -41,10 +41,21 @@ type TextFieldProps = BaseProps & {
   type?: "text" | "email" | "tel" | "url";
   ltr?: boolean;
   autoComplete?: string;
+  autoCapitalize?: "off" | "words" | "sentences";
   inputMode?: "text" | "email" | "tel" | "numeric" | "url";
 };
 
-export function TextField({ value, onChange, placeholder, type = "text", ltr, autoComplete, inputMode, ...base }: TextFieldProps) {
+export function TextField({
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+  ltr,
+  autoComplete,
+  autoCapitalize,
+  inputMode,
+  ...base
+}: TextFieldProps) {
   const id = useId();
   return (
     <Field {...base} htmlFor={id}>
@@ -56,7 +67,11 @@ export function TextField({ value, onChange, placeholder, type = "text", ltr, au
         placeholder={placeholder}
         dir={ltr ? "ltr" : undefined}
         autoComplete={autoComplete}
+        autoCapitalize={autoCapitalize ?? (ltr ? "off" : undefined)}
+        autoCorrect={ltr ? "off" : undefined}
+        spellCheck={ltr ? false : undefined}
         inputMode={inputMode}
+        enterKeyHint="next"
         aria-invalid={base.error ? true : undefined}
         className={`field ${ltr ? "text-left placeholder:text-left" : ""}`}
       />
@@ -120,33 +135,23 @@ export function SelectField({ value, onChange, options, placeholder, ...base }: 
   );
 }
 
-/** Month + year pickers that read/write a single "YYYY-MM" value. */
-export function MonthYear({
+/**
+ * Year first (the part people remember); the month is optional and only
+ * shown when asked for. Reads/writes "YYYY" or "YYYY-MM".
+ */
+export function YearPicker({
   value,
   onChange,
   disabled,
+  showMonth,
   ...base
-}: BaseProps & { value: string; onChange: (value: string) => void; disabled?: boolean }) {
+}: BaseProps & { value: string; onChange: (value: string) => void; disabled?: boolean; showMonth?: boolean }) {
   const [year = "", month = ""] = value.split("-");
-  const years = yearOptions();
   const set = (y: string, m: string) => onChange(y ? (m ? `${y}-${m}` : y) : "");
 
   return (
     <Field {...base}>
-      <div className="grid grid-cols-2 gap-2">
-        <select
-          aria-label={`${base.label} — الشهر`}
-          value={month}
-          disabled={disabled}
-          onChange={(e) => set(year || String(new Date().getFullYear()), e.target.value)}
-          aria-invalid={base.error ? true : undefined}
-          className={`field disabled:bg-desk disabled:text-mute ${month ? "" : "text-[#a3abbd]"}`}
-        >
-          <option value="">الشهر</option>
-          {MONTH_OPTIONS.map((m) => (
-            <option key={m.value} value={m.value} className="text-ink">{m.label}</option>
-          ))}
-        </select>
+      <div className={showMonth ? "grid grid-cols-2 gap-2" : ""}>
         <select
           aria-label={`${base.label} — السنة`}
           value={year}
@@ -156,16 +161,71 @@ export function MonthYear({
           className={`field disabled:bg-desk disabled:text-mute ${year ? "" : "text-[#a3abbd]"}`}
         >
           <option value="">السنة</option>
-          {years.map((y) => (
+          {yearOptions().map((y) => (
             <option key={y} value={y} className="text-ink">{y}</option>
           ))}
         </select>
+        {showMonth && (
+          <select
+            aria-label={`${base.label} — الشهر`}
+            value={month}
+            disabled={disabled || !year}
+            onChange={(e) => set(year, e.target.value)}
+            className={`field disabled:bg-desk disabled:text-mute ${month ? "" : "text-[#a3abbd]"}`}
+          >
+            <option value="">الشهر</option>
+            {MONTH_OPTIONS.map((m) => (
+              <option key={m.value} value={m.value} className="text-ink">{m.label}</option>
+            ))}
+          </select>
+        )}
       </div>
     </Field>
   );
 }
 
-/** A row of pill buttons acting as a radio group. */
+/** Two or three big, equal buttons acting as a radio group — easy to hit with a thumb. */
+export function Segmented<T extends string>({
+  label,
+  value,
+  onChange,
+  options,
+  name,
+}: {
+  label: string;
+  value: T;
+  onChange: (value: T) => void;
+  options: { id: T; label: string; note?: string }[];
+  name?: string;
+}) {
+  return (
+    <fieldset data-field={name}>
+      <legend className="label">{label}</legend>
+      <div className={`grid gap-2 ${options.length === 3 ? "grid-cols-3" : "grid-cols-2"}`}>
+        {options.map((o) => {
+          const on = value === o.id;
+          return (
+            <button
+              key={o.id}
+              type="button"
+              role="radio"
+              aria-checked={on}
+              onClick={() => onChange(o.id)}
+              className={`flex min-h-12 flex-col items-center justify-center rounded-[var(--radius-control)] border px-2 py-2 text-center transition-colors ${
+                on ? "border-ink bg-ink text-white" : "border-rule bg-paper text-ink hover:border-ink"
+              }`}
+            >
+              <span className="text-[0.9375rem] font-medium leading-snug">{o.label}</span>
+              {o.note && <span className={`mt-0.5 text-[0.75rem] leading-snug ${on ? "text-white/75" : "text-mute"}`}>{o.note}</span>}
+            </button>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
+
+/** Pill buttons for short lists (degree, English level). */
 export function ChoiceChips<T extends string>({
   label,
   value,
@@ -188,13 +248,37 @@ export function ChoiceChips<T extends string>({
             role="radio"
             aria-checked={value === o.id}
             onClick={() => onChange(o.id)}
-            className={`chip min-h-11 px-4 ${value === o.id ? "chip-on" : ""}`}
+            className={`chip min-h-11 px-4 text-[0.9375rem] ${value === o.id ? "border-ink bg-ink font-medium text-white hover:border-ink" : ""}`}
           >
             {o.label}
           </button>
         ))}
       </div>
     </fieldset>
+  );
+}
+
+/** "+ something optional" — keeps optional fields out of sight until wanted. */
+export function Reveal({
+  label,
+  open: initiallyOpen = false,
+  children,
+}: {
+  label: string;
+  open?: boolean;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(initiallyOpen);
+  if (open) return <div>{children}</div>;
+  return (
+    <button
+      type="button"
+      onClick={() => setOpen(true)}
+      className="flex min-h-11 items-center gap-1.5 text-[0.9375rem] font-medium text-pen"
+    >
+      <span aria-hidden className="text-lg leading-none">+</span>
+      {label}
+    </button>
   );
 }
 
@@ -272,7 +356,7 @@ export function TagInput({
 
       {open.length > 0 && (
         <div className="mt-3">
-          <p className="hint mb-2 mt-0">اقتراحات لمجالك — اضغط لإضافة اللي عندك:</p>
+          <p className="hint mb-2 mt-0">اضغط لإضافة اللي عندك:</p>
           <div className="flex flex-wrap gap-2">
             {open.map((s) => (
               <button key={s} type="button" onClick={() => add(s)} className="chip">

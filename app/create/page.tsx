@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import PageShell from "@/app/components/page-shell";
+import { isMockMode } from "@/lib/ai/client";
 import { getSessionUser } from "@/lib/server/session";
 import Wizard from "./wizard";
 
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 type Props = {
-  searchParams: Promise<{ edit?: string; resume?: string; new?: string }>;
+  searchParams: Promise<{ edit?: string; resume?: string; new?: string; review?: string }>;
 };
 
 export default async function CreatePage({ searchParams }: Props) {
@@ -17,13 +18,14 @@ export default async function CreatePage({ searchParams }: Props) {
 
   return (
     <PageShell variant="focus" footer={false}>
-      <div className="wrap py-8 md:py-12">
+      <div className="wrap py-6 md:py-12">
         <Wizard
-          signedIn={Boolean(user)}
-          email={user?.email ?? null}
+          email={user && !user.isAnonymous ? user.email : null}
           editId={params.edit ?? null}
           resume={params.resume === "1"}
           fresh={params.new === "1"}
+          review={params.review === "1"}
+          mock={isMockMode()}
         />
       </div>
     </PageShell>

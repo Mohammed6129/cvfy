@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getTurnstileToken } from "@/lib/turnstile";
 import PhoneOtpForm from "@/app/login/phone-otp-form";
 import { mapAuthError } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/client";
@@ -25,7 +26,14 @@ type LoginFormProps = {
   authError: string | null;
   authErrorDescription: string | null;
   mock: boolean;
+  /** Signing in from a guest session: their CVs move to the account afterwards. */
+  guest: boolean;
 };
+
+/** After any non-redirect sign-in: move the guest's CVs to the account. Never blocks sign-in. */
+async function claimGuestCvs() {
+  await fetch("/api/claim/finish", { method: "POST" }).catch(() => null);
+}
 
 function initialError(code: string | null, description: string | null): string | null {
   if (code === "auth_callback_error") return "ما اكتمل تسجيل الدخول. جرّب مرة ثانية.";
@@ -33,11 +41,11 @@ function initialError(code: string | null, description: string | null): string |
   return null;
 }
 
-export default function LoginForm({ nextPath, authError, authErrorDescription, mock }: LoginFormProps) {
+export default function LoginForm({ nextPath, authError, authErrorDescription, mock, guest }: LoginFormProps) {
   const router = useRouter();
   const fromBuilder = nextPath.startsWith("/create");
-  // People arriving from the builder are almost always new: start on sign-up.
-  const [mode, setMode] = useState<AuthMode>(fromBuilder ? "signup" : "login");
+  // People arriving from the builder or saving a guest CV are almost always new: start on sign-up.
+  const [mode, setMode] = useState<AuthMode>(fromBuilder || guest ? "signup" : "login");
   const [method, setMethod] = useState<Method>("email");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -45,9 +53,15 @@ export default function LoginForm({ nextPath, authError, authErrorDescription, m
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(initialError(authError, authErrorDescription));
 
+  // Leave the signed "these CVs are mine" note before the guest session is replaced.
+  useEffect(() => {
+    if (guest) void fetch("/api/claim/prepare", { method: "POST" }).catch(() => null);
+  }, [guest]);
+
   const callbackUrl = () => `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`;
 
-  const done = () => {
+  const done = async () => {
+    if (guest) await claimGuestCvs();
     router.push(nextPath);
     router.refresh();
   };
@@ -62,9 +76,11 @@ export default function LoginForm({ nextPath, authError, authErrorDescription, m
     setLoading(true);
     reset();
     const supabase = createClient();
+    // Needed only if bot protection is switched on in Supabase; null otherwise.
+    const captchaToken = (await getTurnstileToken()) ?? undefined;
 
     if (mode === "login") {
-      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password, options: { captchaToken } });
       if (signInError) {
         setError("البريد أو كلمة المرور غير صحيحة.");
         setLoading(false);
@@ -77,7 +93,7 @@ export default function LoginForm({ nextPath, authError, authErrorDescription, m
       email,
       password,
       // After confirming by email the user lands back where they left off.
-      options: { emailRedirectTo: callbackUrl() },
+      options: { emailRedirectTo: callbackUrl(), captchaToken },
     });
     if (signUpError) {
       setError(
@@ -115,7 +131,7 @@ export default function LoginForm({ nextPath, authError, authErrorDescription, m
   const handleMock = async () => {
     setLoading(true);
     await fetch("/api/dev/login", { method: "POST" });
-    done();
+    await done();
   };
 
   const tab = (id: Method, label: string) => (
@@ -134,11 +150,15 @@ export default function LoginForm({ nextPath, authError, authErrorDescription, m
 
   return (
     <div className="w-full max-w-md">
-      <h1 className="t-h2">{fromBuilder ? "سجّل عشان نحفظ سيرتك" : mode === "login" ? "سجّل دخولك" : "أنشئ حسابك"}</h1>
+      <h1 className="t-h2">
+        {guest ? "احفظ سيرتك في حسابك" : fromBuilder ? "سجّل عشان نحفظ سيرتك" : mode === "login" ? "سجّل دخولك" : "أنشئ حسابك"}
+      </h1>
       <p className="t-body mt-1">
-        {fromBuilder
-          ? "آخر خطوة قبل لا نكتب سيرتك. اللي عبّيته محفوظ وبنكمل من وين وقفت."
-          : "عشان نحفظ سيرتك وترجع لها من أي جهاز."}
+        {guest
+          ? "سجّل بأي طريقة تحت، وسيرتك تنتقل لحسابك وترجع لها من أي جهاز."
+          : fromBuilder
+            ? "آخر خطوة قبل لا نكتب سيرتك. اللي عبّيته محفوظ وبنكمل من وين وقفت."
+            : "عشان نحفظ سيرتك وترجع لها من أي جهاز."}
       </p>
 
       <div className="card mt-6 p-5 sm:p-7">
@@ -168,7 +188,7 @@ export default function LoginForm({ nextPath, authError, authErrorDescription, m
         </div>
 
         {method === "phone" ? (
-          <PhoneOtpForm nextPath={nextPath} loading={loading} setLoading={setLoading} onError={setError} onMessage={setMessage} />
+          <PhoneOtpForm nextPath={nextPath} loading={loading} setLoading={setLoading} onError={setError} onMessage={setMessage} onSignedIn={guest ? claimGuestCvs : undefined} />
         ) : (
           <form className="space-y-4" onSubmit={handleEmail}>
             <div>

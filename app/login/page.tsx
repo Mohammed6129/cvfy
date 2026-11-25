@@ -15,14 +15,15 @@ function safeNext(next?: string): string {
 }
 
 type Props = {
-  searchParams: Promise<{ error?: string; error_description?: string; next?: string }>;
+  searchParams: Promise<{ error?: string; error_description?: string; next?: string; save?: string }>;
 };
 
 export default async function LoginPage({ searchParams }: Props) {
   const [params, user] = await Promise.all([searchParams, getSessionUser()]);
   const nextPath = safeNext(params.next);
 
-  if (user && !params.error) redirect(nextPath);
+  // A guest (anonymous session) is here to keep their CVs: show the form, don't bounce them.
+  if (user && !user.isAnonymous && !params.error) redirect(nextPath);
 
   return (
     <PageShell variant="focus" footer={false}>
@@ -32,6 +33,7 @@ export default async function LoginPage({ searchParams }: Props) {
           authError={params.error ?? null}
           authErrorDescription={params.error_description ?? null}
           mock={isMockMode()}
+          guest={Boolean(user?.isAnonymous)}
         />
       </div>
     </PageShell>

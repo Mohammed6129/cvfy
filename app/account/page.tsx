@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { signOut } from "@/app/auth/actions";
 import PageShell from "@/app/components/page-shell";
-import { getSessionUser } from "@/lib/server/session";
+import { getSessionUser, isMember } from "@/lib/server/session";
 
 export const metadata: Metadata = {
   title: "حسابي",
@@ -12,7 +12,8 @@ export const metadata: Metadata = {
 
 export default async function AccountPage() {
   const user = await getSessionUser();
-  if (!user) redirect("/login?next=/account");
+  // Guests sign in first; their CVs move to the account on the way.
+  if (!isMember(user)) redirect("/login?next=/account");
 
   return (
     <PageShell>

@@ -19,7 +19,6 @@ type PaywallProps = {
 
 export default function Paywall({ cvId, userId, primaryLang, mode, mock, onPaid }: PaywallProps) {
   const [planId, setPlanId] = useState<PlanId>(mode === "upgrade" ? "upgrade" : "full");
-  const [paying, setPaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const plan = PLANS[planId];
   const langName = primaryLang === "en" ? "الإنجليزية" : "العربية";
@@ -58,7 +57,7 @@ export default function Paywall({ cvId, userId, primaryLang, mode, mock, onPaid 
                 type="button"
                 role="radio"
                 aria-checked={selected}
-                onClick={() => { setPlanId(o.id); setPaying(false); setError(null); }}
+                onClick={() => { setPlanId(o.id); setError(null); }}
                 className={`flex w-full items-start gap-3 rounded-[var(--radius-control)] border p-3.5 text-start transition-colors ${
                   selected ? "border-ink bg-marker-soft" : "border-rule hover:border-ink"
                 }`}
@@ -81,20 +80,16 @@ export default function Paywall({ cvId, userId, primaryLang, mode, mock, onPaid 
 
       {error && <p className="note note-bad mt-4" role="alert">{error}</p>}
 
-      {!paying ? (
-        <button type="button" className="btn btn-primary btn-lg btn-block mt-4" onClick={() => { setError(null); setPaying(true); }}>
-          ادفع {plan.price} ريال وحمّل ملفاتك
-        </button>
-      ) : (
-        <div className="mt-4">
-          <MoyasarForm plan={plan} cvId={cvId} userId={userId} onPaid={(id) => onPaid(id, plan.id)} onError={setError} />
-          {mock && (
-            <button type="button" className="btn btn-marker btn-block mt-3" onClick={() => onPaid("mock-payment", plan.id)}>
-              دفع تجريبي (بيئة التطوير)
-            </button>
-          )}
-        </div>
-      )}
+      {/* The payment form is open straight away: Apple Pay is one tap under the price. */}
+      <div className="mt-4">
+        <p className="mb-2 text-[0.9375rem] font-medium">ادفع {plan.price} ريال وحمّل ملفاتك</p>
+        <MoyasarForm key={plan.id} plan={plan} cvId={cvId} userId={userId} onPaid={(id) => onPaid(id, plan.id)} onError={setError} />
+        {mock && (
+          <button type="button" className="btn btn-marker btn-block mt-3" onClick={() => onPaid("mock-payment", plan.id)}>
+            دفع تجريبي (بيئة التطوير)
+          </button>
+        )}
+      </div>
 
       <div className="mt-4 flex flex-col gap-2 border-t border-rule pt-4">
         <PaymentMarks />

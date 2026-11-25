@@ -11,10 +11,14 @@ import { PLANS } from "@/lib/pricing";
 import AtsPanel from "./ats-panel";
 import Downloads from "./downloads";
 import Paywall from "./paywall";
+import SaveAccount from "./save-account";
+import Strengthen from "./strengthen";
 
 type PreviewClientProps = {
   cvId: string;
   userId: string;
+  /** Built without signing in — offer to keep it in an account. */
+  guest: boolean;
   mock: boolean;
   /** Present when the shopper has just come back from Moyasar. */
   payment: { id: string; status: string; message: string; plan: string } | null;
@@ -24,7 +28,7 @@ type Loaded = { view: CvView | null; legacy: boolean; jobTitle: string };
 
 const LANG_TAB: Record<CvLang, string> = { en: "الإنجليزية", ar: "العربية" };
 
-export default function PreviewClient({ cvId, userId, mock, payment }: PreviewClientProps) {
+export default function PreviewClient({ cvId, userId, guest, mock, payment }: PreviewClientProps) {
   const router = useRouter();
   const [data, setData] = useState<Loaded | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -253,7 +257,10 @@ export default function PreviewClient({ cvId, userId, mock, payment }: PreviewCl
         {/* ── Side column ── */}
         <aside className={`space-y-5 lg:sticky lg:top-24 ${view.paid ? "order-1 lg:order-2" : ""}`}>
           {view.paid ? (
-            <Downloads view={view} completing={completing} />
+            <>
+              <Downloads view={view} completing={completing} />
+              {guest && <SaveAccount cvId={view.id} paid />}
+            </>
           ) : (
             <Paywall
               cvId={view.id}
@@ -264,6 +271,8 @@ export default function PreviewClient({ cvId, userId, mock, payment }: PreviewCl
               onPaid={(id: string, plan: PlanId) => void verify(id, plan)}
             />
           )}
+
+          {canEdit && <Strengthen cvId={view.id} onRewritten={load} />}
 
           {report && <AtsPanel report={report} editHref={editHref} canEdit={canEdit} />}
 
@@ -301,6 +310,8 @@ export default function PreviewClient({ cvId, userId, mock, payment }: PreviewCl
               )}
             </section>
           )}
+
+          {guest && !view.paid && <SaveAccount cvId={view.id} paid={false} />}
         </aside>
       </div>
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getSessionUser } from "@/lib/server/session";
+import { getSessionUser, isMember } from "@/lib/server/session";
 import Logo from "./logo";
 import UserMenu from "./user-menu";
 
@@ -25,7 +25,7 @@ export default async function SiteHeader({ variant = "full" }: SiteHeaderProps) 
         )}
 
         <div className="flex items-center gap-2">
-          {user ? (
+          {isMember(user) ? (
             <UserMenu name={user.name} avatarUrl={user.avatarUrl} />
           ) : variant === "full" ? (
             <>

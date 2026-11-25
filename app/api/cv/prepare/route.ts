@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { runInterview } from "@/lib/ai/interview";
+import { profileJob } from "@/lib/ai/interview";
 import { cleanForm, validateForm } from "@/lib/cv/form";
 import type { CvForm, Interview } from "@/lib/cv/types";
 import { aiFailure, jsonError, unauthorized } from "@/lib/server/http";
@@ -11,11 +11,13 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const MAX_NEW_CVS_PER_DAY = 6;
+/** New CVs per 24h. Guests get fewer: a guest session costs nothing to create. */
+const DAILY_LIMIT = { member: 6, guest: 3 };
 
 /**
- * Step 1 of generation: save the form, profile the target job and return
- * the follow-up questions. One model call.
+ * Step 1 of writing: save the form and profile the target job (title +
+ * keywords). The browser calls /api/cv/generate right after, with no screen
+ * in between — follow-up questions are offered later, on the preview.
  */
 export async function POST(request: Request) {
   const user = await getSessionUser();
@@ -42,39 +44,28 @@ export async function POST(request: Request) {
   if (existing?.stored && generationsLeft(existing, user) <= 0) {
     return jsonError("خلّصت عدد مرات إعادة الإنشاء لهذي السيرة.", 429, { code: "limit" });
   }
-  if (!existing && !user.isTester && (await countRecentCvs(user.id)) >= MAX_NEW_CVS_PER_DAY) {
+  const limit = user.isAnonymous ? DAILY_LIMIT.guest : DAILY_LIMIT.member;
+  if (!existing && !user.isTester && (await countRecentCvs(user.id)) >= limit) {
     return jsonError("وصلت الحد اليومي لإنشاء السير. جرّب بكرة.", 429, { code: "daily_limit" });
   }
 
-  // Same job as last time → keep the earlier questions and answers.
+  // Same job as last time → keep the job profile, and any questions already answered.
   const sameJob =
     existing?.interview &&
     existing.form?.target.jobTitle === form.target.jobTitle &&
     existing.form?.target.jobAd === form.target.jobAd;
 
   let interview: Interview;
-  let reused = false;
-
   if (sameJob && existing?.interview) {
     interview = existing.interview;
-    reused = true;
   } else {
     try {
-      const result = await runInterview(form);
-      interview = { ...result, answers: {} };
+      interview = { job: await profileJob(form), questions: [], answers: {} };
     } catch (error) {
-      return aiFailure("interview", error);
+      return aiFailure("prepare", error);
     }
   }
 
   const id = await saveCv({ userId: user.id, id: existing?.id, form, interview });
-
-  return NextResponse.json({
-    id,
-    reused,
-    jobTitle: interview.job.titleAr,
-    keywordCount: interview.job.keywords.length,
-    questions: interview.questions,
-    answers: interview.answers,
-  });
+  return NextResponse.json({ id });
 }

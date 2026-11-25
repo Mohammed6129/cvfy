@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { formatSaudiPhone, mapPhoneAuthError } from "@/lib/phone";
 import { createClient } from "@/lib/supabase/client";
+import { getTurnstileToken } from "@/lib/turnstile";
 
 type PhoneOtpFormProps = {
   nextPath: string;
@@ -11,9 +12,11 @@ type PhoneOtpFormProps = {
   setLoading: (value: boolean) => void;
   onError: (message: string | null) => void;
   onMessage: (message: string | null) => void;
+  /** Runs after a successful sign-in, before leaving the page. */
+  onSignedIn?: () => Promise<void>;
 };
 
-export default function PhoneOtpForm({ nextPath, loading, setLoading, onError, onMessage }: PhoneOtpFormProps) {
+export default function PhoneOtpForm({ nextPath, loading, setLoading, onError, onMessage, onSignedIn }: PhoneOtpFormProps) {
   const router = useRouter();
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
@@ -28,7 +31,8 @@ export default function PhoneOtpForm({ nextPath, loading, setLoading, onError, o
     if (!full) return onError("اكتب رقم جوال سعودي صحيح، مثال: 0501234567");
 
     setLoading(true);
-    const { error } = await createClient().auth.signInWithOtp({ phone: full });
+    const captchaToken = (await getTurnstileToken()) ?? undefined;
+    const { error } = await createClient().auth.signInWithOtp({ phone: full, options: { captchaToken } });
     setLoading(false);
     if (error) return onError(mapPhoneAuthError(error.message));
 
@@ -49,6 +53,7 @@ export default function PhoneOtpForm({ nextPath, loading, setLoading, onError, o
       setLoading(false);
       return onError(mapPhoneAuthError(error.message));
     }
+    if (onSignedIn) await onSignedIn();
     router.push(nextPath);
     router.refresh();
   };

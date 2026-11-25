@@ -32,17 +32,22 @@ linkedInHeadline — in English, max 110 characters: title | specialization | 2�
 
 linkedInAbout — in English, first person, 70–110 words, plain paragraphs, no emojis. Who they are, what they have done (with numbers), what they are good at, what they are looking for.
 
+If one of the two names is missing, write it from the other one the way Saudi names are officially spelled.
+
 Plain text only. Use line breaks between paragraphs.`;
 
 export async function writeExtras(
   form: CvForm,
   docs: { en?: CvDoc; ar?: CvDoc }
 ): Promise<Extras> {
+  const nameEn = form.personal.nameEn || docs.en?.name || "";
+  const nameAr = form.personal.nameAr || docs.ar?.name || "";
+
   if (isMockMode()) {
     return {
       coverLetter: {
-        en: `Dear Hiring Manager,\n\nI am applying for the ${form.target.jobTitle} role. This is sample text shown in local development.\n\nBest regards,\n${form.personal.nameEn}`,
-        ar: `السلام عليكم ورحمة الله وبركاته،\n\nأتقدم لوظيفة ${form.target.jobTitle}. هذا نص تجريبي يظهر في بيئة التطوير.\n\nوتقبلوا خالص التحية،\n${form.personal.nameAr}`,
+        en: `Dear Hiring Manager,\n\nI am applying for the ${form.target.jobTitle} role. This is sample text shown in local development.\n\nBest regards,\n${nameEn || nameAr}`,
+        ar: `السلام عليكم ورحمة الله وبركاته،\n\nأتقدم لوظيفة ${form.target.jobTitle}. هذا نص تجريبي يظهر في بيئة التطوير.\n\nوتقبلوا خالص التحية،\n${nameAr || nameEn}`,
       },
       linkedInHeadline: `${form.target.jobTitle} | Sample headline`,
       linkedInAbout: "Sample LinkedIn summary shown in local development.",
@@ -55,7 +60,7 @@ export async function writeExtras(
     effort: "low",
     maxTokens: 8000,
     system: SYSTEM,
-    user: `Target job: ${form.target.jobTitle}\nCandidate name (English): ${form.personal.nameEn}\nCandidate name (Arabic): ${form.personal.nameAr}\n\nFinished CV:\n${JSON.stringify(source, null, 2)}\n\nReturn JSON only.`,
+    user: `Target job: ${form.target.jobTitle}\nCandidate name (English): ${nameEn || "(missing)"}\nCandidate name (Arabic): ${nameAr || "(missing)"}\n\nFinished CV:\n${JSON.stringify(source, null, 2)}\n\nReturn JSON only.`,
     schema: SCHEMA,
   });
 

@@ -5,7 +5,7 @@ import { PlusIcon } from "@/app/components/icons";
 import { IlluEmpty } from "@/app/components/illustrations";
 import PageShell from "@/app/components/page-shell";
 import { listCvs } from "@/lib/server/repo";
-import { getSessionUser } from "@/lib/server/session";
+import { getSessionUser, isMember } from "@/lib/server/session";
 import { toListItem } from "@/lib/server/view";
 import DeleteButton from "./delete-button";
 
@@ -20,7 +20,8 @@ const dateFormat = new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", { dateS
 
 export default async function MyCvsPage() {
   const user = await getSessionUser();
-  if (!user) redirect("/login?next=/my-cvs");
+  // Guests sign in first; their CVs move to the account on the way.
+  if (!isMember(user)) redirect("/login?next=/my-cvs");
 
   const items = (await listCvs(user.id).catch(() => [])).map((row) => toListItem(row, user));
 

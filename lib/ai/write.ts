@@ -14,6 +14,8 @@ import type { CvDoc, CvForm, CvLang, Interview } from "@/lib/cv/types";
 /* ───────────── What the model returns ───────────── */
 
 export type WriterOutput = {
+  /** The candidate's name in the output language (transliterated when only the other script was given). */
+  name: string;
   headline: string;
   summary: string;
   experience: { refId: string; title: string; company: string; bullets: string[] }[];
@@ -31,6 +33,7 @@ const WRITER_SCHEMA = {
   type: "object",
   additionalProperties: false,
   required: [
+    "name",
     "headline",
     "summary",
     "experience",
@@ -41,6 +44,7 @@ const WRITER_SCHEMA = {
     "missingKeywords",
   ],
   properties: {
+    name: str,
     headline: str,
     summary: str,
     experience: {
@@ -105,6 +109,9 @@ The candidate's notes are raw: often Saudi dialect, unstructured, and modest abo
 - Interview answers are the best material you have — every concrete number or tool in them must appear in the CV.
 - A job keyword may appear only where the candidate's input supports it. Put every job keyword you could not honestly support into missingKeywords, spelled exactly as given.
 
+# Name
+- name: the candidate's full name in the output language. If candidate.name is given, copy it exactly. If only candidate.nameInOtherScript is given, write it in the output language the way Saudi names are officially spelled (محمد عبدالله القحطاني → Mohammed Abdullah Alqahtani; Sarah Alotaibi → سارة العتيبي).
+
 # Tailoring
 - Read the target job and keywords first. Order bullets and skills by relevance to THAT job, not by how the candidate listed them.
 - Use the job's own terms (exact spelling) wherever the candidate truly has that experience — ATS matching is literal.
@@ -124,7 +131,7 @@ The candidate's notes are raw: often Saudi dialect, unstructured, and modest abo
 
 # Skills
 - 2–4 groups with short labels, 8–14 items in total. Hard skills and tools first. At most 3 soft skills, and only ones the notes demonstrate.
-- Start from the candidate's own list, add skills their notes clearly demonstrate, and use the job-ad term when they have it.
+- Start from the candidate's own list (often empty — the form does not ask for one), add skills their notes and interview answers clearly demonstrate, and use the job-ad term when they have it.
 
 # Education and certificates
 - One entry per input item, same refId. degree = level + major written the official way. institution = official name.
@@ -169,7 +176,10 @@ function buildBrief(form: CvForm, interview: Interview | null, lang: CvLang) {
       mustHave: k.must,
     })),
     candidate: {
-      name: lang === "ar" ? form.personal.nameAr : form.personal.nameEn,
+      name: (lang === "ar" ? form.personal.nameAr : form.personal.nameEn) || null,
+      nameInOtherScript: (lang === "ar" ? form.personal.nameAr : form.personal.nameEn)
+        ? null
+        : (lang === "ar" ? form.personal.nameEn : form.personal.nameAr) || null,
     },
     experience: form.experience.map((x) => ({
       refId: x.id,
@@ -273,7 +283,7 @@ export function assembleDoc(form: CvForm, out: WriterOutput, lang: CvLang): CvDo
 
   return {
     lang,
-    name: isAr ? p.nameAr : p.nameEn,
+    name: (isAr ? p.nameAr : p.nameEn) || cleanLine(out.name) || (isAr ? p.nameEn : p.nameAr),
     headline: cleanLine(out.headline) || form.target.jobTitle,
     contact,
     summary: cleanLine(out.summary),

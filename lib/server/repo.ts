@@ -251,6 +251,37 @@ export async function findPaymentCv(paymentId: string): Promise<string | null> {
   return (data?.cv_id as string | undefined) ?? null;
 }
 
+/**
+ * Move every CV (and its payment records) from a guest session to the account
+ * the same person just signed in with. Needs the service role: row-level
+ * security would rightly refuse to hand rows from one user to another.
+ */
+export async function transferCvs(fromUserId: string, toUserId: string): Promise<number> {
+  if (!fromUserId || !toUserId || fromUserId === toUserId) return 0;
+
+  if (isMockMode()) {
+    let moved = 0;
+    for (const [id, row] of mock()) {
+      if (row.user_id === fromUserId) {
+        mock().set(id, { ...row, user_id: toUserId });
+        moved++;
+      }
+    }
+    return moved;
+  }
+
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()) {
+    console.warn("[repo] cannot move guest CVs without SUPABASE_SERVICE_ROLE_KEY");
+    return 0;
+  }
+  const client = createAdminClient();
+  const { data, error } = await client.from("cvs").update({ user_id: toUserId }).eq("user_id", fromUserId).select("id");
+  if (error) throw new Error(`cvs transfer failed: ${error.message}`);
+  const { error: payError } = await client.from("payments").update({ user_id: toUserId }).eq("user_id", fromUserId);
+  if (payError) console.error("[repo] payments transfer failed:", payError.message);
+  return data?.length ?? 0;
+}
+
 export async function deleteCv(userId: string, id: string): Promise<void> {
   if (isMockMode()) {
     const row = mock().get(id);

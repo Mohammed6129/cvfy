@@ -62,6 +62,7 @@ export function mockWrite(form: CvForm, lang: CvLang): WriterOutput {
   ];
 
   return {
+    name: en ? form.personal.nameEn || "Sarah Alotaibi" : form.personal.nameAr || "سارة العتيبي",
     headline: en ? "HR Specialist | Recruitment & Employee Relations" : form.target.jobTitle || "أخصائي موارد بشرية",
     summary: en
       ? "HR Specialist with 3 years of experience in recruitment and employee relations in the FMCG sector. Filled 40+ positions a year while cutting time-to-hire by 25%, and maintained Qiwa records for 120 employees. Brings hands-on knowledge of Saudi Labor Law, onboarding, and HR reporting to a growing team."

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { DEFAULT_POST_AUTH_PATH, getRedirectOrigin } from "@/lib/auth";
+import { CLAIM_COOKIE, finishClaim } from "@/lib/server/claim";
 import { getSupabaseEnvStatus } from "@/lib/supabase/env";
 import { createRouteHandlerClient } from "@/lib/supabase/route-handler";
 
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
     console.error(
@@ -73,6 +74,13 @@ export async function GET(request: NextRequest) {
     const loginUrl = new URL("/login", origin);
     loginUrl.searchParams.set("error", "auth_callback_error");
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Signed in from a guest session: bring the guest's CVs along.
+  const claim = request.cookies.get(CLAIM_COOKIE)?.value;
+  if (claim && data.user && !data.user.is_anonymous) {
+    await finishClaim(claim, data.user.id);
+    response.cookies.set(CLAIM_COOKIE, "", { path: "/", maxAge: 0 });
   }
 
   return response;

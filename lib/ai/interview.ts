@@ -4,36 +4,31 @@ import { formatPeriod } from "@/lib/cv/form";
 import { cleanLine } from "@/lib/cv/text";
 import type { CvForm, InterviewQuestion, JobProfile } from "@/lib/cv/types";
 
-type InterviewOutput = {
-  job: JobProfile;
-  questions: { question: string; example: string }[];
-};
-
 const str = { type: "string" };
 
-const SCHEMA = {
+const KEYWORD_ITEM = {
   type: "object",
   additionalProperties: false,
-  required: ["job", "questions"],
+  required: ["en", "ar", "must"],
+  properties: { en: str, ar: str, must: { type: "boolean" } },
+};
+
+const PROFILE_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["titleEn", "titleAr", "keywords"],
   properties: {
-    job: {
-      type: "object",
-      additionalProperties: false,
-      required: ["titleEn", "titleAr", "keywords"],
-      properties: {
-        titleEn: str,
-        titleAr: str,
-        keywords: {
-          type: "array",
-          items: {
-            type: "object",
-            additionalProperties: false,
-            required: ["en", "ar", "must"],
-            properties: { en: str, ar: str, must: { type: "boolean" } },
-          },
-        },
-      },
-    },
+    titleEn: str,
+    titleAr: str,
+    keywords: { type: "array", items: KEYWORD_ITEM },
+  },
+};
+
+const QUESTIONS_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["questions"],
+  properties: {
     questions: {
       type: "array",
       items: {
@@ -46,27 +41,22 @@ const SCHEMA = {
   },
 };
 
-const SYSTEM = `You are a career coach in Saudi Arabia about to write a client's CV. Before writing, you do two things every good CV writer does.
-
-# 1. Profile the target job
-- titleEn / titleAr: the standard professional title for the job the client is targeting (Arabic title in the same gender the client used).
+const PROFILE_SYSTEM = `You are a career coach in Saudi Arabia about to write a client's CV. First, profile the job they are targeting.
+- titleEn / titleAr: the standard professional title for that job (Arabic title in the same gender the client used).
 - keywords: 10–16 terms a recruiter or ATS would search for when filling this role. If a job ad is provided, take them from the ad using its exact wording — hard skills, tools, systems, certifications, domain terms. If no ad is provided, use the standard terms for this title in the Saudi market. No soft-skill filler ("communication", "teamwork") unless the ad stresses it.
 - Each keyword has the English term (en) and the natural Arabic equivalent (ar). Tool and system names stay in Latin letters in both.
-- must = true for the 4–7 terms that are clearly required.
+- must = true for the 4–7 terms that are clearly required.`;
 
-# 2. Ask the client 3–5 questions
-Ask only what would most improve the CV. In priority order:
+const QUESTIONS_SYSTEM = `You are a career coach in Saudi Arabia. The client already has a first draft of their CV. Ask them up to 3 short questions whose answers would make it noticeably stronger. In priority order:
 a) Numbers missing from their strongest work: how many, how much, how often, what size, what changed (customers per day, team size, budget, reports per month, time saved, sales achieved).
-b) A must-have keyword their notes do not evidence — ask whether they have it and where they used it.
+b) A must-have job keyword their notes do not evidence — ask whether they have it and where they used it.
 c) Tools or systems they used but did not name.
 For students and fresh graduates, ask about the graduation project, training, and anything they led or organized.
 
-Rules for the questions:
-- Written in light Saudi dialect — warm, simple, the way a helpful friend who works in HR would ask. Example tone: "في شغلك مع شركة X، كم عميل تقريباً كنت تخدم باليوم؟"
-- One thing per question. Answerable in one short line from memory.
-- Refer to the specific employer or project by name.
-- Never ask for something already in the notes. Never ask yes/no-only questions; ask كم / وش / كيف / وين.
-- No more than 5 questions. Fewer is fine when the notes are already rich.
+Rules:
+- Light Saudi dialect — warm and simple, the way a helpful friend who works in HR would ask. Example tone: "في شغلك مع شركة X، كم عميل تقريباً كنت تخدم باليوم؟"
+- One thing per question, answerable in one short line from memory. Refer to the specific employer or project by name.
+- Never ask for something already in the notes. No yes/no-only questions; ask كم / وش / كيف / وين.
 - example: a realistic one-line sample answer in the same dialect, with a number in it. It is shown as a placeholder, so it must not be about the client's actual data.`;
 
 function buildBrief(form: CvForm) {
@@ -89,34 +79,48 @@ function buildBrief(form: CvForm) {
   };
 }
 
-export async function runInterview(
-  form: CvForm
-): Promise<{ job: JobProfile; questions: InterviewQuestion[] }> {
+/** The target job's standard title and the keywords recruiters search for. Fast model, one short call. */
+export async function profileJob(form: CvForm): Promise<JobProfile> {
   const out = isMockMode()
-    ? mockInterview(form)
-    : await callJson<InterviewOutput>({
-        model: MODELS.writer,
+    ? mockInterview(form).job
+    : await callJson<JobProfile>({
+        model: MODELS.fast,
         effort: "low",
-        maxTokens: 8000,
-        system: SYSTEM,
-        user: `Profile the job and write the questions for this client. Return JSON only.\n\n${JSON.stringify(buildBrief(form), null, 2)}`,
-        schema: SCHEMA,
+        maxTokens: 4000,
+        system: PROFILE_SYSTEM,
+        user: `Profile the target job for this client. Return JSON only.\n\n${JSON.stringify(buildBrief(form), null, 2)}`,
+        schema: PROFILE_SCHEMA,
       });
 
-  const keywords = out.job.keywords
-    .map((k) => ({ en: cleanLine(k.en), ar: cleanLine(k.ar) || cleanLine(k.en), must: Boolean(k.must) }))
-    .filter((k) => k.en)
-    .slice(0, 16);
-
   return {
-    job: {
-      titleEn: cleanLine(out.job.titleEn) || form.target.jobTitle,
-      titleAr: cleanLine(out.job.titleAr) || form.target.jobTitle,
-      keywords,
-    },
-    questions: out.questions
-      .map((q, i) => ({ id: `q${i + 1}`, question: cleanLine(q.question), example: cleanLine(q.example) }))
-      .filter((q) => q.question)
-      .slice(0, 5),
+    titleEn: cleanLine(out.titleEn) || form.target.jobTitle,
+    titleAr: cleanLine(out.titleAr) || form.target.jobTitle,
+    keywords: out.keywords
+      .map((k) => ({ en: cleanLine(k.en), ar: cleanLine(k.ar) || cleanLine(k.en), must: Boolean(k.must) }))
+      .filter((k) => k.en)
+      .slice(0, 16),
   };
+}
+
+/** Optional, after the first draft: up to 3 questions that would strengthen it. */
+export async function writeQuestions(form: CvForm, job: JobProfile | null): Promise<InterviewQuestion[]> {
+  const out = isMockMode()
+    ? { questions: mockInterview(form).questions }
+    : await callJson<{ questions: { question: string; example: string }[] }>({
+        model: MODELS.writer,
+        effort: "low",
+        maxTokens: 6000,
+        system: QUESTIONS_SYSTEM,
+        user: `Write the questions for this client. Return JSON only.\n\n${JSON.stringify(
+          { ...buildBrief(form), jobKeywords: job?.keywords ?? [] },
+          null,
+          2
+        )}`,
+        schema: QUESTIONS_SCHEMA,
+      });
+
+  return out.questions
+    .map((q, i) => ({ id: `q${i + 1}`, question: cleanLine(q.question), example: cleanLine(q.example) }))
+    .filter((q) => q.question)
+    .slice(0, 3);
 }

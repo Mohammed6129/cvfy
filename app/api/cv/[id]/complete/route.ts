@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { aiFailure, jsonError, unauthorized } from "@/lib/server/http";
 import { completeFull } from "@/lib/server/generate";
-import { getCv, updateStored } from "@/lib/server/repo";
+import { getCv, saveCv, updateStored } from "@/lib/server/repo";
 import { getSessionUser } from "@/lib/server/session";
 import { accessFor, buildView } from "@/lib/server/view";
 
@@ -31,7 +31,18 @@ export async function POST(_request: Request, { params }: Ctx) {
 
   try {
     const stored = await completeFull(row.form, row.interview, row.stored);
-    if (stored !== row.stored) await updateStored(user.id, row.id, stored);
+
+    // The form asked for the name in one language only; keep the one the
+    // writer produced for the other, so the next edit shows (and can fix) it.
+    const other = stored.primaryLang === "en" ? "ar" : "en";
+    const key = other === "en" ? "nameEn" : "nameAr";
+    const writtenName = stored.docs[other]?.name;
+    if (!row.form.personal[key] && writtenName) {
+      const form = { ...row.form, personal: { ...row.form.personal, [key]: writtenName } };
+      await saveCv({ userId: user.id, id: row.id, form, interview: row.interview, stored });
+    } else if (stored !== row.stored) {
+      await updateStored(user.id, row.id, stored);
+    }
     return NextResponse.json({ view: buildView({ ...row, stored }, user) });
   } catch (error) {
     return aiFailure("complete", error);

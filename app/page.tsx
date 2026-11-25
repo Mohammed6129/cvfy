@@ -7,6 +7,8 @@ import SampleSwitcher from "./components/home/sample-switcher";
 import { ChatIcon, FileIcon, ShieldIcon, TargetIcon } from "./components/icons";
 import { IlluFiles, IlluMatch, IlluTalk } from "./components/illustrations";
 import PageShell from "./components/page-shell";
+import UploadCv from "./components/upload-cv";
+import { isMockMode } from "@/lib/ai/client";
 import { PLANS } from "@/lib/pricing";
 
 export const metadata: Metadata = {
@@ -16,8 +18,8 @@ export const metadata: Metadata = {
 const DIFFERENCES = [
   {
     icon: <ChatIcon size={22} />,
-    title: "يسألك الأسئلة الصح",
-    body: "ChatGPT يكتب من اللي تعطيه وبس. CVfy يقرأ خبراتك ويسألك 3 إلى 5 أسئلة تطلّع الأرقام والإنجازات اللي ما كنت بتذكرها: كم عميل، كم ريال، كم بالمئة.",
+    title: "يطلّع إنجازك من كلامك العادي",
+    body: "تكتب بالعامي، ونطلّع منه الإنجاز والرقم ونصيغه بلغة التوظيف. وإذا تبي سيرتك أقوى، نسألك 3 أسئلة سريعة تطلّع الأرقام اللي ما كنت بتذكرها.",
   },
   {
     icon: <TargetIcon size={22} />,
@@ -40,17 +42,17 @@ const STEPS = [
   {
     art: IlluTalk,
     title: "عبّي بياناتك بأسلوبك",
-    body: "خمس خطوات قصيرة، وتكتب خبراتك مثل ما تسولف — حتى لو بالعامي. وإذا عندك سيرة قديمة ارفعها ونعبّي البيانات عنك.",
+    body: "ثلاث خطوات قصيرة، وتكتب خبراتك مثل ما تسولف — حتى لو بالعامي. وإذا عندك سيرة قديمة ارفعها ونعبّي عنك.",
   },
   {
     art: IlluMatch,
-    title: "جاوب على كم سؤال",
-    body: "نسألك عن الأشياء اللي تفرق في سيرتك: حجم شغلك، نتائجه، والأدوات اللي استخدمتها. كل سؤال جوابه سطر واحد.",
+    title: "شوف سيرتك مكتوبة",
+    body: "خلال أقل من دقيقة تشوف سيرتك وتقرير فحص ATS، مجاناً وبدون تسجيل.",
   },
   {
     art: IlluFiles,
-    title: "شوف سيرتك وقرّر",
-    body: "تشوف المعاينة وتقرير ATS مجاناً. إذا عجبتك ادفع مرة وحدة وحمّل ملفاتك، وإذا لا ما عليك شي.",
+    title: "ادفع وحمّل",
+    body: "إذا عجبتك ادفع مرة وحدة بأبل باي أو مدى وحمّل PDF و Word. وإذا لا، ما عليك شي.",
   },
 ];
 
@@ -64,6 +66,7 @@ const DELIVERABLES = [
 ];
 
 export default function HomePage() {
+  const mock = isMockMode();
   return (
     <PageShell>
       {/* ── Hero ── */}
@@ -75,18 +78,19 @@ export default function HomePage() {
             ونكتبها لك سيرة على مقاس الوظيفة
           </h1>
           <p className="t-lead mt-5 max-w-[34rem]">
-            تكتب خبراتك بأسلوبك العادي، نسألك كم سؤال، ونسلّمك سيرة ذاتية بالعربي والإنجليزي مطابقة لإعلان الوظيفة اللي تبغاها.
+            تكتب خبراتك بأسلوبك العادي، ونسلّمك سيرة ذاتية بالعربي والإنجليزي مطابقة لإعلان الوظيفة اللي تبغاها.
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-start">
             <Link href="/create" className="btn btn-primary btn-lg">
-              ابدأ سيرتك مجاناً
+              ابدأ من الصفر
             </Link>
-            <Link href="#sample" className="btn btn-ghost btn-lg">
-              شوف مثال
-            </Link>
+            <UploadCv mock={mock} className="btn btn-ghost btn-lg w-full sm:w-auto">
+              ارفع سيرتك القديمة
+            </UploadCv>
           </div>
           <p className="t-small mt-4">
-            المعاينة مجانية. تدفع مرة وحدة من {PLANS.basic.price} ريال إذا عجبتك النتيجة — بدون اشتراك.
+            المعاينة مجانية وبدون تسجيل. تدفع مرة وحدة من {PLANS.basic.price} ريال إذا عجبتك —{" "}
+            <Link href="#sample" className="link">شوف مثال</Link>.
           </p>
         </div>
 
@@ -170,7 +174,7 @@ export default function HomePage() {
         <div className="wrap wrap-narrow text-center">
           <h2 className="t-h2">جرّبها على سيرتك، والحكم لك</h2>
           <p className="t-lead mx-auto mt-3 max-w-xl">
-            عشر دقايق وتشوف سيرتك مكتوبة ونتيجة فحصها. ما تحتاج بطاقة عشان تبدأ.
+            دقايق وتشوف سيرتك مكتوبة ونتيجة فحصها. ما تحتاج تسجيل ولا بطاقة عشان تبدأ.
           </p>
           <Link href="/create" className="btn btn-primary btn-lg mt-8">
             ابدأ سيرتك مجاناً

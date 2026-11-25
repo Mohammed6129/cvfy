@@ -30,7 +30,7 @@ export default async function PreviewPage({ searchParams }: Props) {
 
   return (
     <PageShell variant="focus" desk footer={false}>
-      <PreviewClient cvId={params.cv} userId={user.id} mock={isMockMode()} payment={payment} />
+      <PreviewClient cvId={params.cv} userId={user.id} guest={user.isAnonymous} mock={isMockMode()} payment={payment} />
     </PageShell>
   );
 }
