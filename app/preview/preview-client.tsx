@@ -317,7 +317,7 @@ export default function PreviewClient({ cvId, userId, guest, mock, payment }: Pr
 
       {/* Mobile: the pay action is always one thumb away. */}
       {view.locked && (
-        <div className="no-print fixed inset-x-0 bottom-0 z-30 border-t border-rule bg-paper/95 p-3 backdrop-blur-md lg:hidden">
+        <div className="no-print fixed inset-x-0 bottom-0 z-30 border-t border-rule bg-paper/95 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md lg:hidden">
           <a href="#pay" className="btn btn-primary btn-block">
             <LockIcon size={18} />
             افتح سيرتك كاملة — من {PLANS.basic.price} ريال
