@@ -350,7 +350,7 @@ export default function Wizard({ editId, resume, fresh, review, email, mock }: W
                 aria-current={i === step ? "step" : undefined}
                 className="block w-full py-1 disabled:cursor-default"
               >
-                <span className={`block h-1.5 rounded-full ${i < step ? "bg-ink" : i === step ? "bg-marker" : "bg-rule"}`} />
+                <span className={`block h-1.5 rounded-full ${i <= step ? "bg-brand" : "bg-rule"}`} />
               </button>
             </li>
           ))}

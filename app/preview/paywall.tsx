@@ -32,7 +32,7 @@ export default function Paywall({ cvId, userId, primaryLang, mode, mock, onPaid 
         ];
 
   return (
-    <section id="pay" className="scroll-mt-24 rounded-[var(--radius-card)] border-2 border-ink bg-paper p-5" aria-labelledby="pay-title">
+    <section id="pay" className="scroll-mt-24 rounded-[var(--radius-card)] border-2 border-brand bg-paper p-5" aria-labelledby="pay-title">
       <h2 id="pay-title" className="t-h3 flex items-center gap-2">
         <LockIcon size={18} />
         {mode === "upgrade" ? "أضف اللغة الثانية وكل الإضافات" : "افتح سيرتك وحمّلها"}
@@ -59,11 +59,11 @@ export default function Paywall({ cvId, userId, primaryLang, mode, mock, onPaid 
                 aria-checked={selected}
                 onClick={() => { setPlanId(o.id); setError(null); }}
                 className={`flex w-full items-start gap-3 rounded-[var(--radius-control)] border p-3.5 text-start transition-colors ${
-                  selected ? "border-ink bg-marker-soft" : "border-rule hover:border-ink"
+                  selected ? "border-brand bg-brand-soft" : "border-rule hover:border-brand"
                 }`}
               >
-                <span className={`mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${selected ? "border-ink" : "border-mute"}`}>
-                  {selected && <span className="h-2.5 w-2.5 rounded-full bg-ink" />}
+                <span className={`mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${selected ? "border-brand" : "border-mute"}`}>
+                  {selected && <span className="h-2.5 w-2.5 rounded-full bg-brand" />}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-baseline justify-between gap-2">

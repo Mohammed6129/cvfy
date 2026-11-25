@@ -202,7 +202,7 @@ export default function PreviewClient({ cvId, userId, guest, mock, payment }: Pr
                   role="tab"
                   aria-selected={lang === l}
                   onClick={() => setLang(l)}
-                  className={`min-h-10 rounded-full px-5 text-sm ${lang === l ? "bg-ink font-medium text-white" : "text-graphite hover:text-ink"}`}
+                  className={`min-h-10 rounded-full px-5 text-sm ${lang === l ? "bg-brand font-semibold text-white" : "text-graphite hover:text-ink"}`}
                 >
                   {LANG_TAB[l]}
                 </button>
@@ -216,7 +216,7 @@ export default function PreviewClient({ cvId, userId, guest, mock, payment }: Pr
             {view.locked && (
               <a
                 href="#pay"
-                className="absolute inset-x-[8%] bottom-[9%] hidden items-center lg:flex justify-between gap-3 rounded-[var(--radius-card)] bg-ink px-5 py-4 text-[1rem] text-white shadow-[var(--shadow-pop)] hover:bg-ink-soft"
+                className="absolute inset-x-[8%] bottom-[9%] hidden items-center lg:flex justify-between gap-3 rounded-[var(--radius-card)] bg-brand px-5 py-4 text-[1rem] text-white shadow-[var(--shadow-pop)] hover:bg-brand-deep"
               >
                 <span className="flex items-center gap-3">
                   <LockIcon size={20} />
@@ -225,7 +225,7 @@ export default function PreviewClient({ cvId, userId, guest, mock, payment }: Pr
                     <span className="block text-[0.8125rem] font-light text-white/75">يظهر كامل ويتحمّل بعد الدفع</span>
                   </span>
                 </span>
-                <span className="shrink-0 rounded-full bg-marker px-3 py-1 text-sm font-semibold text-ink">
+                <span className="shrink-0 rounded-full bg-paper px-3 py-1 text-sm font-semibold text-brand-deep">
                   من {PLANS.basic.price} ريال
                 </span>
               </a>
@@ -317,7 +317,7 @@ export default function PreviewClient({ cvId, userId, guest, mock, payment }: Pr
 
       {/* Mobile: the pay action is always one thumb away. */}
       {view.locked && (
-        <div className="no-print fixed inset-x-0 bottom-0 z-30 border-t border-rule bg-paper/95 p-3 backdrop-blur-md lg:hidden">
+        <div className="no-print fixed inset-x-0 bottom-0 z-30 border-t border-rule bg-paper/95 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md lg:hidden">
           <a href="#pay" className="btn btn-primary btn-block">
             <LockIcon size={18} />
             افتح سيرتك كاملة — من {PLANS.basic.price} ريال

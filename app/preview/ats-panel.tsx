@@ -55,7 +55,7 @@ export default function AtsPanel({ report, editHref, canEdit }: { report: AtsRep
           </p>
           <div className="mt-3 flex flex-wrap gap-1.5">
             {found.map((k) => (
-              <span key={k.term} className="rounded-md bg-marker px-2 py-0.5 text-[0.8125rem]">
+              <span key={k.term} className="rounded-md bg-marker px-2 py-0.5 text-[0.8125rem] text-brand-deep">
                 {k.term}
               </span>
             ))}

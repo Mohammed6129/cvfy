@@ -1,6 +1,119 @@
 @import "tailwindcss";
 
-/* ───────────── Fonts (self-hosted, no external requests) ───────────── */
+/* ───────────── Fonts (self-hosted, no external requests) ─────────────
+   Site: IBM Plex Sans Arabic — plain, corporate, very legible on small screens.
+   CV sheet: Readex Pro, the same face embedded in the PDF, so the preview
+   matches the file people download. */
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  src: url("/fonts/plex/plex-arabic-300.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891,
+    U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41,
+    U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  src: url("/fonts/plex/plex-latin-300.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  src: url("/fonts/plex/plex-arabic-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891,
+    U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41,
+    U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  src: url("/fonts/plex/plex-latin-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  src: url("/fonts/plex/plex-arabic-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891,
+    U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41,
+    U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  src: url("/fonts/plex/plex-latin-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  src: url("/fonts/plex/plex-arabic-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891,
+    U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41,
+    U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  src: url("/fonts/plex/plex-latin-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  src: url("/fonts/plex/plex-arabic-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891,
+    U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41,
+    U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  src: url("/fonts/plex/plex-latin-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 @font-face {
   font-family: "Readex Pro";
   src: url("/fonts/readex-pro-arabic.woff2") format("woff2");
@@ -23,47 +136,41 @@
     U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/* Handwriting face — only for "the user's own words" moments. */
-@font-face {
-  font-family: "Playpen Arabic";
-  src: url("/fonts/playpen-arabic.woff2") format("woff2");
-  font-weight: 100 800;
-  font-style: normal;
-  font-display: swap;
-  unicode-range: U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFC;
-}
-
 /* ───────────── Tokens ─────────────
-   Stationery palette: white paper, navy ink, ballpoint blue, one highlighter. */
+   "Azure": white pages, navy text, one confident blue for every action and
+   selection, green only for ATS results. */
 @theme {
-  --color-ink: #0f1b3d;
-  --color-ink-soft: #2a3558;
-  --color-graphite: #4a5570;
-  --color-mute: #7a849b;
-  --color-rule: #e4e8f0;
-  --color-desk: #f4f6fa;
+  --color-ink: #0b1b3a;
+  --color-ink-soft: #1d2f55;
+  --color-graphite: #48577a;
+  --color-mute: #7c88a5;
+  --color-rule: #dde4f0;
+  --color-desk: #f2f6fc;
   --color-paper: #ffffff;
-  --color-marker: #ddf45b;
-  --color-marker-soft: #f4fbd0;
-  --color-pen: #2449e6;
-  --color-pen-soft: #ebeffe;
-  --color-ok: #18794e;
-  --color-ok-soft: #e6f6ec;
+  --color-brand: #1466ff;
+  --color-brand-deep: #0b4fd8;
+  --color-brand-soft: #e8f0ff;
+  --color-marker: #d4e3ff;
+  --color-marker-soft: #eef4ff;
+  --color-pen: #1466ff;
+  --color-pen-soft: #e8f0ff;
+  --color-ok: #0c8a5c;
+  --color-ok-soft: #e2f5ec;
   --color-warn: #8a5a00;
   --color-warn-soft: #fff4d6;
   --color-bad: #c62f2f;
   --color-bad-soft: #fdecec;
 
-  --font-sans: "Readex Pro", "Segoe UI", Tahoma, system-ui, sans-serif;
-  --font-hand: "Playpen Arabic", "Readex Pro", cursive;
+  --font-sans: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
+  --font-hand: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
+  --font-cv: "Readex Pro", "Segoe UI", Tahoma, system-ui, sans-serif;
 
-  --radius-control: 0.75rem;
-  --radius-card: 1.125rem;
-  --radius-paper: 0.375rem;
+  --radius-control: 0.625rem;
+  --radius-card: 1rem;
+  --radius-paper: 0.25rem;
 
-  --shadow-paper: 0 1px 1px rgb(15 27 61 / 0.04), 0 8px 24px -6px rgb(15 27 61 / 0.12),
-    0 24px 48px -24px rgb(15 27 61 / 0.18);
-  --shadow-pop: 0 12px 32px -8px rgb(15 27 61 / 0.22);
+  --shadow-paper: 0 1px 2px rgb(11 27 58 / 0.06), 0 12px 32px -12px rgb(11 27 58 / 0.18);
+  --shadow-pop: 0 12px 32px -10px rgb(11 27 58 / 0.24);
 }
 
 html {
@@ -108,15 +215,14 @@ body {
 /* ───────────── Type ───────────── */
 @layer components {
   .t-display {
-    font-size: clamp(2rem, 5.2vw, 3.125rem);
-    line-height: 1.28;
-    font-weight: 600;
-    letter-spacing: -0.01em;
+    font-size: clamp(1.875rem, 5vw, 3rem);
+    line-height: 1.35;
+    font-weight: 700;
   }
   .t-h2 {
-    font-size: clamp(1.5rem, 3.6vw, 2.125rem);
-    line-height: 1.4;
-    font-weight: 600;
+    font-size: clamp(1.5rem, 3.4vw, 2rem);
+    line-height: 1.45;
+    font-weight: 700;
   }
   .t-h3 {
     font-size: 1.125rem;
@@ -124,9 +230,9 @@ body {
     font-weight: 600;
   }
   .t-lead {
-    font-size: clamp(1rem, 2.2vw, 1.1875rem);
+    font-size: clamp(1rem, 2.1vw, 1.1875rem);
     line-height: 1.9;
-    font-weight: 300;
+    font-weight: 400;
     color: var(--color-graphite);
   }
   .t-body {
@@ -144,11 +250,12 @@ body {
     font-weight: 400;
   }
 
-  /* The highlighter stroke: marks keywords, exactly as a recruiter would. */
+  /* A matched keyword: a light blue tag, the way an ATS report marks it. */
   .hl {
-    background: linear-gradient(transparent 52%, var(--color-marker) 52%, var(--color-marker) 94%, transparent 94%);
-    padding: 0 0.12em;
-    margin: 0 -0.06em;
+    background: var(--color-marker);
+    border-radius: 0.25em;
+    padding: 0.05em 0.2em;
+    margin: 0 -0.05em;
     color: inherit;
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;
@@ -181,27 +288,31 @@ body {
     transform: none;
   }
   .btn-primary {
-    background: var(--color-ink);
+    background: var(--color-brand);
     color: #fff;
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgb(20 102 255 / 0.3);
   }
   .btn-primary:hover:not(:disabled) {
-    background: var(--color-ink-soft);
+    background: var(--color-brand-deep);
   }
   .btn-marker {
-    background: var(--color-marker);
-    color: var(--color-ink);
+    background: var(--color-brand-soft);
+    color: var(--color-brand-deep);
     font-weight: 600;
   }
   .btn-marker:hover:not(:disabled) {
-    background: #d2ec3f;
+    background: #d9e6ff;
   }
   .btn-ghost {
     background: var(--color-paper);
     color: var(--color-ink);
-    border: 1px solid var(--color-rule);
+    border: 1px solid #cfd8e8;
+    font-weight: 500;
   }
   .btn-ghost:hover:not(:disabled) {
-    border-color: var(--color-ink);
+    border-color: var(--color-brand);
+    color: var(--color-brand-deep);
   }
   .btn-quiet {
     min-height: 2.5rem;
@@ -331,8 +442,9 @@ body {
     border-color: var(--color-ink);
   }
   .chip-on {
-    background: var(--color-marker);
-    border-color: var(--color-marker);
+    background: var(--color-brand-soft);
+    border-color: #bcd2ff;
+    color: var(--color-brand-deep);
     font-weight: 500;
   }
 
@@ -408,23 +520,18 @@ body {
   opacity: 0.75;
 }
 
-/* Hero: one orchestrated moment — the keyword highlight sweeping in. */
-@keyframes hl-sweep {
+/* Hero: one orchestrated moment — matched keywords light up one by one. */
+@keyframes hl-in {
   from {
-    background-size: 0% 100%;
+    background-color: transparent;
   }
   to {
-    background-size: 100% 100%;
+    background-color: var(--color-marker);
   }
 }
 .hl-animate {
-  background-repeat: no-repeat;
-  background-position: right center;
-  background-size: 0% 100%;
-  animation: hl-sweep 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
-}
-[dir="ltr"] .hl-animate {
-  background-position: left center;
+  background-color: transparent;
+  animation: hl-in 0.45s ease-out forwards;
 }
 
 /* Illustration motion — only the "writing" drawing moves. */

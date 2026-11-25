@@ -212,7 +212,7 @@ export function Segmented<T extends string>({
               aria-checked={on}
               onClick={() => onChange(o.id)}
               className={`flex min-h-12 flex-col items-center justify-center rounded-[var(--radius-control)] border px-2 py-2 text-center transition-colors ${
-                on ? "border-ink bg-ink text-white" : "border-rule bg-paper text-ink hover:border-ink"
+                on ? "border-brand bg-brand text-white" : "border-[#cfd8e8] bg-paper text-ink hover:border-brand"
               }`}
             >
               <span className="text-[0.9375rem] font-medium leading-snug">{o.label}</span>
@@ -248,7 +248,7 @@ export function ChoiceChips<T extends string>({
             role="radio"
             aria-checked={value === o.id}
             onClick={() => onChange(o.id)}
-            className={`chip min-h-11 px-4 text-[0.9375rem] ${value === o.id ? "border-ink bg-ink font-medium text-white hover:border-ink" : ""}`}
+            className={`chip min-h-11 px-4 text-[0.9375rem] ${value === o.id ? "border-brand bg-brand font-medium text-white hover:border-brand" : ""}`}
           >
             {o.label}
           </button>
@@ -328,7 +328,7 @@ export function TagInput({
               type="button"
               aria-label={`حذف ${v}`}
               onClick={() => onChange(values.filter((x) => x !== v))}
-              className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-ink/10"
+              className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-brand/15"
             >
               <XIcon size={12} />
             </button>

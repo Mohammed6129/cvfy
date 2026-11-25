@@ -9,8 +9,8 @@ import type { ReactNode } from "react";
  */
 
 const INK = "var(--color-ink)";
-const MARK = "var(--color-marker)";
-const SOFT = "var(--color-marker-soft)";
+const MARK = "#a8c5ff";
+const SOFT = "var(--color-brand-soft)";
 const LINE = "#c9d0dc";
 const PAPER = "#ffffff";
 

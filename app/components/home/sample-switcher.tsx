@@ -24,7 +24,7 @@ export default function SampleSwitcher() {
             aria-selected={lang === l}
             onClick={() => setLang(l)}
             className={`min-h-10 rounded-full px-5 text-sm transition-colors ${
-              lang === l ? "bg-ink font-medium text-white" : "text-graphite hover:text-ink"
+              lang === l ? "bg-brand font-semibold text-white" : "text-graphite hover:text-ink"
             }`}
           >
             {l === "en" ? "النسخة الإنجليزية" : "النسخة العربية"}

@@ -36,7 +36,7 @@ export default function UserMenu({ name, avatarUrl }: UserMenuProps) {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="menu"
-        className="flex min-h-11 items-center gap-2 rounded-full border border-rule bg-paper py-1 pe-3 ps-1 hover:border-ink"
+        className="flex min-h-11 items-center gap-2 rounded-full border border-rule bg-paper py-1 pe-3 ps-1 hover:border-brand"
       >
         {avatarUrl ? (
           <Image
@@ -48,7 +48,7 @@ export default function UserMenu({ name, avatarUrl }: UserMenuProps) {
             referrerPolicy="no-referrer"
           />
         ) : (
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-marker text-sm font-semibold">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-sm font-semibold text-white">
             {name.charAt(0)}
           </span>
         )}

@@ -48,13 +48,13 @@ export default function Pricing() {
             </ul>
           </div>
 
-          <div className="rounded-[var(--radius-card)] border-2 border-ink bg-paper p-6 md:p-8">
+          <div className="rounded-[var(--radius-card)] border-2 border-brand bg-paper p-6 shadow-[0_12px_32px_-16px_rgb(20_102_255/0.35)] md:p-8">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h3 className="t-h3">{full.name}</h3>
                 <p className="t-small">{full.tagline}</p>
               </div>
-              <span className="rounded-full bg-marker px-3 py-1 text-[0.8125rem] font-medium">ننصحك فيها</span>
+              <span className="rounded-full bg-brand px-3 py-1 text-[0.8125rem] font-semibold text-white">ننصحك فيها</span>
             </div>
             <p className="mt-4 flex items-baseline gap-2">
               <span className="text-[2.75rem] font-semibold leading-none">{full.price}</span>

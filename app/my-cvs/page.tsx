@@ -52,7 +52,7 @@ export default async function MyCvsPage() {
                   <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.8125rem] text-graphite">
                     <span
                       className={`rounded-full px-2.5 py-0.5 ${
-                        cv.paid ? "bg-ok-soft text-ok" : cv.hasDoc ? "bg-marker-soft text-ink" : "bg-desk"
+                        cv.paid ? "bg-ok-soft text-ok" : cv.hasDoc ? "bg-brand-soft text-brand-deep" : "bg-desk"
                       }`}
                     >
                       {cv.paid ? (cv.plan === "basic" ? "مدفوعة — الأساسية" : "مدفوعة — الكاملة") : cv.hasDoc ? "معاينة" : "مسودة"}

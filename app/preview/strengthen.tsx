@@ -84,7 +84,7 @@ export default function Strengthen({ cvId, onRewritten }: StrengthenProps) {
             {questions.map((q, i) => (
               <li key={q.id}>
                 <label htmlFor={`sq-${q.id}`} className="flex gap-2 text-[0.9375rem] font-medium leading-relaxed">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-marker text-xs">{i + 1}</span>
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-soft text-xs font-semibold text-brand-deep">{i + 1}</span>
                   <span>{q.question}</span>
                 </label>
                 <textarea

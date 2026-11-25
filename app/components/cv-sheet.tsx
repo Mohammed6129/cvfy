@@ -149,7 +149,7 @@ export default function CvSheet({ doc, highlight = [], animateHighlight = false,
       lang={doc.lang}
       className={`paper px-[3.4em] py-[3em] text-start leading-[1.55] text-[#1f2937] ${className}`}
       style={{
-        fontFamily: rtl ? "var(--font-sans)" : 'Helvetica, Arial, "Liberation Sans", sans-serif',
+        fontFamily: rtl ? "var(--font-cv)" : 'Helvetica, Arial, "Liberation Sans", sans-serif',
         lineHeight: rtl ? 1.75 : 1.5,
       }}
     >

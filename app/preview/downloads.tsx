@@ -6,12 +6,12 @@ import type { CvLang, CvView } from "@/lib/cv/types";
 
 function FileLink({ href, title, note }: { href: string; title: string; note: string }) {
   return (
-    <a href={href} download className="flex min-h-14 items-center justify-between gap-3 rounded-[var(--radius-control)] border border-rule px-4 py-2.5 hover:border-ink">
+    <a href={href} download className="flex min-h-14 items-center justify-between gap-3 rounded-[var(--radius-control)] border border-rule px-4 py-2.5 hover:border-brand">
       <span>
         <span className="block font-medium">{title}</span>
         <span className="block text-[0.8125rem] font-light text-graphite">{note}</span>
       </span>
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink text-white">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-white">
         <DownloadIcon size={16} />
       </span>
     </a>

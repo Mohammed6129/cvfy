@@ -4,7 +4,7 @@ import Link from "next/link";
 export default function SaveAccount({ cvId, paid }: { cvId: string; paid: boolean }) {
   const href = `/login?next=${encodeURIComponent(`/preview?cv=${cvId}`)}&save=1`;
   return (
-    <section className={`card p-5 ${paid ? "border-ink" : ""}`} aria-labelledby="save-title">
+    <section className={`card p-5 ${paid ? "border-brand" : ""}`} aria-labelledby="save-title">
       <h2 id="save-title" className="t-h3">احفظ سيرتك في حسابك</h2>
       <p className="t-small mt-1">
         {paid
