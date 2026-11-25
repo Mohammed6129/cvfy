@@ -1,3 +1,4 @@
+import { isTesterLoginEnabled } from "@/lib/test-user";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import PageShell from "@/app/components/page-shell";
@@ -33,6 +34,7 @@ export default async function LoginPage({ searchParams }: Props) {
           authError={params.error ?? null}
           authErrorDescription={params.error_description ?? null}
           mock={isMockMode()}
+          tester={!isMockMode() && isTesterLoginEnabled()}
           guest={Boolean(user?.isAnonymous)}
         />
       </div>

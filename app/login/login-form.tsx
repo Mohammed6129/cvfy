@@ -28,6 +28,8 @@ type LoginFormProps = {
   mock: boolean;
   /** Signing in from a guest session: their CVs move to the account afterwards. */
   guest: boolean;
+  /** Preview links: one tap into the internal test account (no payment needed). */
+  tester: boolean;
 };
 
 /** After any non-redirect sign-in: move the guest's CVs to the account. Never blocks sign-in. */
@@ -41,7 +43,7 @@ function initialError(code: string | null, description: string | null): string |
   return null;
 }
 
-export default function LoginForm({ nextPath, authError, authErrorDescription, mock, guest }: LoginFormProps) {
+export default function LoginForm({ nextPath, authError, authErrorDescription, mock, guest, tester }: LoginFormProps) {
   const router = useRouter();
   const fromBuilder = nextPath.startsWith("/create");
   // People arriving from the builder or saving a guest CV are almost always new: start on sign-up.
@@ -134,6 +136,19 @@ export default function LoginForm({ nextPath, authError, authErrorDescription, m
     await done();
   };
 
+  const handleTester = async () => {
+    setLoading(true);
+    reset();
+    const res = await fetch("/api/dev/tester", { method: "POST" }).catch(() => null);
+    if (!res?.ok) {
+      const data = (await res?.json().catch(() => ({}))) as { error?: string } | undefined;
+      setError(data?.error || "ما قدرنا ندخل بحساب المطور.");
+      setLoading(false);
+      return;
+    }
+    await done();
+  };
+
   const tab = (id: Method, label: string) => (
     <button
       type="button"
@@ -169,6 +184,15 @@ export default function LoginForm({ nextPath, authError, authErrorDescription, m
           <button type="button" onClick={handleMock} disabled={loading} className="btn btn-marker btn-block mb-3">
             دخول تجريبي (بيئة التطوير)
           </button>
+        )}
+
+        {tester && (
+          <div className="mb-4 rounded-[var(--radius-control)] border border-dashed border-rule p-3">
+            <button type="button" onClick={handleTester} disabled={loading} className="btn btn-marker btn-block">
+              دخول المطور
+            </button>
+            <p className="hint text-center">يطلع في روابط المعاينة بس، والتحميل فيه مجاني.</p>
+          </div>
         )}
 
         <button type="button" onClick={handleGoogle} disabled={loading} className="btn btn-ghost btn-lg btn-block">
