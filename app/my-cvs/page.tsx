@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { PlusIcon } from "@/app/components/icons";
+import { IlluEmpty } from "@/app/components/illustrations";
 import PageShell from "@/app/components/page-shell";
 import { listCvs } from "@/lib/server/repo";
 import { getSessionUser } from "@/lib/server/session";
@@ -36,6 +37,7 @@ export default async function MyCvsPage() {
 
         {items.length === 0 ? (
           <div className="card mt-8 p-8 text-center">
+            <IlluEmpty className="mx-auto mb-4 h-32 w-32" />
             <p className="t-h3">ما عندك سير محفوظة</p>
             <p className="t-body mt-1">ابدأ أول سيرة — تشوفها مكتوبة ومفحوصة قبل لا تدفع.</p>
             <Link href="/create" className="btn btn-primary mt-5">ابدأ سيرتك</Link>

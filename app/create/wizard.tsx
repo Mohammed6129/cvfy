@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BackIcon, FileIcon, NextIcon, PenIcon, UploadIcon } from "@/app/components/icons";
+import { BackIcon, FileIcon, NextIcon } from "@/app/components/icons";
+import { IlluBlank, IlluQuestions, IlluUpload, IlluWriting } from "@/app/components/illustrations";
 import {
   cleanForm,
   emptyForm,
@@ -343,9 +344,7 @@ export default function Wizard({ signedIn, email, editId, resume, fresh }: Wizar
             onClick={() => { setCvId(null); beginForm(emptyForm()); }}
             className="card p-6 text-start transition-colors hover:border-ink"
           >
-            <span className="flex h-12 w-12 items-center justify-center rounded-[var(--radius-control)] bg-marker">
-              <PenIcon size={22} />
-            </span>
+            <IlluBlank className="h-28 w-28" />
             <span className="t-h3 mt-4 block">أبدأ من الصفر</span>
             <span className="t-small mt-1 block">خمس خطوات قصيرة، تكتب فيها بأسلوبك العادي.</span>
           </button>
@@ -356,10 +355,11 @@ export default function Wizard({ signedIn, email, editId, resume, fresh }: Wizar
             onClick={() => (signedIn ? fileRef.current?.click() : goLogin("/create"))}
             className="card p-6 text-start transition-colors hover:border-ink disabled:opacity-60"
           >
-            <span className="flex h-12 w-12 items-center justify-center rounded-[var(--radius-control)] bg-desk">
-              {uploading ? <span className="spinner" /> : <UploadIcon size={22} />}
+            <IlluUpload className="h-28 w-28" />
+            <span className="t-h3 mt-4 flex items-center gap-2">
+              {uploading && <span className="spinner" />}
+              {uploading ? "نقرأ سيرتك…" : "عندي سيرة قديمة"}
             </span>
-            <span className="t-h3 mt-4 block">{uploading ? "نقرأ سيرتك…" : "عندي سيرة قديمة"}</span>
             <span className="t-small mt-1 block">
               ارفعها (PDF أو Word) ونعبّي بياناتك عنك، وأنت تراجع.
               {!signedIn && " تحتاج تسجّل دخول أول."}
@@ -403,16 +403,8 @@ export default function Wizard({ signedIn, email, editId, resume, fresh }: Wizar
           </>
         ) : (
           <div role="status" aria-live="polite">
-            <div className="paper mx-auto w-40 space-y-2 p-4" aria-hidden>
-              <div className="h-2.5 w-3/5 rounded bg-ink" />
-              <div className="h-1.5 w-4/5 rounded bg-rule" />
-              <div className="mt-3 h-1.5 w-full animate-pulse rounded bg-marker" />
-              <div className="h-1.5 w-11/12 animate-pulse rounded bg-rule [animation-delay:200ms]" />
-              <div className="h-1.5 w-4/5 animate-pulse rounded bg-rule [animation-delay:400ms]" />
-              <div className="mt-3 h-1.5 w-full animate-pulse rounded bg-rule [animation-delay:600ms]" />
-              <div className="h-1.5 w-3/4 animate-pulse rounded bg-marker [animation-delay:800ms]" />
-            </div>
-            <h1 className="t-h2 mt-8">{reading ? "نقرأ بياناتك" : "نكتب سيرتك"}</h1>
+            <IlluWriting tile="none" className="mx-auto h-48 w-48" />
+            <h1 className="t-h2 mt-4">{reading ? "نقرأ بياناتك" : "نكتب سيرتك"}</h1>
             <p className="t-body mt-2 min-h-8">
               {reading ? "نحدد الكلمات المفتاحية للوظيفة ونجهّز لك كم سؤال…" : WRITING_LINES[lineIndex]}
             </p>
@@ -427,10 +419,15 @@ export default function Wizard({ signedIn, email, editId, resume, fresh }: Wizar
     const answered = questions.filter((q) => (answers[q.id] ?? "").trim()).length;
     return (
       <div ref={topRef} className="mx-auto max-w-2xl">
-        <h1 className="t-h2">كم سؤال قبل لا نكتب</h1>
-        <p className="t-body mt-1">
-          هذي الأسئلة هي اللي تفرّق سيرتك عن غيرها. جاوب بسطر واحد، واللي ما تعرف جوابه اتركه فاضي.
-        </p>
+        <div className="flex items-start gap-4">
+          <IlluQuestions className="hidden h-24 w-24 shrink-0 sm:block" />
+          <div>
+            <h1 className="t-h2">كم سؤال قبل لا نكتب</h1>
+            <p className="t-body mt-1">
+              هذي الأسئلة هي اللي تفرّق سيرتك عن غيرها. جاوب بسطر واحد، واللي ما تعرف جوابه اتركه فاضي.
+            </p>
+          </div>
+        </div>
 
         <ol className="mt-7 space-y-5">
           {questions.map((q, i) => (

@@ -5,6 +5,7 @@ import HeroDemo from "./components/home/hero-demo";
 import Pricing from "./components/home/pricing";
 import SampleSwitcher from "./components/home/sample-switcher";
 import { ChatIcon, FileIcon, ShieldIcon, TargetIcon } from "./components/icons";
+import { IlluFiles, IlluMatch, IlluTalk } from "./components/illustrations";
 import PageShell from "./components/page-shell";
 import { PLANS } from "@/lib/pricing";
 
@@ -37,14 +38,17 @@ const DIFFERENCES = [
 
 const STEPS = [
   {
+    art: IlluTalk,
     title: "عبّي بياناتك بأسلوبك",
     body: "خمس خطوات قصيرة، وتكتب خبراتك مثل ما تسولف — حتى لو بالعامي. وإذا عندك سيرة قديمة ارفعها ونعبّي البيانات عنك.",
   },
   {
+    art: IlluMatch,
     title: "جاوب على كم سؤال",
     body: "نسألك عن الأشياء اللي تفرق في سيرتك: حجم شغلك، نتائجه، والأدوات اللي استخدمتها. كل سؤال جوابه سطر واحد.",
   },
   {
+    art: IlluFiles,
     title: "شوف سيرتك وقرّر",
     body: "تشوف المعاينة وتقرير ATS مجاناً. إذا عجبتك ادفع مرة وحدة وحمّل ملفاتك، وإذا لا ما عليك شي.",
   },
@@ -121,11 +125,16 @@ export default function HomePage() {
           <h2 className="t-h2">من أول سطر لملف جاهز في حدود عشر دقايق</h2>
           <ol className="mt-10 grid gap-8 md:grid-cols-3 md:gap-10">
             {STEPS.map((step, i) => (
-              <li key={step.title} className="relative border-t-2 border-ink pt-5">
-                <span className="text-[2.5rem] font-light leading-none text-mute" aria-hidden>
-                  {i + 1}
-                </span>
-                <h3 className="t-h3 mt-3">{step.title}</h3>
+              <li key={step.title}>
+                <div className="flex h-44 items-center justify-center rounded-[var(--radius-card)] bg-desk">
+                  <step.art tile="none" className="h-40 w-40" />
+                </div>
+                <div className="mt-5 flex items-baseline gap-3">
+                  <span className="text-[1.75rem] font-light leading-none text-mute" aria-hidden>
+                    {i + 1}
+                  </span>
+                  <h3 className="t-h3">{step.title}</h3>
+                </div>
                 <p className="t-body mt-1">{step.body}</p>
               </li>
             ))}

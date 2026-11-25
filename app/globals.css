@@ -427,6 +427,48 @@ body {
   background-position: left center;
 }
 
+/* Illustration motion — only the "writing" drawing moves. */
+@keyframes illu-draw {
+  0% {
+    stroke-dashoffset: 1;
+  }
+  18%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+.illu-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: illu-draw 3.6s ease-out infinite both;
+}
+@keyframes illu-grow {
+  0% {
+    transform: scaleX(0);
+  }
+  14%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+.illu-grow {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: illu-grow 3.6s ease-out infinite both;
+}
+@keyframes illu-pen {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-6px, 5px);
+  }
+}
+.illu-pen {
+  animation: illu-pen 1.3s ease-in-out infinite;
+}
+
 /* Moyasar form: keep it visually part of the page. */
 .mysr-form {
   font-family: var(--font-sans) !important;

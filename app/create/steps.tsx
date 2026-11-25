@@ -1,6 +1,8 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { PlusIcon, TrashIcon } from "@/app/components/icons";
+import { SpotBriefcase, SpotCap, SpotPerson, SpotSkills, SpotTarget } from "@/app/components/illustrations";
 import {
   CITIES,
   DEGREES,
@@ -26,11 +28,14 @@ export type StepProps = {
   errors: FormErrors;
 };
 
-function StepIntro({ title, lead }: { title: string; lead: string }) {
+function StepIntro({ title, lead, art }: { title: string; lead: string; art: ReactNode }) {
   return (
-    <div className="mb-7">
-      <h1 className="t-h2">{title}</h1>
-      <p className="t-body mt-1">{lead}</p>
+    <div className="mb-7 flex items-start gap-4">
+      <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[var(--radius-card)] bg-desk">{art}</span>
+      <div>
+        <h1 className="t-h2">{title}</h1>
+        <p className="t-body mt-1">{lead}</p>
+      </div>
     </div>
   );
 }
@@ -61,6 +66,7 @@ export function TargetStep({ form, update, errors }: StepProps) {
   return (
     <div>
       <StepIntro
+        art={<SpotTarget className="h-11 w-11" />}
         title="وش الوظيفة اللي تبغاها؟"
         lead="نبدأ من الهدف، عشان كل سطر في سيرتك ينكتب على مقاسه."
       />
@@ -131,7 +137,8 @@ export function PersonalStep({ form, update, errors }: StepProps) {
 
   return (
     <div>
-      <StepIntro title="بياناتك" lead="اللي يطلع في رأس السيرة عشان يتواصلون معك." />
+      <StepIntro art={<SpotPerson className="h-11 w-11" />}
+        title="بياناتك" lead="اللي يطلع في رأس السيرة عشان يتواصلون معك." />
       <div className="space-y-5">
         <TextField
           name="personal.nameAr"
@@ -245,6 +252,7 @@ export function ExperienceStep({ form, update, errors }: StepProps) {
   return (
     <div>
       <StepIntro
+        art={<SpotBriefcase className="h-11 w-11" />}
         title="سولف لنا عن خبراتك"
         lead={
           required
@@ -404,7 +412,8 @@ export function EducationStep({ form, update, errors }: StepProps) {
 
   return (
     <div>
-      <StepIntro title="تعليمك وشهاداتك" lead="المؤهل الدراسي، وأي شهادة مهنية أو دورة لها علاقة بالوظيفة." />
+      <StepIntro art={<SpotCap className="h-11 w-11" />}
+        title="تعليمك وشهاداتك" lead="المؤهل الدراسي، وأي شهادة مهنية أو دورة لها علاقة بالوظيفة." />
 
       {errors["education"] && <p className="note note-bad mb-5" role="alert">{errors["education"]}</p>}
 
@@ -509,7 +518,8 @@ export function SkillsStep({ form, update, errors }: StepProps) {
 
   return (
     <div>
-      <StepIntro title="مهاراتك" lead="الأدوات والأنظمة أهم من الصفات. «Excel» و«SAP» تنبحث، «مجتهد» ما أحد يبحث عنها." />
+      <StepIntro art={<SpotSkills className="h-11 w-11" />}
+        title="مهاراتك" lead="الأدوات والأنظمة أهم من الصفات. «Excel» و«SAP» تنبحث، «مجتهد» ما أحد يبحث عنها." />
       <div className="space-y-8">
         <TagInput
           name="skills"

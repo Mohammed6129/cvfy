@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { IlluScan } from "@/app/components/illustrations";
 import ProsePage from "@/app/components/prose-page";
 
 export const metadata: Metadata = {
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
 export default function AboutAtsPage() {
   return (
     <ProsePage
+      art={<IlluScan className="h-36 w-36" />}
       title="وش هو ATS، وليش يهمك؟"
       lead="لما تقدّم على وظيفة في شركة كبيرة، أول من «يقرأ» سيرتك غالباً برنامج مو إنسان. هذا البرنامج اسمه ATS."
     >
