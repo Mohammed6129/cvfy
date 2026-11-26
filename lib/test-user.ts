@@ -1,7 +1,9 @@
 export const TEST_USER_EMAIL = "test@cvfy.sa";
+/** Used by the preview "developer sign-in" when no service-role key is configured. */
+export const PREVIEW_TESTER_EMAIL = "preview-tester@cvfy.sa";
 
 export function isTestUserEmail(email?: string | null): boolean {
-  return email === TEST_USER_EMAIL;
+  return email === TEST_USER_EMAIL || email === PREVIEW_TESTER_EMAIL;
 }
 
 /**
